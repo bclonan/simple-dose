@@ -1,0 +1,416 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "ClearDose WebMCP call-accuracy and journey evals",
+  "source": {
+    "title": "Evals for WebMCP",
+    "url": "https://developer.chrome.com/docs/ai/webmcp/evals",
+    "reviewedAt": "2026-08-31"
+  },
+  "availableTools": [
+    "search_medications",
+    "get_medication_details",
+    "compare_fulfillment_options",
+    "select_medication_option",
+    "create_prescription_request_card",
+    "add_to_cart",
+    "view_cart",
+    "remove_cart_item",
+    "set_delivery_option",
+    "checkout_demo_order",
+    "get_order_status"
+  ],
+  "bindings": {
+    "cart-result": "add_to_cart.cartItemId"
+  },
+  "cases": [
+    {
+      "id": "direct-search-by-generic",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Search the ClearDose catalog for atorvastatin 20 mg tablets."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-read-medication-details",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Show the catalog details for medication ID med-atorvastatin."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "get_medication_details",
+          "arguments": {
+            "medicationId": "med-atorvastatin"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-view-cart",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Show my ClearDose cart summary and its first three items."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "view_cart",
+          "arguments": {}
+        }
+      ]
+    },
+    {
+      "id": "direct-order-status",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Check the current status of demo order CD-2026-0001."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "get_order_status",
+          "arguments": {
+            "orderId": "CD-2026-0001"
+          }
+        }
+      ]
+    },
+    {
+      "id": "direct-remove-cart-item",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Remove the cart item returned by the last add-to-cart call."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "remove_cart_item",
+          "arguments": {
+            "cartItemId": "cart-result"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-brand-search",
+      "category": "ambiguous",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Do you carry the generic version of Lipitor?"
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "Lipitor"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-lowest-five-day-total",
+      "category": "ambiguous",
+      "messages": [
+        {
+          "role": "user",
+          "content": "I need atorvastatin tablets, 20 mg and 90 count. Which fictional pharmacy has the lowest full price that arrives within five days?"
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "ambiguous-recompare-current-selection",
+      "category": "ambiguous",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Prices changed. Check my current medication again and tell me whether my selected option is still the cheapest delivered within five days."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          }
+        },
+        {
+          "functionName": "select_medication_option",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "maxDeliveryDays": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "wrong-order-checkout-before-cart",
+      "category": "wrong-order",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Find atorvastatin 20 mg tablets, quantity 90, choose the cheapest standard-delivery option, add it to my cart, switch to express delivery, place a demo order for Demo User at 100 Demo Street, Baltimore, MD 21201, then check its status."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          }
+        },
+        {
+          "functionName": "select_medication_option",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        },
+        {
+          "functionName": "add_to_cart",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        },
+        {
+          "functionName": "set_delivery_option",
+          "arguments": {
+            "cartItemId": "cart-result",
+            "deliveryOptionId": "express"
+          }
+        },
+        {
+          "functionName": "checkout_demo_order",
+          "arguments": {
+            "fullName": "Demo User",
+            "address": {
+              "line1": "100 Demo Street",
+              "city": "Baltimore",
+              "state": "MD",
+              "postalCode": "21201"
+            },
+            "prescriptionStatus": "provider-will-send"
+          }
+        },
+        {
+          "functionName": "get_order_status",
+          "arguments": {
+            "orderId": "CD-2026-0001"
+          }
+        }
+      ],
+      "orderingRules": [
+        {
+          "before": "compare_fulfillment_options",
+          "after": "select_medication_option"
+        },
+        {
+          "before": "select_medication_option",
+          "after": "add_to_cart"
+        },
+        {
+          "before": "add_to_cart",
+          "after": "set_delivery_option"
+        },
+        {
+          "before": "set_delivery_option",
+          "after": "checkout_demo_order"
+        },
+        {
+          "before": "checkout_demo_order",
+          "after": "get_order_status"
+        }
+      ],
+      "counterexampleCallOrder": [
+        "search_medications",
+        "compare_fulfillment_options",
+        "select_medication_option",
+        "checkout_demo_order",
+        "add_to_cart",
+        "set_delivery_option",
+        "get_order_status"
+      ]
+    },
+    {
+      "id": "multi-step-prescription-and-cart",
+      "category": "multi-step",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Find atorvastatin 20 mg tablets, quantity 90. Compare options arriving within five days, select the cheapest, prepare a prescription request for Demo Patient, add it to my cart, and show the total."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg"
+          }
+        },
+        {
+          "functionName": "get_medication_details",
+          "arguments": {
+            "medicationId": "med-atorvastatin"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          }
+        },
+        {
+          "functionName": "select_medication_option",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        },
+        {
+          "functionName": "create_prescription_request_card",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard",
+            "patientName": "Demo Patient"
+          }
+        },
+        {
+          "functionName": "add_to_cart",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        },
+        {
+          "functionName": "view_cart",
+          "arguments": {}
+        }
+      ]
+    },
+    {
+      "id": "mid-chain-unavailable-strength-recovery",
+      "category": "recovery",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Find atorvastatin 25 mg tablets, quantity 90. If that exact strength is unavailable, inspect the catalog, retry with the available 20 mg strength, and select the cheapest option arriving within five days."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "search_medications",
+          "arguments": {
+            "query": "atorvastatin",
+            "form": "tablet"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "25 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          },
+          "expectedError": "That exact medication configuration is unavailable. Call get_medication_details to read valid forms, strengths, and quantities."
+        },
+        {
+          "functionName": "get_medication_details",
+          "arguments": {
+            "medicationId": "med-atorvastatin"
+          }
+        },
+        {
+          "functionName": "compare_fulfillment_options",
+          "arguments": {
+            "medicationId": "med-atorvastatin",
+            "form": "tablet",
+            "strength": "20 mg",
+            "quantity": 90,
+            "maxDeliveryDays": 5
+          }
+        },
+        {
+          "functionName": "select_medication_option",
+          "arguments": {
+            "offerId": "offer-atorvastatin-20-90-cleardose",
+            "deliveryOptionId": "standard"
+          }
+        }
+      ]
+    }
+  ]
+}

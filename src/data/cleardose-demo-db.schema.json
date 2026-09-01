@@ -1,0 +1,493 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cleardose.demo/schemas/cleardose-demo-db.schema.json",
+  "title": "ClearDose demo medication database",
+  "description": "Schema for the fictional ClearDose catalog, fulfillment offers, and demo price scenarios.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "metadata",
+    "medications",
+    "pharmacies",
+    "skus",
+    "offers",
+    "pricingScenarios"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "medications": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "$ref": "#/$defs/medication"
+      }
+    },
+    "pharmacies": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "$ref": "#/$defs/pharmacy"
+      }
+    },
+    "skus": {
+      "type": "array",
+      "minItems": 50,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/medicationSku"
+      }
+    },
+    "offers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/medicationOffer"
+      }
+    },
+    "pricingScenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/pricingScenario"
+      }
+    }
+  },
+  "$defs": {
+    "nonNegativeMoney": {
+      "type": "number",
+      "minimum": 0
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "currency",
+        "locale",
+        "generatedFor",
+        "disclaimer",
+        "updatedAt"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currency": {
+          "const": "USD"
+        },
+        "locale": {
+          "const": "en-US"
+        },
+        "generatedFor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "disclaimer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "medication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "slug",
+        "genericName",
+        "brandNames",
+        "category",
+        "rxRequired",
+        "displaySummary",
+        "forms",
+        "strengths",
+        "quantityOptions",
+        "searchTerms"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^med-[a-z0-9-]+$"
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "genericName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "brandNames": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rxRequired": {
+          "type": "boolean"
+        },
+        "displaySummary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/medicationForm"
+          }
+        },
+        "strengths": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "quantityOptions": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "searchTerms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "medicationForm": {
+      "type": "string",
+      "enum": [
+        "tablet",
+        "capsule"
+      ]
+    },
+    "medicationSku": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "medicationId",
+        "form",
+        "strength",
+        "quantity",
+        "unit",
+        "rxRequired"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^sku-[a-z0-9-]+$"
+        },
+        "medicationId": {
+          "type": "string",
+          "pattern": "^med-[a-z0-9-]+$"
+        },
+        "form": {
+          "$ref": "#/$defs/medicationForm"
+        },
+        "strength": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "tablet",
+            "capsule"
+          ]
+        },
+        "rxRequired": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pharmacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "shortName",
+        "type",
+        "description",
+        "fulfillmentTypes",
+        "demo",
+        "demoPharmacyId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^pharmacy-[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shortName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "mail-order",
+            "community",
+            "express",
+            "hybrid"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fulfillmentTypes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "standard-delivery",
+              "express-delivery",
+              "local-pickup"
+            ]
+          }
+        },
+        "demo": {
+          "const": true
+        },
+        "demoPharmacyId": {
+          "type": "string",
+          "pattern": "^DEMO-[A-Z]+-[0-9]{3}$"
+        }
+      }
+    },
+    "priceComponents": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "medicationCost",
+        "fulfillmentFee",
+        "markup"
+      ],
+      "properties": {
+        "medicationCost": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "fulfillmentFee": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "markup": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        }
+      }
+    },
+    "priceBreakdown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "medicationCost",
+        "fulfillmentFee",
+        "markup",
+        "medicationSubtotal"
+      ],
+      "properties": {
+        "medicationCost": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "fulfillmentFee": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "markup": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "medicationSubtotal": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        }
+      },
+      "$comment": "medicationSubtotal must equal medicationCost plus fulfillmentFee plus markup. Application validation enforces this arithmetic invariant."
+    },
+    "deliveryOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label",
+        "price",
+        "estimatedMinDays",
+        "estimatedMaxDays"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "delivery",
+            "pickup"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "price": {
+          "$ref": "#/$defs/nonNegativeMoney"
+        },
+        "estimatedMinDays": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimatedMaxDays": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "medicationOffer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "skuId",
+        "pharmacyId",
+        "available",
+        "inventoryLabel",
+        "pricing",
+        "deliveryOptions",
+        "effectiveAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^offer-[a-z0-9-]+$"
+        },
+        "skuId": {
+          "type": "string",
+          "pattern": "^sku-[a-z0-9-]+$"
+        },
+        "pharmacyId": {
+          "type": "string",
+          "pattern": "^pharmacy-[a-z0-9-]+$"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "inventoryLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pricing": {
+          "$ref": "#/$defs/priceBreakdown"
+        },
+        "deliveryOptions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/deliveryOption"
+          }
+        },
+        "effectiveAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "offerPricingOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "offerId",
+        "pricing"
+      ],
+      "properties": {
+        "offerId": {
+          "type": "string",
+          "pattern": "^offer-[a-z0-9-]+$"
+        },
+        "pricing": {
+          "$ref": "#/$defs/priceComponents"
+        }
+      }
+    },
+    "pricingScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "effectiveAt",
+        "description",
+        "offerOverrides"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effectiveAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "offerOverrides": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/offerPricingOverride"
+          }
+        }
+      }
+    }
+  }
+}
