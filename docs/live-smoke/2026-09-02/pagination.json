@@ -1,0 +1,514 @@
+[
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 0,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 10,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 0,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/medicationId",
+          "value": "med-lisinopril"
+        },
+        {
+          "path": "/drugs/0/name",
+          "value": "Lisinopril"
+        },
+        {
+          "path": "/drugs/0/status",
+          "value": "cache"
+        },
+        {
+          "path": "/drugs/0/prices/0/id",
+          "value": "price-nadac-1enhjxx"
+        },
+        {
+          "path": "/drugs/0/prices/0/kind",
+          "value": "nadac-benchmark"
+        },
+        {
+          "path": "/drugs/0/prices/0/ndc",
+          "value": "68001048600"
+        },
+        {
+          "path": "/drugs/0/prices/0/amount",
+          "value": 1.38
+        },
+        {
+          "path": "/drugs/0/prices/0/currency",
+          "value": "USD"
+        },
+        {
+          "path": "/drugs/0/prices/0/basis",
+          "value": "prescription"
+        },
+        {
+          "path": "/drugs/0/prices/0/quantity",
+          "value": 30
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 10,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 20,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 10,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/0/unit",
+          "value": "EA"
+        },
+        {
+          "path": "/drugs/0/prices/0/unitAmount",
+          "value": 0.04594
+        },
+        {
+          "path": "/drugs/0/prices/0/effectiveDate",
+          "value": "2026-08-19"
+        },
+        {
+          "path": "/drugs/0/prices/0/asOfDate",
+          "value": "2026-09-02"
+        },
+        {
+          "path": "/drugs/0/prices/0/label",
+          "value": "NADAC benchmark for 30 EA"
+        },
+        {
+          "path": "/drugs/0/prices/0/consumerMeaning",
+          "value": "Estimated pharmacy acquisition benchmark; this is not the price a patient pays."
+        },
+        {
+          "path": "/drugs/0/prices/0/source/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/prices/0/source/url",
+          "value": "https://data.medicaid.gov/dataset/fbb83258-11c7-47f5-8b18-5f8e79f7e704"
+        },
+        {
+          "path": "/drugs/0/prices/0/source/retrievedAt",
+          "value": "2026-09-02T18:51:29.158Z"
+        },
+        {
+          "path": "/drugs/0/prices/0/source/datasetVersion",
+          "value": "2026"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 20,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 30,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 20,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/0/source/disclaimer",
+          "value": "NADAC is a pharmacy acquisition-cost benchmark, not a retail cash price, insured copay, or negotiated patient price."
+        },
+        {
+          "path": "/drugs/0/prices/1/id",
+          "value": "price-nadac-cmubzh"
+        },
+        {
+          "path": "/drugs/0/prices/1/kind",
+          "value": "nadac-benchmark"
+        },
+        {
+          "path": "/drugs/0/prices/1/ndc",
+          "value": "68001048608"
+        },
+        {
+          "path": "/drugs/0/prices/1/amount",
+          "value": 1.38
+        },
+        {
+          "path": "/drugs/0/prices/1/currency",
+          "value": "USD"
+        },
+        {
+          "path": "/drugs/0/prices/1/basis",
+          "value": "prescription"
+        },
+        {
+          "path": "/drugs/0/prices/1/quantity",
+          "value": 30
+        },
+        {
+          "path": "/drugs/0/prices/1/unit",
+          "value": "EA"
+        },
+        {
+          "path": "/drugs/0/prices/1/unitAmount",
+          "value": 0.04594
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 30,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 40,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 30,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/1/effectiveDate",
+          "value": "2026-08-19"
+        },
+        {
+          "path": "/drugs/0/prices/1/asOfDate",
+          "value": "2026-09-02"
+        },
+        {
+          "path": "/drugs/0/prices/1/label",
+          "value": "NADAC benchmark for 30 EA"
+        },
+        {
+          "path": "/drugs/0/prices/1/consumerMeaning",
+          "value": "Estimated pharmacy acquisition benchmark; this is not the price a patient pays."
+        },
+        {
+          "path": "/drugs/0/prices/1/source/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/prices/1/source/url",
+          "value": "https://data.medicaid.gov/dataset/fbb83258-11c7-47f5-8b18-5f8e79f7e704"
+        },
+        {
+          "path": "/drugs/0/prices/1/source/retrievedAt",
+          "value": "2026-09-02T18:51:29.158Z"
+        },
+        {
+          "path": "/drugs/0/prices/1/source/datasetVersion",
+          "value": "2026"
+        },
+        {
+          "path": "/drugs/0/prices/1/source/disclaimer",
+          "value": "NADAC is a pharmacy acquisition-cost benchmark, not a retail cash price, insured copay, or negotiated patient price."
+        },
+        {
+          "path": "/drugs/0/prices/2/id",
+          "value": "price-nadac-rdwww1"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 40,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 50,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 40,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/2/kind",
+          "value": "nadac-benchmark"
+        },
+        {
+          "path": "/drugs/0/prices/2/ndc",
+          "value": "82009006310"
+        },
+        {
+          "path": "/drugs/0/prices/2/amount",
+          "value": 0.44
+        },
+        {
+          "path": "/drugs/0/prices/2/currency",
+          "value": "USD"
+        },
+        {
+          "path": "/drugs/0/prices/2/basis",
+          "value": "prescription"
+        },
+        {
+          "path": "/drugs/0/prices/2/quantity",
+          "value": 30
+        },
+        {
+          "path": "/drugs/0/prices/2/unit",
+          "value": "EA"
+        },
+        {
+          "path": "/drugs/0/prices/2/unitAmount",
+          "value": 0.0148
+        },
+        {
+          "path": "/drugs/0/prices/2/effectiveDate",
+          "value": "2026-08-19"
+        },
+        {
+          "path": "/drugs/0/prices/2/asOfDate",
+          "value": "2026-09-02"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "prices",
+      "offset": 50,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": null,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 50,
+      "returned": 8,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/2/label",
+          "value": "NADAC benchmark for 30 EA"
+        },
+        {
+          "path": "/drugs/0/prices/2/consumerMeaning",
+          "value": "Estimated pharmacy acquisition benchmark; this is not the price a patient pays."
+        },
+        {
+          "path": "/drugs/0/prices/2/source/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/prices/2/source/url",
+          "value": "https://data.medicaid.gov/dataset/fbb83258-11c7-47f5-8b18-5f8e79f7e704"
+        },
+        {
+          "path": "/drugs/0/prices/2/source/retrievedAt",
+          "value": "2026-09-02T18:51:29.158Z"
+        },
+        {
+          "path": "/drugs/0/prices/2/source/datasetVersion",
+          "value": "2026"
+        },
+        {
+          "path": "/drugs/0/prices/2/source/disclaimer",
+          "value": "NADAC is a pharmacy acquisition-cost benchmark, not a retail cash price, insured copay, or negotiated patient price."
+        },
+        {
+          "path": "/notice",
+          "value": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or advice about suitability. FDA interaction sections are not a pairwise interaction check."
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 58
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "sources",
+      "offset": 0,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 10,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 0,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/medicationId",
+          "value": "med-lisinopril"
+        },
+        {
+          "path": "/drugs/0/name",
+          "value": "Lisinopril"
+        },
+        {
+          "path": "/drugs/0/status",
+          "value": "cache"
+        },
+        {
+          "path": "/drugs/0/sources/0/source",
+          "value": "rxnorm"
+        },
+        {
+          "path": "/drugs/0/sources/0/url",
+          "value": "https://rxnav.nlm.nih.gov/REST/rxcui/29046/properties.json"
+        },
+        {
+          "path": "/drugs/0/sources/0/retrievedAt",
+          "value": "2026-09-02T18:51:28.417Z"
+        },
+        {
+          "path": "/drugs/0/sources/1/source",
+          "value": "openfda-ndc"
+        },
+        {
+          "path": "/drugs/0/sources/1/url",
+          "value": "https://api.fda.gov/drug/ndc.json"
+        },
+        {
+          "path": "/drugs/0/sources/1/retrievedAt",
+          "value": "2026-09-02T18:51:28.877Z"
+        },
+        {
+          "path": "/drugs/0/sources/1/disclaimer",
+          "value": "NDC listing does not itself indicate FDA approval or reimbursement eligibility."
+        }
+      ],
+      "scope": "page",
+      "section": "sources",
+      "totalRows": 16
+    }
+  },
+  {
+    "input": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "medicationIds": [
+        "med-lisinopril"
+      ],
+      "scope": "page",
+      "section": "sources",
+      "offset": 10,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-71ed1bb7-9ea-3",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": null,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 10,
+      "returned": 6,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/sources/2/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/sources/2/url",
+          "value": "https://data.medicaid.gov/dataset/fbb83258-11c7-47f5-8b18-5f8e79f7e704"
+        },
+        {
+          "path": "/drugs/0/sources/2/retrievedAt",
+          "value": "2026-09-02T18:51:29.158Z"
+        },
+        {
+          "path": "/drugs/0/sources/2/datasetVersion",
+          "value": "2026"
+        },
+        {
+          "path": "/drugs/0/sources/2/disclaimer",
+          "value": "NADAC is a pharmacy acquisition-cost benchmark, not a retail cash price, insured copay, or negotiated patient price."
+        },
+        {
+          "path": "/notice",
+          "value": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or advice about suitability. FDA interaction sections are not a pairwise interaction check."
+        }
+      ],
+      "scope": "page",
+      "section": "sources",
+      "totalRows": 16
+    }
+  }
+]

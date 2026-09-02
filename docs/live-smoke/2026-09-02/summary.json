@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-02",
+  "deployment": {
+    "site": "https://cleardose-webmcp-demo.netlify.app",
+    "release": "https://6a986ef9448c0756fe7bacdc--cleardose-webmcp-demo.netlify.app",
+    "deployId": "6a986ef9448c0756fe7bacdc",
+    "logs": "https://app.netlify.com/projects/cleardose-webmcp-demo/deploys/6a986ef9448c0756fe7bacdc",
+    "isolation": "Native smoke tests used the immutable production release hostname with separate browser-local storage. The main site's saved cart was not changed.",
+    "applicationChangedDuringSmokeTest": false
+  },
+  "checks": {
+    "lockedDependencyInstall": "passed",
+    "typecheck": "passed",
+    "unitTests": "188 passed across 16 files",
+    "deterministicEvaluations": "18 passed across 3 files",
+    "browserTests": "23 passed",
+    "productionBuild": "passed",
+    "productionRouteSmoke": "8 desktop and 8 mobile routes; nested refresh; no console errors",
+    "productionLiveExplorerSmoke": "Fresh public slug restoration, reload, and Demo to Hybrid recovery passed",
+    "nativeToolCoverage": "All 19 distinct tools executed successfully. Individual screenshots, inputs, outputs and verification are in receipts.json. Two native browser connection incidents required recovery; this was not an uninterrupted error-free run.",
+    "replay": "Visible review and one-call get_order_status replay completed. See replay.json and three journey screenshots. This UI replay is separate from direct native-call coverage."
+  },
+  "liveDataObserved": {
+    "searchAndIdentity": "Jardiance resolved to a public Empagliflozin record. RxNorm clinical-drug concept 617320 resolved to the sourced Lipitor record used for FAERS.",
+    "FDA": "Product metadata and available label sections appeared through shared Drug Explorer and paged comparison tools. Missing fields remained explicit.",
+    "NADAC": "Lisinopril returned three exact-NDC benchmark quotes in public-only mode, with no fictional price entries. Full pricing pagination covered 58 rows, and source pagination covered 16 rows.",
+    "NADACExample": "NDC 68001048600: $0.04594 per EA, displayed $1.38 for 30. Effective date 2026-08-19; retrieval date 2026-09-02. This is an acquisition-cost benchmark, not a retail price, copay or patient savings.",
+    "FAERS": "The Lipitor 40 MG clinical-drug record displayed 20 reaction counts. FATIGUE 14252 and DRUG INEFFECTIVE 13192 matched the expanded page. FAERS counts do not establish incidence, causation or comparative safety.",
+    "FAERSFreshness": "Feed last_updated 2026-07-30; retrieval on 2026-09-02 does not imply the data was updated that day."
+  },
+  "fictionalWorkflowObserved": {
+    "cart": "Atorvastatin 20 mg tablet, quantity 90, plus Metformin 500 mg tablet, quantity 30. Two-line total $31.25.",
+    "delivery": "Atorvastatin changed to express delivery. Its total became $21.80 and the cart became $35.25.",
+    "savings": "$35.25 current versus $30.80 lowest exact-SKU total. Potential savings $4.45 equals $4.00 delivery difference plus $0.45 offer difference. Both savings pages read; no replacement action executed.",
+    "removalAndCheckout": "Removing atorvastatin left Metformin at $13.45. Local demo order CD-2026-0001 created with fictional recipient details; cart cleared. No money, prescription or pharmacy request transmitted.",
+    "privacy": "Order-status response excludes recipient name and address. The application call log redacts checkout fields. Evidence example inputs contain only conspicuously fictional test details."
+  },
+  "limitsAndObservations": [
+    "Two native browser connection incidents occurred: stale registration despite discovery refresh, then a configuration-limit error before a savings call. Reconnecting or resetting the browser connection and reloading the unchanged release recovered execution. Their internal cause is unresolved; see incidents.json.",
+    "The failing savings attempt produced no application receipt. The app exposed 19 tools and the observed catalog had 14 IDs. Do not infer that 33 logged calls means 33 registered tools.",
+    "A screenshot helper hit a drawer timing issue after the second add succeeded. Its bounded output was recovered from the visible receipt without repeating the mutation. Step 24 records this distinction.",
+    "Earlier full-page state screenshots contain stitching artifacts around fixed elements. Clean viewport receipt screenshots are the primary visual evidence. Later state screenshots use viewport capture.",
+    "Identity, product and clinical comparison pages were sampled. Pricing and sources pagination completed. This smoke test does not certify every medication, package, label section or public dataset record.",
+    "Related-medication step 8 combines a public-backed reference with seeded catalog metadata. Hybrid pricing step 9 includes separately labeled fictional offers. Neither should be described as entirely public data.",
+    "Medicare is disabled. No real pharmacy cash-price, stock, insurance, dispensing or prescription transmission service is connected. Commerce tools intentionally use fictional fixtures.",
+    "FAERS ingredient or brand identifiers can return no matches even when a specific clinical-drug concept returns reports. Missing matches do not establish absence of reports or safety.",
+    "NADAC lookup currently checks up to four package NDCs. Missing benchmark results do not establish that no benchmark exists for other packages.",
+    "Clinical section key names do not prove that each section contains data. FDA-labeled interaction text is not a pairwise interaction check, and catalog similarity is not therapeutic interchangeability.",
+    "Dynamic schemas include the current catalog, revision tokens and display labels. Aggregate schema size can grow with catalog size; large-catalog compatibility was not certified by this live run.",
+    "The journey UI disables replay for sequences longer than 12 calls. The one-call order-status journey passed explicit review and replay. No full checkout journey was replayed."
+  ],
+  "evidence": {
+    "gallery": "index.html",
+    "overview": "overview.html",
+    "report": "report.md",
+    "receipts": "receipts.json",
+    "initialSchemas": "initial-tool-schemas.json",
+    "pagination": "pagination.json",
+    "incidents": "incidents.json",
+    "replay": "replay.json",
+    "notes": "notes.md"
+  }
+}

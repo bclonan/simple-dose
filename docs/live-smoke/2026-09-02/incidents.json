@@ -1,0 +1,23 @@
+[
+  {
+    "time": "2026-09-02T18:55:32.334Z",
+    "area": "Native tool discovery",
+    "observation": "After several Live-mode comparison calls, calls reported stale registration even after fetchTools. No app error receipt was added. Reloading the same shareable workspace is the next recovery check.",
+    "recovery": "Recovered after reloading the shareable workspace and reconnecting the tab handle, then fetching tools again. Selected Lisinopril and pricing card restored; cached public source data remained available. Native state read succeeded."
+  },
+  {
+    "at": "2026-09-02T19:07:07.432Z",
+    "stage": "After set_delivery_option, before compare_cart_savings",
+    "error": "WebMCP is disabled for this page because the site’s WebMCP configuration exceeds supported limits. After correcting the configuration, reset NodeREPL and refresh the browser tab to retry.",
+    "executed": false,
+    "observedToolCount": 19,
+    "lastFetchedSchemaChars": 31410,
+    "pageConsoleWarningsOrErrors": [],
+    "note": "No new activity receipt appeared. Cart remains two items with expected delivery selection. App vs browser-adapter cause not established.",
+    "recovery": {
+      "at": "2026-09-02T19:08:06.807Z",
+      "action": "Reset the browser connection, reacquire tab 5, reload the same release, fetch native tools again.",
+      "result": "compare_cart_savings succeeded; persisted cart still has two items and $35.25 total. No application or deployed configuration changed."
+    }
+  }
+]
