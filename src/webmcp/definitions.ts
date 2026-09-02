@@ -313,6 +313,31 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     exampleInput: {},
   },
   {
+    name: 'compare_cart_savings',
+    title: 'Compare cart savings',
+    description:
+      'Compare each current cart line with the lowest delivered total for the same exact SKU. Use after adding one or more medications. Returns current demo-price savings and exact replacement IDs without changing the cart.',
+    category: 'pricing',
+    inputSchema: objectSchema({
+      offset: {
+        type: 'integer',
+        description: 'Zero-based cart-line offset. Defaults to 0.',
+        minimum: 0,
+        maximum: 100,
+        default: 0,
+      },
+      limit: {
+        type: 'integer',
+        description: 'Maximum savings rows to return. Defaults to 5.',
+        minimum: 1,
+        maximum: 5,
+        default: 5,
+      },
+    }),
+    annotations: readOnly,
+    exampleInput: {},
+  },
+  {
     name: 'remove_cart_item',
     title: 'Remove cart item',
     description:
@@ -765,6 +790,43 @@ const compactCartItem = (value: JsonValue): JsonValue => {
   }
 }
 
+const compactSavingsItem = (value: JsonValue): JsonValue => {
+  const item = jsonObject(value)
+  const current = jsonObject(item.current ?? null)
+  const replacement = jsonObject(item.replacement ?? null)
+  return {
+    cartItemId: item.cartItemId ?? null,
+    medication: item.medication ?? null,
+    sku: {
+      form: item.form ?? null,
+      strength: item.strength ?? null,
+      quantity: item.quantity ?? null,
+    },
+    currentTotal: item.currentTotal ?? null,
+    bestAvailableTotal: item.bestAvailableTotal ?? null,
+    potentialSavings: item.savings ?? 0,
+    comparisonAvailable: item.comparisonAvailable ?? false,
+    isLowestAvailable: item.isLowestAvailable ?? null,
+    recommendedAction: item.recommendedAction ?? null,
+    current: {
+      offerId: current.offerId ?? null,
+      deliveryOptionId: current.deliveryOptionId ?? null,
+      pharmacy: current.pharmacy ?? null,
+    },
+    replacement: item.replacement === null
+      ? null
+      : {
+          offerId: replacement.offerId ?? null,
+          deliveryOptionId: replacement.deliveryOptionId ?? null,
+          pharmacy: replacement.pharmacy ?? null,
+          estimatedDays: [
+            replacement.estimatedMinDays ?? null,
+            replacement.estimatedMaxDays ?? null,
+          ],
+        },
+  }
+}
+
 const page = (items: JsonValue[], offset: number, limit: number) => ({
   returned: Math.min(Math.max(0, items.length - offset), limit),
   truncated: offset + limit < items.length,
@@ -828,6 +890,29 @@ const compactToolOutput = (toolName: string, args: unknown, value: unknown): Jso
       readyForCheckout: output.readyForCheckout ?? false,
       checkoutRoute: output.checkoutRoute ?? '/checkout',
       checkoutRequirements: output.checkoutRequirements ?? null,
+      nextAction: output.nextAction ?? null,
+    }
+  }
+
+  if (toolName === 'compare_cart_savings') {
+    const items = jsonArray(output.items)
+    const offset = typeof input.offset === 'number' ? input.offset : 0
+    const limit = typeof input.limit === 'number' ? input.limit : 5
+    const resultPage = page(items.map(compactSavingsItem), offset, limit)
+    return {
+      itemCount: output.itemCount ?? items.length,
+      offset,
+      returned: resultPage.returned,
+      truncated: resultPage.truncated,
+      nextOffset: resultPage.nextOffset,
+      items: resultPage.items,
+      currentTotal: output.currentTotal ?? 0,
+      optimizedTotal: output.optimizedTotal ?? 0,
+      potentialSavings: output.potentialSavings ?? 0,
+      itemsWithSavings: output.itemsWithSavings ?? 0,
+      pricingScenario: output.pricingScenario ?? null,
+      effectiveAt: output.effectiveAt ?? null,
+      basis: output.basis ?? null,
       nextAction: output.nextAction ?? null,
     }
   }
@@ -969,6 +1054,12 @@ export const createClearDoseToolDefinitions = (
           return execute(descriptor.name, source, input, options, () => {
             const args = parsePageInput(input)
             return { args, output: actions.viewCart() }
+          })
+        }
+        case 'compare_cart_savings': {
+          return execute(descriptor.name, source, input, options, () => {
+            const args = parsePageInput(input)
+            return { args, output: actions.compareCartSavings() }
           })
         }
         case 'remove_cart_item': {

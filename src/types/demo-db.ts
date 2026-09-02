@@ -192,8 +192,42 @@ export interface DemoOrder {
   total: number
 }
 
+export interface AgentActivityContext {
+  route: string
+  pricingScenario: {
+    id: string
+    label: string
+    effectiveAt: string
+  }
+  selection: {
+    medicationId: string | null
+    skuId: string | null
+    offerId: string | null
+    deliveryOptionId: string | null
+    form: string | null
+    strength: string | null
+    quantity: number | null
+  }
+  cart: {
+    itemCount: number
+    itemIds: string[]
+    offerIds: string[]
+    medicationSubtotal: number
+    deliveryTotal: number
+    grandTotal: number
+  }
+  currentOrder: {
+    orderId: string
+    status: DemoOrderStatus
+    itemCount: number
+    total: number
+  } | null
+}
+
 export interface AgentActivity {
   id: string
+  journeyId: string
+  journeyTitle: string
   timestamp: string
   source: 'agent' | 'human' | 'demo'
   type: 'tool'
@@ -201,6 +235,8 @@ export interface AgentActivity {
   status: 'started' | 'success' | 'error'
   input?: unknown
   outputSummary?: unknown
+  contextBefore?: AgentActivityContext
+  contextAfter?: AgentActivityContext
   durationMs?: number
   error?: string
 }

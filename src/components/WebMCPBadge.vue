@@ -1,22 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useAgentActivityStore } from '../stores/agentActivity.store'
 import type { WebMcpRegistrationStatus } from '../stores/webmcp.store'
+import { clearDoseToolNames } from '../webmcp/definitions'
 
 const props = defineProps<{
   status: WebMcpRegistrationStatus
   count: number
+  expectedToolCount?: number
+  expanded?: boolean
 }>()
 
 const emit = defineEmits<{
   open: []
 }>()
 
+const activity = useAgentActivityStore()
 const available = computed(() =>
   props.status === 'ready' || props.status === 'ready-unverified',
 )
 const degraded = computed(() => props.status === 'degraded')
+const expectedCount = computed(() => props.expectedToolCount ?? clearDoseToolNames.length)
 const statusCopy = computed(() => {
-  if (degraded.value) return `${props.count} of 11 tools available`
+  if (degraded.value) return `${props.count} of ${expectedCount.value} tools available`
   if (available.value) return `${props.count} ${props.count === 1 ? 'tool' : 'tools'} available`
   if (props.status === 'registering') return 'Registering browser tools'
   return 'Browser tools unavailable'
@@ -29,9 +35,13 @@ const statusCopy = computed(() => {
     :class="{
       'webmcp-badge--unsupported': !available && !degraded,
       'webmcp-badge--degraded': degraded,
+      'webmcp-badge--expanded': expanded,
     }"
     type="button"
-    :aria-label="`Open WebMCP panel, ${statusCopy}`"
+    :aria-label="`Open WebMCP activity, ${statusCopy}, ${activity.entries.length} recent calls`"
+    :aria-expanded="Boolean(expanded)"
+    aria-controls="webmcp-drawer"
+    data-testid="webmcp-badge"
     @click="emit('open')"
   >
     <span class="webmcp-badge__icon" aria-hidden="true">
@@ -43,7 +53,7 @@ const statusCopy = computed(() => {
       <strong>WebMCP</strong>
       <span>
         <i aria-hidden="true"></i>
-        {{ statusCopy }}
+        {{ statusCopy }}<template v-if="activity.entries.length"> · {{ activity.entries.length }} logged</template>
       </span>
     </span>
     <svg class="webmcp-badge__chevron" aria-hidden="true" viewBox="0 0 20 20" fill="none">

@@ -1,5 +1,9 @@
 import { findExactSku } from '../domain/catalog'
-import { findLowestTotalComparison } from '../domain/pricing'
+import {
+  calculateCartSavingsTotals,
+  findLowestTotalComparison,
+  roundCurrency,
+} from '../domain/pricing'
 import type {
   DemoAddress,
   PriceComparison,
@@ -12,6 +16,7 @@ import { useOrderStore } from '../stores/order.store'
 import { usePrescriptionStore } from '../stores/prescription.store'
 import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
+import { captureWebMcpContext } from './webmcp.context'
 
 export interface SearchMedicationInput {
   query: string
@@ -305,10 +310,21 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   const addToCart = (input: SelectOptionInput) => {
     const option = optionByIds(input.offerId, input.deliveryOptionId)
     selection.selectOption(input.offerId, input.deliveryOptionId)
+    const existing = cart.items.find(
+      (candidate) => candidate.skuId === option.skuId && candidate.offerId === input.offerId,
+    )
+    const previousDeliveryOptionId = existing?.deliveryOptionId
     const item = cart.addItem(input.offerId, input.deliveryOptionId)
+    const outcome = !existing
+      ? 'added'
+      : previousDeliveryOptionId === input.deliveryOptionId
+        ? 'already-present'
+        : 'delivery-updated'
     return {
       cartItem: item,
       cartItemId: item.id,
+      outcome,
+      message: cart.feedbackMessage,
       cartCount: cart.itemCount,
       subtotal: cart.medicationSubtotal,
       delivery: cart.deliveryTotal,
@@ -356,6 +372,79 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       cart.itemCount > 0
         ? 'Call checkout_demo_order when the user wants to create the local demo order.'
         : 'Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.',
+    }
+  }
+
+  const compareCartSavings = () => {
+    if (cart.itemCount === 0) {
+      throw new Error('The cart is empty. Call add_to_cart before compare_cart_savings.')
+    }
+
+    const items = cart.detailedItems.map((line) => {
+      const bestAvailable = findLowestTotalComparison(pricing.comparisonsForSku(line.sku))
+      const savings = roundCurrency(
+        Math.max(0, line.total - (bestAvailable?.total ?? line.total)),
+      )
+      const recommendedAction = savings === 0 || !bestAvailable
+        ? { type: 'none' as const }
+        : bestAvailable.offerId === line.offer.id
+          ? {
+              type: 'set_delivery_option' as const,
+              cartItemId: line.item.id,
+              deliveryOptionId: bestAvailable.deliveryOptionId,
+            }
+          : {
+              type: 'replace_offer' as const,
+              addFirst: {
+                offerId: bestAvailable.offerId,
+                deliveryOptionId: bestAvailable.deliveryOptionId,
+              },
+              removeAfterAddSucceeds: line.item.id,
+            }
+
+      return {
+        cartItemId: line.item.id,
+        medication: line.medication.genericName,
+        skuId: line.sku.id,
+        form: line.sku.form,
+        strength: line.sku.strength,
+        quantity: line.sku.quantity,
+        currentTotal: line.total,
+        bestAvailableTotal: bestAvailable?.total ?? null,
+        savings,
+        comparisonAvailable: Boolean(bestAvailable),
+        isLowestAvailable: bestAvailable ? savings === 0 : null,
+        recommendedAction,
+        current: {
+          offerId: line.offer.id,
+          deliveryOptionId: line.delivery.id,
+          pharmacy: line.pharmacy.name,
+        },
+        replacement: bestAvailable
+          ? {
+              offerId: bestAvailable.offerId,
+              deliveryOptionId: bestAvailable.deliveryOptionId,
+              pharmacy: bestAvailable.pharmacyName,
+              estimatedMinDays: bestAvailable.estimatedMinDays,
+              estimatedMaxDays: bestAvailable.estimatedMaxDays,
+            }
+          : null,
+      }
+    })
+    const totals = calculateCartSavingsTotals(items)
+
+    return {
+      itemCount: items.length,
+      ...totals,
+      pricingScenario: pricing.scenarioLabel,
+      effectiveAt: pricing.effectiveAt,
+      basis:
+        'Current demo offers for each exact medication SKU, including its selected delivery cost. These are not retail or insurance savings.',
+      items,
+      nextAction:
+        totals.potentialSavings > 0
+          ? 'Follow each item recommendedAction. For set_delivery_option, call set_delivery_option with its cartItemId and deliveryOptionId. For replace_offer, call add_to_cart with addFirst, confirm success, then call remove_cart_item with removeAfterAddSucceeds.'
+          : 'Each cart item already uses its lowest-total current demo option.',
     }
   }
 
@@ -411,8 +500,11 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     }
     if (input.prescriptionStatus === 'request-prepared') {
       const request = prescriptions.latestRequest
-      const matchesCart = request
-        ? cart.items.some(
+      const prescriptionItems = cart.items.filter(
+        (item) => catalog.skuById(item.skuId)?.rxRequired,
+      )
+      const matchesCart = request && prescriptionItems.length === 1
+        ? prescriptionItems.every(
             (item) =>
               item.offerId === request.offerId &&
               item.deliveryOptionId === request.deliveryOptionId,
@@ -420,7 +512,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
         : false
       if (!matchesCart) {
         throw new Error(
-          'No prepared prescription request matches this cart. Call create_prescription_request_card for the selected offer, or use provider-will-send.',
+          'The prepared prescription request does not cover every prescription item in this cart. For a single prescription item, call create_prescription_request_card for its selected offer. For a multi-item cart, use provider-will-send.',
         )
       }
     }
@@ -478,6 +570,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     createPrescriptionRequestCard,
     addToCart,
     viewCart,
+    compareCartSavings,
     removeCartItem,
     setDeliveryOption,
     checkoutDemoOrder,
@@ -492,17 +585,33 @@ export const executeWithActivity = async <T>(input: {
   toolName: string
   source: 'agent' | 'demo'
   args: unknown
+  journeyId?: string
+  journeyTitle?: string
   run: () => T | Promise<T>
 }): Promise<T> => {
   const activity = useAgentActivityStore()
-  const event = activity.start(input.toolName, input.source, input.args)
+  const event = activity.start(input.toolName, input.source, input.args, {
+    journeyId: input.journeyId,
+    journeyTitle: input.journeyTitle,
+    contextBefore: captureWebMcpContext(),
+  })
   const startedAt = performance.now()
   try {
     const output = await input.run()
-    activity.succeed(event.id, output, Math.max(0, Math.round(performance.now() - startedAt)))
+    activity.succeed(
+      event.id,
+      output,
+      Math.max(0, Math.round(performance.now() - startedAt)),
+      captureWebMcpContext(),
+    )
     return output
   } catch (error) {
-    activity.fail(event.id, error, Math.max(0, Math.round(performance.now() - startedAt)))
+    activity.fail(
+      event.id,
+      error,
+      Math.max(0, Math.round(performance.now() - startedAt)),
+      captureWebMcpContext(),
+    )
     throw error
   }
 }

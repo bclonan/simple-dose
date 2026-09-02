@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useClearDoseActions } from '../services/cleardose.actions'
 import { useCartStore } from '../stores/cart.store'
 import { formatCurrency } from '../utils/format'
@@ -8,6 +8,10 @@ const cart = useCartStore()
 const actions = useClearDoseActions()
 const closeButton = ref<HTMLButtonElement | null>(null)
 let restoreFocus: HTMLElement | null = null
+
+const savings = computed(() => cart.itemCount > 0 ? actions.compareCartSavings() : null)
+const savingsFor = (cartItemId: string) =>
+  savings.value?.items.find((item) => item.cartItemId === cartItemId)
 
 const onKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape' && cart.drawerOpen) cart.closeDrawer()
@@ -61,6 +65,9 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
                 <strong>{{ formatCurrency(line.total) }}</strong>
               </div>
               <p>{{ line.pharmacy.name }}</p>
+              <p v-if="(savingsFor(line.item.id)?.savings ?? 0) > 0" class="cart-line__saving">
+                Save {{ formatCurrency(savingsFor(line.item.id)?.savings ?? 0) }} with the lowest current delivered option.
+              </p>
               <label>
                 <span>Fulfillment</span>
                 <select :value="line.delivery.id" @change="changeDelivery(line.item.id, ($event.target as HTMLSelectElement).value)">
@@ -78,7 +85,26 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
               <div class="cart-totals__grand"><dt>Total</dt><dd>{{ formatCurrency(cart.grandTotal) }}</dd></div>
             </dl>
 
-            <RouterLink class="button button--full" to="/checkout" @click="cart.closeDrawer()">Go to checkout</RouterLink>
+            <section v-if="savings" class="cart-savings" data-testid="cart-savings" aria-labelledby="cart-savings-title">
+              <div class="cart-savings__heading">
+                <div>
+                  <p class="section-kicker">Current demo offers</p>
+                  <h3 id="cart-savings-title">Cart savings check</h3>
+                </div>
+                <span>{{ savings.itemsWithSavings }} {{ savings.itemsWithSavings === 1 ? 'line' : 'lines' }} can save</span>
+              </div>
+              <dl>
+                <div><dt>Current cart</dt><dd data-testid="cart-current-total">{{ formatCurrency(savings.currentTotal) }}</dd></div>
+                <div><dt>Lowest available</dt><dd data-testid="cart-optimized-total">{{ formatCurrency(savings.optimizedTotal) }}</dd></div>
+                <div class="cart-savings__potential"><dt>Potential savings</dt><dd data-testid="cart-potential-savings">{{ formatCurrency(savings.potentialSavings) }}</dd></div>
+              </dl>
+              <p>{{ savings.basis }}</p>
+            </section>
+
+            <div class="cart-actions">
+              <RouterLink class="button button--secondary button--full" to="/medications" @click="cart.closeDrawer()">Add another medication</RouterLink>
+              <RouterLink class="button button--full" to="/checkout" @click="cart.closeDrawer()">Go to checkout</RouterLink>
+            </div>
           </div>
 
           <section v-else class="empty-state empty-state--compact">

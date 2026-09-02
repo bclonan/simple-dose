@@ -4,6 +4,7 @@ import demoDatabaseJson from '../data/cleardose-demo-db.json'
 import type { DemoDatabase, MedicationOffer, PricingScenario } from '../types/demo-db'
 import {
   applyPricingScenario,
+  calculateCartSavingsTotals,
   calculateDeliveredTotal,
   calculateMedicationSubtotal,
   compareFulfillmentOptions,
@@ -59,6 +60,20 @@ describe('pricing arithmetic', () => {
       medicationSubtotal: 11.9,
     })
     expect(offer.pricing.medicationSubtotal).toBe(12.8)
+  })
+
+  it('aggregates nonnegative cart savings with currency rounding', () => {
+    expect(calculateCartSavingsTotals([
+      { currentTotal: 18.15, bestAvailableTotal: 12.75 },
+      { currentTotal: 13.6, bestAvailableTotal: 13 },
+      { currentTotal: 9.99, bestAvailableTotal: null },
+      { currentTotal: 5, bestAvailableTotal: 6 },
+    ])).toEqual({
+      currentTotal: 46.74,
+      optimizedTotal: 40.74,
+      potentialSavings: 6,
+      itemsWithSavings: 2,
+    })
   })
 })
 

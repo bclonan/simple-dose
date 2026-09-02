@@ -12,8 +12,43 @@ import type {
 
 const CENTS_PER_DOLLAR = 100
 
+export interface CartSavingsAmount {
+  currentTotal: number
+  bestAvailableTotal: number | null
+}
+
+export interface CartSavingsTotals {
+  currentTotal: number
+  optimizedTotal: number
+  potentialSavings: number
+  itemsWithSavings: number
+}
+
 export function roundCurrency(amount: number): number {
   return Math.round((amount + Number.EPSILON) * CENTS_PER_DOLLAR) / CENTS_PER_DOLLAR
+}
+
+export function calculateCartSavingsTotals(
+  amounts: readonly CartSavingsAmount[],
+): CartSavingsTotals {
+  const currentTotal = roundCurrency(
+    amounts.reduce((sum, amount) => sum + amount.currentTotal, 0),
+  )
+  const lineSavings = amounts.map((amount) =>
+    roundCurrency(
+      Math.max(0, amount.currentTotal - (amount.bestAvailableTotal ?? amount.currentTotal)),
+    ),
+  )
+  const potentialSavings = roundCurrency(
+    lineSavings.reduce((sum, savings) => sum + savings, 0),
+  )
+
+  return {
+    currentTotal,
+    optimizedTotal: roundCurrency(currentTotal - potentialSavings),
+    potentialSavings,
+    itemsWithSavings: lineSavings.filter((savings) => savings > 0).length,
+  }
 }
 
 export function calculateMedicationSubtotal(pricing: PriceComponents): number {

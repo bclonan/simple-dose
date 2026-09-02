@@ -9,6 +9,7 @@ const readTools = new Set([
   'search_medications',
   'get_medication_details',
   'compare_fulfillment_options',
+  'compare_cart_savings',
   'view_cart',
   'get_order_status',
 ])

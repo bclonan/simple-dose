@@ -21,6 +21,9 @@ export const usePricingStore = defineStore('pricing', {
     scenarioLabel(): string {
       return this.currentScenario?.label ?? 'Current prices'
     },
+    effectiveAt(): string {
+      return this.currentScenario?.effectiveAt ?? demoDatabase.metadata.updatedAt
+    },
   },
   actions: {
     setScenario(scenarioId: string): void {

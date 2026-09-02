@@ -7,6 +7,7 @@ import ToolCard from '../components/ToolCard.vue'
 import ToolLog from '../components/ToolLog.vue'
 import WebMCPStatus from '../components/WebMCPStatus.vue'
 import { executeWithActivity, useClearDoseActions } from '../services/cleardose.actions'
+import { useAgentActivityStore } from '../stores/agentActivity.store'
 import { useCartStore } from '../stores/cart.store'
 import { useOrderStore } from '../stores/order.store'
 import { usePricingStore } from '../stores/pricing.store'
@@ -24,6 +25,7 @@ import type {
 } from '../webmcp/types'
 
 const actions = useClearDoseActions()
+const activity = useAgentActivityStore()
 const webmcp = useWebMcpStore()
 const selection = useSelectionStore()
 const pricing = usePricingStore()
@@ -57,6 +59,11 @@ const prompts = [
     title: 'Price changed',
     prompt: 'Prices changed. Recompare my selected medication and tell me whether my current fulfillment option is still the cheapest delivered within five days.',
   },
+  {
+    id: 'multi-cart-savings',
+    title: 'Two-item savings',
+    prompt: 'Add atorvastatin 20 mg and metformin 500 mg to my demo cart, then compare each exact SKU with its lowest current delivered total.',
+  },
 ]
 
 const webMcpUseCases = [
@@ -79,6 +86,11 @@ const webMcpUseCases = [
     title: 'Recover from a bad step',
     when: 'Use tools when an agent needs current IDs, valid alternatives, and one safe undo instead of retrying blindly.',
     chain: 'view_cart → set_delivery_option or remove_cart_item',
+  },
+  {
+    title: 'Check a whole cart',
+    when: 'Use tools after one or more exact medications are in the cart and the user wants current, item-level savings without changing anything.',
+    chain: 'view_cart → compare_cart_savings',
   },
 ]
 
@@ -147,6 +159,10 @@ const exampleInputFor = async (
     return { offerId: best.offerId, deliveryOptionId: best.deliveryOptionId }
   }
   if (tool.name === 'view_cart') return {}
+  if (tool.name === 'compare_cart_savings') {
+    await ensureCartItem()
+    return {}
+  }
   if (tool.name === 'remove_cart_item') {
     const line = await ensureCartItem()
     return { cartItemId: line.item.id }
@@ -238,6 +254,14 @@ const flagship = {
   maxDeliveryDays: 5,
 }
 
+const secondMedication = {
+  medicationId: 'med-metformin',
+  form: 'tablet',
+  strength: '500 mg',
+  quantity: 90,
+  maxDeliveryDays: 5,
+}
+
 const setReplaySteps = (names: Array<[string, string]>): void => {
   replaySteps.value = names.map(([name, label]) => ({ name, label, status: 'pending' }))
 }
@@ -247,6 +271,7 @@ const runReplay = async (id: string): Promise<void> => {
   activeReplay.value = id
   replayState.value = 'running'
   replayTitle.value = prompts.find((prompt) => prompt.id === id)?.title ?? 'ClearDose replay'
+  const activityJourneyId = activity.beginJourney(replayTitle.value, 'demo')
 
   try {
     if (id === 'find-compare' || id === 'prescription-request') {
@@ -313,6 +338,43 @@ const runReplay = async (id: string): Promise<void> => {
         actions.addToCart({ offerId: offerId as string, deliveryOptionId: deliveryOptionId as string }),
       )
       await runReplayStep(2, 'view_cart', {}, () => actions.viewCart())
+    } else if (id === 'multi-cart-savings') {
+      setReplaySteps([
+        ['compare_fulfillment_options', 'Compare atorvastatin fulfillment'],
+        ['add_to_cart', 'Add one atorvastatin option'],
+        ['compare_fulfillment_options', 'Compare metformin fulfillment'],
+        ['add_to_cart', 'Add one metformin option'],
+        ['compare_cart_savings', 'Compare both cart lines with current lowest totals'],
+      ])
+      const firstComparison = await runReplayStep(
+        0,
+        'compare_fulfillment_options',
+        flagship,
+        () => actions.compareFulfillmentOptions(flagship),
+      )
+      const firstOption = firstComparison.options.at(-1)
+      if (!firstOption) throw new Error('No atorvastatin option was found.')
+      await runReplayStep(1, 'add_to_cart', firstOption, () =>
+        actions.addToCart({
+          offerId: firstOption.offerId,
+          deliveryOptionId: firstOption.deliveryOptionId,
+        }),
+      )
+      const secondComparison = await runReplayStep(
+        2,
+        'compare_fulfillment_options',
+        secondMedication,
+        () => actions.compareFulfillmentOptions(secondMedication),
+      )
+      const secondOption = secondComparison.options.at(-1)
+      if (!secondOption) throw new Error('No metformin option was found.')
+      await runReplayStep(3, 'add_to_cart', secondOption, () =>
+        actions.addToCart({
+          offerId: secondOption.offerId,
+          deliveryOptionId: secondOption.deliveryOptionId,
+        }),
+      )
+      await runReplayStep(4, 'compare_cart_savings', {}, () => actions.compareCartSavings())
     } else {
       setReplaySteps([
         ['compare_fulfillment_options', 'Record the current lowest total'],
@@ -334,6 +396,7 @@ const runReplay = async (id: string): Promise<void> => {
   } catch {
     replayState.value = 'error'
   } finally {
+    activity.endJourney(activityJourneyId)
     activeReplay.value = null
   }
 }

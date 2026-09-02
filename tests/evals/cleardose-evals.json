@@ -14,6 +14,7 @@
     "create_prescription_request_card",
     "add_to_cart",
     "view_cart",
+    "compare_cart_savings",
     "remove_cart_item",
     "set_delivery_option",
     "checkout_demo_order",
@@ -73,6 +74,22 @@
       "expectedCall": [
         {
           "functionName": "view_cart",
+          "arguments": {}
+        }
+      ]
+    },
+    {
+      "id": "direct-compare-cart-savings",
+      "category": "direct",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compare my current cart cost with the lowest available delivered option for each exact medication and show any potential savings."
+        }
+      ],
+      "expectedCall": [
+        {
+          "functionName": "compare_cart_savings",
           "arguments": {}
         }
       ]

@@ -34,9 +34,40 @@ interface CartState extends Cart {
 
 const emptyCart = (): Cart => ({ items: [], updatedAt: null })
 
+const readCart = (): Cart => {
+  const stored = readStorage<Cart>(storageKeys.cart, emptyCart())
+  const mergedItems: CartItem[] = []
+  const itemIndexByOffer = new Map<string, number>()
+
+  for (const item of stored.items) {
+    const key = `${item.skuId}:${item.offerId}`
+    const existingIndex = itemIndexByOffer.get(key)
+    if (existingIndex === undefined) {
+      itemIndexByOffer.set(key, mergedItems.length)
+      mergedItems.push({ ...item })
+      continue
+    }
+
+    const existing = mergedItems[existingIndex]
+    if (existing) {
+      mergedItems[existingIndex] = {
+        ...item,
+        id: existing.id,
+        addedAt: existing.addedAt,
+      }
+    }
+  }
+
+  const normalized = { items: mergedItems, updatedAt: stored.updatedAt }
+  if (mergedItems.length !== stored.items.length) {
+    writeStorage(storageKeys.cart, normalized)
+  }
+  return normalized
+}
+
 export const useCartStore = defineStore('cart', {
   state: (): CartState => ({
-    ...readStorage<Cart>(storageKeys.cart, emptyCart()),
+    ...readCart(),
     drawerOpen: false,
     lastAddedItemId: null,
     feedbackMessage: '',
@@ -92,11 +123,19 @@ export const useCartStore = defineStore('cart', {
       if (!delivery) throw new Error('That delivery option is unavailable for this offer.')
 
       const duplicate = this.items.find(
-        (item) => item.offerId === offerId && item.deliveryOptionId === deliveryOptionId,
+        (item) => item.skuId === offer.skuId && item.offerId === offerId,
       )
       if (duplicate) {
+        const deliveryChanged = duplicate.deliveryOptionId !== deliveryOptionId
+        if (deliveryChanged) {
+          duplicate.deliveryOptionId = deliveryOptionId
+          this.updatedAt = new Date().toISOString()
+          this.persist()
+        }
         this.lastAddedItemId = duplicate.id
-        this.feedbackMessage = 'This medication is already in your cart.'
+        this.feedbackMessage = deliveryChanged
+          ? 'This medication offer is already in your cart. Delivery was updated.'
+          : 'This medication offer is already in your cart.'
         this.drawerOpen = true
         return duplicate
       }

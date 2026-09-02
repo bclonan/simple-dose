@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useWebMcpStore } from '../stores/webmcp.store'
+import { clearDoseToolNames } from '../webmcp/definitions'
 
 const webmcp = useWebMcpStore()
 const label = computed(() => {
   if (webmcp.status === 'ready') return `${webmcp.registeredToolCount} tools registered`
   if (webmcp.status === 'ready-unverified') return `${webmcp.registeredToolCount} tools registered, discovery unavailable`
-  if (webmcp.status === 'degraded') return `${webmcp.registeredToolCount} of 11 tools verified`
+  if (webmcp.status === 'degraded') return `${webmcp.registeredToolCount} of ${clearDoseToolNames.length} tools verified`
   if (webmcp.status === 'registering') return 'Registering tools'
   if (webmcp.status === 'error') return 'Tool registration failed'
   if (webmcp.status === 'unsupported') return 'WebMCP unavailable in this browser'
