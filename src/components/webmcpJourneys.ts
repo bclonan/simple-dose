@@ -22,6 +22,10 @@ const JOURNEY_GAP_MS = 2 * 60 * 1000
 export const MAX_REPLAY_CALLS = 12
 
 const writeTools = new Set([
+  'cleardose_select_drugs',
+  'cleardose_show_drug_fact',
+  'cleardose_update_fact_card',
+  'cleardose_remove_fact_card',
   'select_medication_option',
   'create_prescription_request_card',
   'add_to_cart',
@@ -33,6 +37,13 @@ const writeTools = new Set([
 const terminalTools = new Set(['checkout_demo_order', 'get_order_status'])
 
 const toolLabels: Record<string, string> = {
+  cleardose_select_drugs: 'Explorer medication selection',
+  cleardose_show_drug_fact: 'Explorer fact cards',
+  cleardose_update_fact_card: 'Explorer card change',
+  cleardose_remove_fact_card: 'Explorer card removal',
+  cleardose_get_explorer_state: 'Explorer workspace review',
+  find_related_medications: 'Related medication search',
+  compare_medications: 'Public medication comparison',
   search_medications: 'Medication search',
   get_medication_details: 'Medication details',
   compare_fulfillment_options: 'Cost comparison',
@@ -197,9 +208,9 @@ export const replayEntriesForJourney = (journey: WebMcpJourney): AgentActivity[]
   journey.entries.map((entry) => ({
     ...entry,
     input: removeRedactedValues(redactSensitive(entry.input)),
-    outputSummary: undefined,
-    contextBefore: undefined,
-    contextAfter: undefined,
+    outputSummary: redactSensitive(entry.outputSummary),
+    contextBefore: entry.contextBefore,
+    contextAfter: entry.contextAfter,
     error: undefined,
   }))
 

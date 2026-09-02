@@ -27,10 +27,13 @@ export interface Medication {
   category: string
   rxRequired: boolean
   displaySummary: string
-  forms: MedicationForm[]
+  forms: string[]
   strengths: string[]
   quantityOptions: number[]
   searchTerms: string[]
+  publicOnly?: boolean
+  publicSource?: string
+  publicSummary?: { brandNames: string[]; forms: string[]; strengths: string[] }
 }
 
 export interface MedicationSku {
@@ -193,6 +196,13 @@ export interface DemoOrder {
 }
 
 export interface AgentActivityContext {
+  explorer?: {
+    revision: string
+    selectedDrugIds: string[]
+    cards: Array<{ id: string; factType: string; drugIds: string[] }>
+  }
+  dataMode?: 'live' | 'hybrid' | 'demo'
+  catalogMedicationIds?: string[]
   route: string
   pricingScenario: {
     id: string

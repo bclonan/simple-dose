@@ -42,8 +42,8 @@ const defaultJourneyTitle = (toolName: string, source: ActivitySource): string =
   return 'Medication discovery'
 }
 
-const normalizeEntries = (entries: AgentActivity[]): AgentActivity[] =>
-  entries.map((entry) => ({
+const normalizeEntries = (entries: unknown): AgentActivity[] =>
+  (Array.isArray(entries) ? entries : []).filter((entry): entry is AgentActivity => Boolean(entry && typeof entry.id === 'string' && typeof entry.toolName === 'string' && typeof entry.timestamp === 'string' && ['started', 'success', 'error'].includes(entry.status))).slice(0, 100).map((entry) => ({
     ...entry,
     journeyId: entry.journeyId ?? `journey-${entry.id}`,
     journeyTitle: entry.journeyTitle ?? defaultJourneyTitle(entry.toolName, entry.source),
@@ -52,7 +52,7 @@ const normalizeEntries = (entries: AgentActivity[]): AgentActivity[] =>
 export const useAgentActivityStore = defineStore('agentActivity', {
   state: (): ActivityState => {
     const stored = readStorage<{ entries: AgentActivity[] }>(storageKeys.activity, { entries: [] })
-    return { entries: normalizeEntries(stored.entries), activeJourney: null }
+    return { entries: normalizeEntries(stored?.entries), activeJourney: null }
   },
   getters: {
     journeys(state): AgentActivityJourney[] {

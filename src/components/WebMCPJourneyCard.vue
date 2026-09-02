@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { AgentActivity } from '../types/demo-db'
-import { redactSensitive } from '../utils/redact'
+import { formatActivityJson as safeJson } from '../utils/redact'
 import {
   labelForTool,
   type ReplayState,
@@ -44,17 +44,6 @@ const formatDuration = (durationMs: number): string => {
   return `${(durationMs / 1000).toFixed(durationMs >= 10_000 ? 0 : 1)}s`
 }
 
-const safeJson = (value: unknown): string => {
-  const redacted = redactSensitive(value ?? {})
-  let formatted: string
-  try {
-    formatted = JSON.stringify(redacted, null, 2)
-  } catch {
-    formatted = '{\n  "context": "unavailable"\n}'
-  }
-  if (formatted.length <= 1200) return formatted
-  return `${formatted.slice(0, 1200)}\n... [bounded at 1,200 characters]`
-}
 
 const replayStepStatus = (
   index: number,

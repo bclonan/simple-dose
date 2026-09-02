@@ -13,10 +13,19 @@ async function addSelectedOffer(
   page: Page,
   medicationSlug: string,
   offerTestId: string,
+  configuration: { strength: string; quantity: number },
 ): Promise<void> {
   await page.goto(`/medications/${medicationSlug}`)
+  const strength = page.getByTestId(`strength-${configuration.strength.replaceAll(' ', '-')}`)
+  const quantity = page.getByTestId(`quantity-${configuration.quantity}`)
+  await strength.click()
+  await quantity.click()
+  await expect(strength).toHaveAttribute('aria-pressed', 'true')
+  await expect(quantity).toHaveAttribute('aria-pressed', 'true')
   const offer = page.getByTestId(offerTestId)
   await offer.getByRole('button', { name: 'Select option' }).click()
+  await expect(offer.getByRole('button', { name: 'Selected', exact: true })).toBeVisible()
+  await expect(page).toHaveURL(new RegExp(`/medications/${medicationSlug}$`))
   await page.getByTestId('add-selected-to-cart').click()
   await expect(page.getByTestId('cart-drawer')).toBeVisible()
 }
@@ -28,13 +37,15 @@ test('two medications keep independent lines, aggregate savings, and one order t
     page,
     'atorvastatin',
     'offer-offer-atorvastatin-10-30-partnerrx:express',
+    { strength: '10 mg', quantity: 30 },
   )
-  await page.getByRole('button', { name: 'Close cart' }).click()
+  await page.getByTestId('cart-drawer').getByRole('dialog').getByRole('button', { name: 'Close cart' }).click()
 
   await addSelectedOffer(
     page,
     'metformin',
     'offer-offer-metformin-500-30-communityrx:pickup',
+    { strength: '500 mg', quantity: 30 },
   )
 
   const drawer = page.getByTestId('cart-drawer')
@@ -109,7 +120,11 @@ test('the floating WebMCP panel replays a reviewed journey and keeps its context
   await expect(drawer.locator('.tool-log-entry')).toHaveCount(6)
   await expect(drawer).toContainText('Inspect redacted context')
 
-  await drawer.getByRole('button', { name: 'Close WebMCP activity' }).click()
+  await drawer.getByRole('dialog').getByRole('button', { name: 'Close WebMCP activity' }).click()
+  await expect(page).toHaveURL(/\/compare$/)
+  await expect(page.locator('.comparison-identity')).toContainText('Atorvastatin')
+  await expect(page.locator('.comparison-identity')).toContainText('20 mg')
+  await expect(page.locator('.comparison-identity')).toContainText('90 count')
   await page.reload()
   await page.getByTestId('webmcp-badge').click()
   await expect(page.getByTestId('webmcp-drawer').getByTestId('webmcp-journey')).toHaveCount(2)
@@ -123,8 +138,9 @@ test('checkout calls are redacted in the log and cannot be replayed', async ({ p
     page,
     'atorvastatin',
     'offer-offer-atorvastatin-10-30-cleardose:standard',
+    { strength: '10 mg', quantity: 30 },
   )
-  await page.getByRole('button', { name: 'Close cart' }).click()
+  await page.getByTestId('cart-drawer').getByRole('dialog').getByRole('button', { name: 'Close cart' }).click()
   await page.goto('/webmcp')
 
   const checkoutTool = page.getByTestId('tool-card-checkout_demo_order')
@@ -134,8 +150,9 @@ test('checkout calls are redacted in the log and cannot be replayed', async ({ p
   await page.getByTestId('webmcp-badge').click()
   const drawer = page.getByTestId('webmcp-drawer')
   const checkoutJourney = drawer.getByTestId('webmcp-journey').filter({
-    has: page.getByRole('heading', { name: 'Demo checkout' }),
+    has: page.getByText('checkout_demo_order', { exact: true }),
   })
+  await expect(checkoutJourney).toHaveCount(1)
   await expect(checkoutJourney).toBeVisible()
   await expect(checkoutJourney).toContainText('Checkout stays human-controlled')
   await expect(checkoutJourney.getByRole('button', { name: 'Review replay' })).toBeDisabled()

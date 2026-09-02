@@ -76,6 +76,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   const orders = useOrderStore()
 
   const optionByIds = (offerId: string, deliveryOptionId: string): PriceComparison => {
+    if (catalog.dataMode === 'live') throw new Error('Live mode has no verified retail offers. Switch to hybrid or demo mode to use fictional checkout.')
     const offer = catalog.offers.find((candidate) => candidate.id === offerId)
     if (!offer?.available) {
       throw new Error(
@@ -104,7 +105,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
 
   const searchMedications = async (input: SearchMedicationInput) => {
     const query = input.query.trim()
-    const results = catalog.search(query, {
+    const results = await catalog.search(query, {
       form: input.form,
       strength: input.strength,
     })
@@ -123,7 +124,8 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
         category: medication.category,
         forms: medication.forms,
         strengths: medication.strengths,
-        rxRequired: medication.rxRequired,
+        rxRequired: medication.publicOnly ? null : medication.rxRequired,
+        source: medication.publicSource ?? 'demo',
       })),
       route: '/medications',
       nextAction:
@@ -135,11 +137,13 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     return output
   }
 
-  const getMedicationDetails = (input: { medicationId: string }) => {
+  const getMedicationDetails = async (input: { medicationId: string }) => {
     const medication = catalog.medicationById(requireString(input.medicationId, 'Medication ID'))
     if (!medication) {
       throw new Error('Medication was not found. Call search_medications to get a current medicationId.')
     }
+    await catalog.loadMedication(medication.id)
+    const record = catalog.publicRecords[medication.id]
     return {
       medicationId: medication.id,
       genericName: medication.genericName,
@@ -147,8 +151,12 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       forms: medication.forms,
       strengths: medication.strengths,
       quantities: medication.quantityOptions,
-      prescriptionRequired: medication.rxRequired,
+      prescriptionRequired: medication.publicOnly ? null : medication.rxRequired,
       availableSkuCount: catalog.skusForMedication(medication.id).length,
+      dataStatus: record?.status ?? 'unavailable',
+      sources: record?.drug?.sources.map(source => source.source) ?? [],
+      clinicalSections: record?.drug?.clinical ? Object.keys(record.drug.clinical) : [],
+      nextAction: 'Use compare_medications to read paged public details and compare current catalog entries. Public benchmarks are not checkout offers.',
     }
   }
 
@@ -187,6 +195,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   }
 
   const compareFulfillmentOptions = async (input: CompareOptionsInput) => {
+    if (catalog.dataMode === 'live') throw new Error('Live retail pricing is unavailable. Hybrid and demo modes retain labeled fictional fulfillment.')
     const exact = resolveExactMedication(input)
     const medication = catalog.medicationById(exact.medicationId)
     if (!medication) {
@@ -495,6 +504,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   }
 
   const checkoutDemoOrder = async (input: CheckoutDemoOrderInput) => {
+    if (catalog.dataMode === 'live') throw new Error('Demo checkout is disabled in live mode.')
     if (cart.itemCount === 0) {
       throw new Error('The cart is empty. Call add_to_cart before checkout_demo_order.')
     }

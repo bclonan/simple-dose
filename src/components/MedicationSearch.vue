@@ -29,6 +29,7 @@ const emit = defineEmits<{
 const catalogStore = useCatalogStore()
 const clearDoseActions = useClearDoseActions()
 const inputId = useId()
+const searchError = ref('')
 const internalQuery = ref(props.modelValue ?? catalogStore.searchQuery)
 const query = computed({
   get: () => props.modelValue ?? internalQuery.value,
@@ -52,10 +53,16 @@ watch(
   },
 )
 
-const submitSearch = (): void => {
+const submitSearch = async (): Promise<void> => {
+  if (catalogStore.searchLoading) return
   const submittedQuery = query.value.trim()
-  clearDoseActions.searchMedications({ query: submittedQuery })
-  emit('search', submittedQuery)
+  searchError.value = ''
+  try {
+    await clearDoseActions.searchMedications({ query: submittedQuery })
+    emit('search', submittedQuery)
+  } catch {
+    searchError.value = 'Search could not complete. Try again, or use the cached catalog in hybrid mode.'
+  }
 }
 </script>
 
@@ -64,6 +71,7 @@ const submitSearch = (): void => {
     class="medication-search"
     :class="{ 'medication-search--compact': compact }"
     role="search"
+    :aria-busy="catalogStore.searchLoading"
     @submit.prevent="submitSearch"
   >
     <label class="sr-only" :for="inputId">{{ label }}</label>
@@ -89,11 +97,12 @@ const submitSearch = (): void => {
         :required="required"
       />
     </div>
-    <button class="button button--primary medication-search__button" type="submit">
-      {{ buttonLabel }}
+    <button class="button button--primary medication-search__button" type="submit" :disabled="catalogStore.searchLoading">
+      {{ catalogStore.searchLoading ? 'Searching...' : buttonLabel }}
       <svg aria-hidden="true" viewBox="0 0 20 20" fill="none">
         <path d="M4 10h12m-4.5-4.5L16 10l-4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
   </form>
+  <p v-if="searchError" class="error-banner" role="alert">{{ searchError }}</p>
 </template>

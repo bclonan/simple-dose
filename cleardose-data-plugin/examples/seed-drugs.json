@@ -1,0 +1,14 @@
+[
+  {"drug":"Atorvastatin","category":"cholesterol"},
+  {"drug":"Metformin","category":"diabetes"},
+  {"drug":"Lisinopril","category":"blood-pressure"},
+  {"drug":"Amlodipine","category":"blood-pressure"},
+  {"drug":"Sertraline","category":"mental-health"},
+  {"drug":"Escitalopram","category":"mental-health"},
+  {"drug":"Omeprazole","category":"digestive-health"},
+  {"drug":"Gabapentin","category":"nerve-pain"},
+  {"drug":"Losartan","category":"blood-pressure"},
+  {"drug":"Levothyroxine","category":"thyroid"},
+  {"drug":"Rosuvastatin","category":"cholesterol"},
+  {"drug":"Fluoxetine","category":"mental-health"}
+]

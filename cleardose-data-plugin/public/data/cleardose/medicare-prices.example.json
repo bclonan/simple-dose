@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-09-02T00:00:00Z",
+  "release": "2026-Q2",
+  "prices": [
+    {
+      "ndc": "00000000000",
+      "contractId": "S0000",
+      "planId": "001",
+      "segmentId": "000",
+      "planName": "Example only",
+      "daysSupply": 30,
+      "unitCost": 0.25
+    }
+  ]
+}

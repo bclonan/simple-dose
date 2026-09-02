@@ -55,6 +55,7 @@ html {
   min-width: 320px;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--cd-header-height) + 24px);
+  scroll-padding-bottom: calc(max(20px, env(safe-area-inset-bottom)) + 76px);
   background: var(--cd-background);
 }
 
@@ -2411,7 +2412,7 @@ h3 {
 .sticky-actions {
   position: sticky;
   z-index: 30;
-  bottom: 18px;
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 76px);
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -2519,6 +2520,7 @@ h3 {
 }
 
 .comparison-table-wrap {
+  position: relative;
   max-width: 100%;
   overflow-x: auto;
   background: var(--cd-surface);

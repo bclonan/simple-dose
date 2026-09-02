@@ -144,8 +144,8 @@ describe('ClearDose WebMCP registration', () => {
       expect(tool.annotations).toMatchObject({
         readOnlyHint: readOnlyNames.has(tool.name),
         destructiveHint: destructiveNames.has(tool.name),
-        openWorldHint: false,
-        untrustedContentHint: false,
+        openWorldHint: ['search_medications', 'get_medication_details'].includes(tool.name),
+        untrustedContentHint: ['search_medications', 'get_medication_details'].includes(tool.name),
       })
       expect(tool.title).not.toBe('')
       expect(tool.description.length).toBeGreaterThan(30)

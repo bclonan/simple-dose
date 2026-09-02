@@ -7,6 +7,7 @@ export type JsonValue =
 
 export interface JsonSchema {
   type: 'object' | 'array' | 'string' | 'number' | 'integer' | 'boolean'
+  title?: string
   description?: string
   properties?: Record<string, JsonSchema>
   required?: string[]
@@ -14,6 +15,7 @@ export interface JsonSchema {
   items?: JsonSchema
   enum?: JsonPrimitive[]
   const?: JsonPrimitive
+  oneOf?: JsonSchema[]
   default?: JsonValue
   examples?: JsonValue[]
   format?: string

@@ -1,9 +1,11 @@
-import { demoDatabase } from '../data'
+import { demoCatalog as demoDatabase } from '../plugins/cleardose'
+import { useCatalogStore } from '../stores/catalog.store'
 import type { AgentActivityContext } from '../types/demo-db'
 import { useCartStore } from '../stores/cart.store'
 import { useOrderStore } from '../stores/order.store'
 import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
+import { useDrugExplorerStore } from '../stores/drugExplorer.store'
 
 export const captureWebMcpContext = (): AgentActivityContext => {
   const cart = useCartStore()
@@ -11,9 +13,18 @@ export const captureWebMcpContext = (): AgentActivityContext => {
   const pricing = usePricingStore()
   const selection = useSelectionStore()
   const currentOrder = orders.currentOrder
+  const catalog = useCatalogStore()
+  const explorer = useDrugExplorerStore()
 
   return {
     route: typeof window === 'undefined' ? '/' : window.location.pathname,
+    dataMode: catalog.dataMode,
+    catalogMedicationIds: catalog.medications.map(item => item.id),
+    explorer: {
+      revision: explorer.revision,
+      selectedDrugIds: [...explorer.selectedDrugIds],
+      cards: explorer.cards.map(card => ({ ...card, drugIds: [...card.drugIds] })),
+    },
     pricingScenario: {
       id: pricing.scenarioId,
       label: pricing.scenarioLabel,

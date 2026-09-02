@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import AppDisclaimer from './components/AppDisclaimer.vue'
 import AppHeader from './components/AppHeader.vue'
 import CartDrawer from './components/CartDrawer.vue'
 import WebMCPBadge from './components/WebMCPBadge.vue'
 import WebMCPDrawer from './components/WebMCPDrawer.vue'
 import { MAX_REPLAY_CALLS, type ReplayState } from './components/webmcpJourneys'
-import { router } from './router'
 import { useClearDoseActions } from './services/cleardose.actions'
 import { useAgentActivityStore } from './stores/agentActivity.store'
+import { useCatalogStore } from './stores/catalog.store'
 import { useWebMcpStore } from './stores/webmcp.store'
 import type { AgentActivity } from './types/demo-db'
 import {
@@ -16,20 +17,35 @@ import {
   createClearDoseToolDefinitions,
 } from './webmcp/definitions'
 import { registerClearDoseTools, type ClearDoseToolRegistration } from './webmcp/register'
+import { createDynamicMedicationTools, registerDynamicMedicationTools, type DynamicMedicationRegistration, type DynamicMedicationSnapshot } from './webmcp/dynamic'
+import { useMedicationToolDependencies } from './webmcp/medication-context'
+import { prepareExplorerReplayInput, prepareReplayInput, validateReplayDataModes } from './webmcp/replay'
+import { getModelContext } from './webmcp/support'
+import { useExplorerRoute } from './composables/useExplorerRoute'
+import { useExplorerToolDependencies } from './webmcp/explorer-context'
+import { createExplorerTools } from './webmcp/explorer'
 
 const webmcp = useWebMcpStore()
+const router = useRouter()
 const activity = useAgentActivityStore()
+const catalog = useCatalogStore()
+const explorerRoute = useExplorerRoute()
+const explorerDependencies = useExplorerToolDependencies(explorerRoute.reveal)
+const medicationDependencies = useMedicationToolDependencies()
+const dynamicDefinitions = computed(() => [...createDynamicMedicationTools(medicationDependencies), ...createExplorerTools(explorerDependencies)])
+const expectedToolCount = computed(() => clearDoseToolCatalog.length + dynamicDefinitions.value.length)
 const webmcpDrawerOpen = ref(false)
 const replayState = ref<ReplayState>('idle')
 const activeReplayEntryId = ref<string | null>(null)
 const activeReplayJourneyId = ref<string | null>(null)
 const replayError = ref<string | null>(null)
 let registration: ClearDoseToolRegistration | undefined
+let dynamicRegistration: DynamicMedicationRegistration | undefined
 let unmounted = false
 
 const replayActions = useClearDoseActions({ navigate: (path) => router.push(path) })
-const replayDefinitions = new Map(
-  createClearDoseToolDefinitions(replayActions, 'demo').map((definition) => [
+const replayDefinitions = (snapshot: DynamicMedicationSnapshot) => new Map(
+  [...createClearDoseToolDefinitions(replayActions, 'demo'), ...createDynamicMedicationTools(medicationDependencies, 'demo', snapshot), ...createExplorerTools(explorerDependencies, 'demo')].map((definition) => [
     definition.name,
     definition,
   ]),
@@ -65,11 +81,22 @@ const replayJourney = async (entries: AgentActivity[]): Promise<void> => {
   replayState.value = 'running'
 
   try {
+    const cartIdMap = new Map<string, string>()
+    validateReplayDataModes(chronological, catalog.dataMode)
     for (const entry of chronological) {
       activeReplayEntryId.value = entry.id
-      const definition = replayDefinitions.get(entry.toolName)
+      const snapshot = medicationDependencies.getSnapshot()
+      const args = prepareExplorerReplayInput(entry, explorerDependencies.snapshot(), prepareReplayInput(entry, snapshot))
+      const definition = replayDefinitions(snapshot).get(entry.toolName)
       if (!definition) throw new Error(`${entry.toolName} is no longer registered.`)
-      await definition.execute(entry.input ?? {})
+      if (typeof args.cartItemId === 'string' && cartIdMap.has(args.cartItemId)) args.cartItemId = cartIdMap.get(args.cartItemId)
+      const output = await definition.execute(args)
+      if (entry.toolName === 'add_to_cart') {
+        const oldId = (entry.outputSummary as Record<string, unknown> | undefined)?.cartItemId
+        const newId = (output as Record<string, unknown>)?.cartItemId
+        if (typeof oldId === 'string' && typeof newId === 'string') cartIdMap.set(oldId, newId)
+      }
+      await new Promise(resolve => window.setTimeout(resolve, 180))
     }
     replayState.value = 'complete'
   } catch (error) {
@@ -83,14 +110,39 @@ const replayJourney = async (entries: AgentActivity[]): Promise<void> => {
 onMounted(async () => {
   const nextRegistration = await registerClearDoseTools({
     navigate: (path) => router.push(path),
+    extraExpectedNames: () => dynamicDefinitions.value.map(tool => tool.name),
   })
   if (unmounted) nextRegistration.dispose()
   else registration = nextRegistration
+  const context = getModelContext()
+  if (!unmounted && context) {
+    try {
+      const nextDynamic = await registerDynamicMedicationTools({ context, dependencies: medicationDependencies,
+        extraDefinitions: () => createExplorerTools(explorerDependencies),
+        onChanged: state => {
+          const names = [...webmcp.registeredToolNames.filter(name => clearDoseToolCatalog.some(tool => tool.name === name)), ...state.registeredNames]
+          const missing = [...clearDoseToolCatalog.map(tool => tool.name), ...state.expectedNames].filter(name => !names.includes(name))
+          if (missing.length) webmcp.setDegraded(names, missing)
+          else webmcp.setRegistered(names, state.verified)
+        }, onError: error => webmcp.setError(error),
+      })
+      if (unmounted) nextDynamic.dispose()
+      else {
+        dynamicRegistration = nextDynamic
+        await nextDynamic.refresh()
+      }
+    } catch (error) { webmcp.setError(error) }
+  }
+})
+
+watch(() => [medicationDependencies.getSnapshot().revision, JSON.stringify(explorerDependencies.snapshot())], () => {
+  void dynamicRegistration?.refresh().catch(error => webmcp.setError(error))
 })
 
 onBeforeUnmount(() => {
   unmounted = true
   registration?.dispose()
+  dynamicRegistration?.dispose()
 })
 </script>
 
@@ -103,13 +155,13 @@ onBeforeUnmount(() => {
     <WebMCPBadge
       :status="webmcp.status"
       :count="webmcp.registeredToolCount"
-      :expected-tool-count="clearDoseToolCatalog.length"
+      :expected-tool-count="expectedToolCount"
       :expanded="webmcpDrawerOpen"
       @open="webmcpDrawerOpen = true"
     />
     <WebMCPDrawer
       :open="webmcpDrawerOpen"
-      :expected-tool-count="clearDoseToolCatalog.length"
+      :expected-tool-count="expectedToolCount"
       :replay-state="replayState"
       :active-replay-entry-id="activeReplayEntryId"
       :active-replay-journey-id="activeReplayJourneyId"

@@ -38,7 +38,7 @@ test('human purchase journey reaches a local order confirmation', async ({ page 
 
   await page.getByRole('link', { name: 'View medication' }).click()
   await expect(page).toHaveURL(/\/medications\/atorvastatin$/)
-  await expect(page.getByRole('heading', { name: 'Atorvastatin', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Atorvastatin', exact: true, level: 1 })).toBeVisible()
   await chooseFlagshipMedication(page)
 
   await page.getByRole('button', { name: 'Compare all options' }).click()
@@ -92,7 +92,7 @@ test('Agent Lab copies a prompt, replays real actions, and clears its log', asyn
   await expect(
     page.getByRole('heading', { name: 'See exactly what an agent can do inside ClearDose.' }),
   ).toBeVisible()
-  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(12)
+  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(19)
   await expect(page.getByRole('heading', { name: 'When WebMCP earns a place' })).toBeVisible()
 
   const promptCard = page.getByTestId('prompt-find-compare')
@@ -151,7 +151,7 @@ test('the app remains usable when WebMCP is unavailable', async ({ page }) => {
   await page.goto('/webmcp')
   await expect(page.getByText('WebMCP unavailable in this browser', { exact: true })).toBeVisible()
   await expect(page.getByText('The ClearDose site remains fully functional.')).toBeVisible()
-  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(12)
+  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(19)
 
   await page.getByRole('link', { name: 'ClearDose home' }).click()
   await page
@@ -161,7 +161,7 @@ test('the app remains usable when WebMCP is unavailable', async ({ page }) => {
   await expect(page).toHaveURL(/\/medications$/)
   await expect(page.getByText('1 match for "metformin"')).toBeVisible()
   await page.getByRole('link', { name: 'View medication' }).click()
-  await expect(page.getByRole('heading', { name: 'Metformin', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Metformin', exact: true, level: 1 })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fulfillment options' })).toBeVisible()
   expect(runtimeErrors).toEqual([])
 })

@@ -9,6 +9,7 @@ import WebMCPStatus from '../components/WebMCPStatus.vue'
 import { executeWithActivity, useClearDoseActions } from '../services/cleardose.actions'
 import { useAgentActivityStore } from '../stores/agentActivity.store'
 import { useCartStore } from '../stores/cart.store'
+import { useCatalogStore } from '../stores/catalog.store'
 import { useOrderStore } from '../stores/order.store'
 import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
@@ -18,6 +19,10 @@ import {
   createClearDoseToolDefinitions,
 } from '../webmcp/definitions'
 import { executeTool, getModelContext } from '../webmcp/support'
+import { createDynamicMedicationTools } from '../webmcp/dynamic'
+import { useMedicationToolDependencies } from '../webmcp/medication-context'
+import { useExplorerToolDependencies } from '../webmcp/explorer-context'
+import { createExplorerTools } from '../webmcp/explorer'
 import type {
   ClearDoseToolCategory,
   ClearDoseToolDescriptor,
@@ -30,7 +35,11 @@ const webmcp = useWebMcpStore()
 const selection = useSelectionStore()
 const pricing = usePricingStore()
 const cart = useCartStore()
+const catalog = useCatalogStore()
 const orders = useOrderStore()
+const medicationDependencies = useMedicationToolDependencies()
+const explorerDependencies = useExplorerToolDependencies()
+const allTools = computed(() => [...clearDoseToolCatalog, ...createDynamicMedicationTools(medicationDependencies, 'demo'), ...createExplorerTools(explorerDependencies, 'demo')])
 const copyStatus = ref('')
 const runningTool = ref<string | null>(null)
 const activeReplay = ref<string | null>(null)
@@ -39,6 +48,10 @@ const replayTitle = ref('')
 const replaySteps = ref<ReplayStep[]>([])
 
 const prompts = [
+  {
+    id: 'drug-explorer', title: 'Drug fact workspace',
+    prompt: 'Compare Metformin and Jardiance in Drug Explorer. Show side effects and public pricing. Then only show their FDA-labeled interactions.',
+  },
   {
     id: 'find-compare',
     title: 'Find + compare',
@@ -67,6 +80,11 @@ const prompts = [
 ]
 
 const webMcpUseCases = [
+  {
+    title: 'Build a shared fact workspace',
+    when: 'Use workspace tools when the user wants to select medications, show facts, or change the comparison they see. Read current state before editing an existing card.',
+    chain: 'cleardose_select_drugs → cleardose_show_drug_fact → cleardose_update_fact_card',
+  },
   {
     title: 'Find exact catalog facts',
     when: 'Use tools when a user names a medication, brand, form, or strength and the agent needs structured catalog IDs.',
@@ -113,11 +131,11 @@ const categories: { id: ClearDoseToolCategory; label: string; description: strin
 const groupedTools = computed(() =>
   categories.map((category) => ({
     ...category,
-    tools: clearDoseToolCatalog.filter((tool) => tool.category === category.id),
+    tools: allTools.value.filter((tool) => tool.category === category.id),
   })),
 )
 
-const fallbackDefinitions = computed(() => createClearDoseToolDefinitions(actions, 'demo'))
+const fallbackDefinitions = computed(() => [...createClearDoseToolDefinitions(actions, 'demo'), ...createDynamicMedicationTools(medicationDependencies, 'demo'), ...createExplorerTools(explorerDependencies, 'demo')])
 
 const lowestFlagshipOption = async () => {
   const comparison = await actions.compareFulfillmentOptions(flagship)
@@ -267,7 +285,9 @@ const setReplaySteps = (names: Array<[string, string]>): void => {
 }
 
 const runReplay = async (id: string): Promise<void> => {
+  if (id === 'drug-explorer') return
   if (activeReplay.value) return
+  catalog.setDataMode('demo')
   activeReplay.value = id
   replayState.value = 'running'
   replayTitle.value = prompts.find((prompt) => prompt.id === id)?.title ?? 'ClearDose replay'
@@ -301,13 +321,13 @@ const runReplay = async (id: string): Promise<void> => {
       if (id === 'prescription-request') {
         const best = comparison.options.find((option) => option.optionId === comparison.lowestTotalOptionId)
         if (!best) throw new Error('No eligible fulfillment option was found.')
-        await runReplayStep(3, 'select_medication_option', best, () =>
+        await runReplayStep(3, 'select_medication_option', { offerId: best.offerId, deliveryOptionId: best.deliveryOptionId }, () =>
           actions.selectMedicationOption({
             offerId: best.offerId,
             deliveryOptionId: best.deliveryOptionId,
           }),
         )
-        await runReplayStep(4, 'create_prescription_request_card', best, () =>
+        await runReplayStep(4, 'create_prescription_request_card', { offerId: best.offerId, deliveryOptionId: best.deliveryOptionId }, () =>
           actions.createPrescriptionRequestCard({
             offerId: best.offerId,
             deliveryOptionId: best.deliveryOptionId,
@@ -354,7 +374,7 @@ const runReplay = async (id: string): Promise<void> => {
       )
       const firstOption = firstComparison.options.at(-1)
       if (!firstOption) throw new Error('No atorvastatin option was found.')
-      await runReplayStep(1, 'add_to_cart', firstOption, () =>
+      await runReplayStep(1, 'add_to_cart', { offerId: firstOption.offerId, deliveryOptionId: firstOption.deliveryOptionId }, () =>
         actions.addToCart({
           offerId: firstOption.offerId,
           deliveryOptionId: firstOption.deliveryOptionId,
@@ -368,7 +388,7 @@ const runReplay = async (id: string): Promise<void> => {
       )
       const secondOption = secondComparison.options.at(-1)
       if (!secondOption) throw new Error('No metformin option was found.')
-      await runReplayStep(3, 'add_to_cart', secondOption, () =>
+      await runReplayStep(3, 'add_to_cart', { offerId: secondOption.offerId, deliveryOptionId: secondOption.deliveryOptionId }, () =>
         actions.addToCart({
           offerId: secondOption.offerId,
           deliveryOptionId: secondOption.deliveryOptionId,
@@ -438,6 +458,7 @@ const resetReplay = (): void => {
             :key="prompt.id"
             v-bind="prompt"
             :running="activeReplay === prompt.id"
+            :copy-only="prompt.id === 'drug-explorer'"
             @copy="copyPrompt"
             @replay="runReplay"
           />
@@ -490,7 +511,7 @@ const resetReplay = (): void => {
         <section class="tools-explorer" aria-labelledby="registered-tools-title">
           <div class="section-heading">
             <p class="section-kicker">Registered tools</p>
-            <h2 id="registered-tools-title">{{ clearDoseToolCatalog.length }} focused capabilities</h2>
+            <h2 id="registered-tools-title">{{ allTools.length }} focused capabilities</h2>
             <p>The schemas are visible here, and each example really runs. Read tools inspect local state. State and write tools update the same data shown in the interface.</p>
           </div>
 

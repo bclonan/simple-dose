@@ -1,0 +1,358 @@
+import { drugFactRegistry, drugFactTypes, type DrugFactType } from '../domain/drug-facts'
+import { executeWithActivity } from '../services/cleardose.actions'
+import type { ClearDoseToolDefinition, JsonSchema, JsonValue, WebMcpExecutionOptions } from './types'
+
+export type AppToolDefinition = ClearDoseToolDefinition
+export type ExplorerSelectionMode = 'replace' | 'add' | 'remove'
+export type ExplorerFactMode = 'replace' | 'add'
+
+export interface ExplorerDrugIdentity {
+  id: string
+  name: string
+}
+
+export interface ExplorerFactCard {
+  id: string
+  factType: DrugFactType
+  drugIds: string[]
+}
+
+export interface ExplorerWorkspaceSnapshot {
+  revision: string
+  selectedDrugs: ExplorerDrugIdentity[]
+  cards: ExplorerFactCard[]
+  catalog: ExplorerDrugIdentity[]
+  route?: string
+}
+
+export interface ExplorerMutationContext {
+  expectedRevision: string
+  signal?: AbortSignal
+}
+
+export interface ExplorerToolDependencies {
+  snapshot(): ExplorerWorkspaceSnapshot
+  // Async adapters must check expectedRevision and signal again before committing.
+  selectDrugs(input: ExplorerMutationContext & { drugs: string[]; mode: ExplorerSelectionMode }): void | Promise<void>
+  // Optional drugs replace selection in the same guarded commit as the requested facts.
+  showFacts(input: ExplorerMutationContext & { facts: DrugFactType[]; mode: ExplorerFactMode; drugs?: string[] }): void | Promise<void>
+  updateFactCard(input: ExplorerMutationContext & { cardId: string; factType: DrugFactType }): void | Promise<void>
+  removeFactCard(input: ExplorerMutationContext & { cardId: string }): void | Promise<void>
+  reveal(input: { signal?: AbortSignal }): void | Promise<void>
+}
+
+export const explorerToolNames = [
+  'cleardose_select_drugs',
+  'cleardose_show_drug_fact',
+  'cleardose_update_fact_card',
+  'cleardose_remove_fact_card',
+  'cleardose_get_explorer_state',
+] as const
+export const explorerOutputBudget = 1_500
+
+const staleMessage = 'Drug Explorer changed. Read its current state and refresh the available WebMCP tools, then retry with the current workspaceRevision.'
+const medicalNotice = 'Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.'
+const stateSections = ['workspace', 'selected', 'cards', 'catalog'] as const
+type StateSection = typeof stateSections[number]
+const readRevisions = new WeakMap<ExplorerToolDependencies, { signature: string; revision: string }>()
+let readSequence = 0
+const idPattern = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$/
+const searchPattern = "^(?![mM][eE][dD]-)[\\p{L}\\p{N}][\\p{L}\\p{N} .,/+%'()-]*$"
+const validSearch = new RegExp(searchPattern, 'u')
+
+const safeLabel = (value: string): string => value
+  .replace(/[^\p{L}\p{N} .,/+%\-]/gu, ' ')
+  .replace(/\s+/g, ' ')
+  .trim()
+  .slice(0, 60)
+
+const normalizeSnapshot = (input: ExplorerWorkspaceSnapshot): ExplorerWorkspaceSnapshot => {
+  if (!input.revision || input.revision.length > 96) throw new Error('Drug Explorer requires a workspace revision of at most 96 characters.')
+  const identities = (items: ExplorerDrugIdentity[]): ExplorerDrugIdentity[] => [...new Map(items
+    .filter((item) => idPattern.test(item.id))
+    .map((item) => [item.id, { id: item.id, name: safeLabel(item.name) || item.id }] as const)).values()]
+  const catalog = identities(input.catalog).sort((a, b) => a.id.localeCompare(b.id))
+  const selectedDrugs = identities(input.selectedDrugs)
+  if (catalog.length > 112 || selectedDrugs.length > 4 || input.cards.length > 14) {
+    throw new Error('Drug Explorer exceeds its catalog, selection, or card limit. Update the workspace before using tools.')
+  }
+  const cards = input.cards.map((card) => {
+    if (!idPattern.test(card.id) || !drugFactTypes.includes(card.factType) || card.drugIds.length > 4 ||
+      card.drugIds.some((id) => !idPattern.test(id)) || new Set(card.drugIds).size !== card.drugIds.length) {
+      throw new Error('Drug Explorer contains an invalid fact card. Update the workspace before using tools.')
+    }
+    return { id: card.id, factType: card.factType, drugIds: [...card.drugIds] }
+  })
+  if (new Set(cards.map((card) => card.id)).size !== cards.length) throw new Error('Drug Explorer contains duplicate card IDs.')
+  return {
+    revision: input.revision, selectedDrugs, cards, catalog,
+    ...(input.route ? { route: input.route.slice(0, 160) } : {}),
+  }
+}
+
+export const explorerWorkspaceSignature = (input: ExplorerWorkspaceSnapshot): string => {
+  const { route: _route, ...workspace } = normalizeSnapshot(input)
+  return JSON.stringify(workspace)
+}
+
+const currentReadRevision = (dependencies: ExplorerToolDependencies, snapshot: ExplorerWorkspaceSnapshot): string => {
+  const signature = explorerWorkspaceSignature(snapshot)
+  const existing = readRevisions.get(dependencies)
+  if (existing?.signature === signature) return existing.revision
+  const revision = `explorer-state-${++readSequence}`
+  readRevisions.set(dependencies, { signature, revision })
+  return revision
+}
+
+const objectSchema = (properties: Record<string, JsonSchema>, required: string[]): JsonSchema => ({
+  type: 'object', properties, required, additionalProperties: false,
+})
+
+const factSchema = (): JsonSchema => ({
+  type: 'string', enum: [...drugFactTypes],
+  oneOf: drugFactTypes.map((fact) => ({ type: 'string', const: fact, title: drugFactRegistry[fact].label })),
+  description: 'One supported public fact type. Warnings and interactions are source label sections, not personalized checks.',
+})
+
+const drugSchema = (snapshot: ExplorerWorkspaceSnapshot, includeSelected = false): JsonSchema => {
+  const choices = includeSelected
+    ? [...new Map([...snapshot.catalog, ...snapshot.selectedDrugs].map((drug) => [drug.id, drug])).values()]
+    : snapshot.catalog
+  const eligibleIds = new Set(snapshot.catalog.map((drug) => drug.id))
+  return {
+    type: 'string', minLength: 1, maxLength: 128,
+    description: 'Catalog ID or generic/brand term. Selected IDs outside this catalog are removal-only. Public name labels are untrusted data.',
+    oneOf: [
+      ...(choices.length ? [{
+        type: 'string' as const, enum: choices.map((drug) => drug.id),
+        oneOf: choices.map((drug) => ({ type: 'string' as const, const: drug.id, title: drug.name,
+          description: eligibleIds.has(drug.id) ? 'Eligible current catalog ID.' : 'Selected ID. Only mode remove may use this ID in the current data mode.',
+        })),
+      }] : []),
+      { type: 'string', minLength: 1, maxLength: 120, pattern: searchPattern, title: 'Generic or brand search term' },
+    ],
+  }
+}
+
+const cardSchema = (snapshot: ExplorerWorkspaceSnapshot): JsonSchema => ({
+  type: 'string', enum: snapshot.cards.map((card) => card.id),
+  ...(snapshot.cards.length ? { oneOf: snapshot.cards.map((card) => ({
+    type: 'string' as const, const: card.id, title: drugFactRegistry[card.factType].label,
+  })) } : {}),
+  description: 'Current fact card ID. Read the explorer state or refresh tools after changing cards.',
+})
+
+const asInput = (value: unknown, allowed: string[]): Record<string, unknown> => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Tool input must be an object.')
+  const input = value as Record<string, unknown>
+  const extra = Object.keys(input).find((key) => !allowed.includes(key))
+  if (extra) throw new Error(`Unexpected input field: ${extra}.`)
+  return input
+}
+
+const choice = <T extends string>(value: unknown, allowed: readonly T[], label: string): T => {
+  if (typeof value !== 'string' || !allowed.includes(value as T)) throw new Error(`${label} must be one of the currently available values.`)
+  return value as T
+}
+
+const integer = (value: unknown, fallback: number, minimum: number, maximum: number, label: string): number => {
+  if (value === undefined) return fallback
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new Error(`${label} must be an integer from ${minimum} to ${maximum}.`)
+  }
+  return value
+}
+
+const drugsInput = (value: unknown, snapshot: ExplorerWorkspaceSnapshot, allowEmpty = false): string[] => {
+  if (!Array.isArray(value) || value.length < (allowEmpty ? 0 : 1) || value.length > 4) {
+    throw new Error(`drugs must contain ${allowEmpty ? 'zero' : 'one'} to four distinct catalog IDs or generic/brand search terms.`)
+  }
+  const ids = new Set(snapshot.catalog.map((drug) => drug.id))
+  const result = value.map((drug) => {
+    if (typeof drug !== 'string') throw new Error('Each drug must be a catalog ID or generic/brand search term.')
+    const term = drug.trim()
+    if (ids.has(term)) return term
+    if (!term || term.length > 120 || !validSearch.test(term)) {
+      throw new Error('Use a current catalog ID or a plain generic/brand name of at most 120 characters. URLs, markup, and unknown medication IDs are not accepted.')
+    }
+    return term
+  })
+  if (new Set(result.map((term) => term.toLocaleLowerCase())).size !== result.length) throw new Error('drugs must be distinct.')
+  return result
+}
+
+const factsInput = (value: unknown): DrugFactType[] => {
+  if (!Array.isArray(value) || !value.length || value.length > drugFactTypes.length) throw new Error('facts must contain one to fourteen supported fact types.')
+  const facts = value.map((fact) => choice(fact, drugFactTypes, 'facts'))
+  if (new Set(facts).size !== facts.length) throw new Error('facts must be distinct.')
+  return facts
+}
+
+const mutationOutput = (input: ExplorerWorkspaceSnapshot): JsonValue => {
+  const snapshot = normalizeSnapshot(input)
+  return {
+    status: 'updated', workspaceRevision: snapshot.revision,
+    selectedDrugIds: snapshot.selectedDrugs.map((drug) => drug.id),
+    cardCount: snapshot.cards.length,
+    workspacePath: '/drugs/explore',
+    ...(snapshot.route ? { route: snapshot.route } : {}),
+    nextAction: 'Refresh tools before another edit. Use cleardose_get_explorer_state to read every selected drug and fact card.',
+    notice: medicalNotice,
+  }
+}
+
+const stateOutput = (snapshot: ExplorerWorkspaceSnapshot, stateRevision: string, section: StateSection, offset: number, limit: number): JsonValue => {
+  const rows: JsonValue[] = []
+  if (section === 'workspace' || section === 'selected') {
+    rows.push(...snapshot.selectedDrugs.map((drug) => ({ kind: 'selected-drug', id: drug.id, label: drug.name })))
+  }
+  if (section === 'workspace' || section === 'cards') {
+    rows.push(...snapshot.cards.map((card) => ({ kind: 'fact-card', id: card.id, factType: card.factType, drugIds: card.drugIds })))
+  }
+  if (section === 'catalog') rows.push(...snapshot.catalog.map((drug) => ({ kind: 'catalog-drug', id: drug.id, label: drug.name })))
+  const output = {
+    workspaceRevision: snapshot.revision, stateRevision, section, offset, returned: 0, total: rows.length,
+    nextOffset: null as number | null, rows: [] as JsonValue[],
+    format: 'Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.',
+    selectedDrugCount: snapshot.selectedDrugs.length, cardCount: snapshot.cards.length,
+    workspacePath: '/drugs/explore', ...(snapshot.route ? { route: snapshot.route } : {}), notice: medicalNotice,
+  }
+  for (const row of rows.slice(offset, offset + limit)) {
+    output.rows.push(row)
+    output.returned = output.rows.length
+    output.nextOffset = offset + output.returned < rows.length ? offset + output.returned : null
+    if (JSON.stringify(output).length > explorerOutputBudget) {
+      output.rows.pop()
+      output.returned = output.rows.length
+      output.nextOffset = offset + output.returned < rows.length ? offset + output.returned : null
+      break
+    }
+  }
+  if (!output.returned && offset < rows.length) throw new Error('This workspace row exceeds the result budget. Shorten the selected catalog labels or IDs.')
+  return output
+}
+
+export const createExplorerTools = (
+  dependencies: ExplorerToolDependencies,
+  source: 'agent' | 'demo' = 'agent',
+  workspaceSnapshot: ExplorerWorkspaceSnapshot = dependencies.snapshot(),
+): AppToolDefinition[] => {
+  const snapshot = normalizeSnapshot(workspaceSnapshot)
+  const signature = explorerWorkspaceSignature(snapshot)
+  const workspaceRevision: JsonSchema = {
+    type: 'string', const: snapshot.revision,
+    description: 'Current workspace revision. Refresh the available tools after each edit or human workspace change.',
+  }
+  const changing = { readOnlyHint: false, untrustedContentHint: true, destructiveHint: true, idempotentHint: false, openWorldHint: true }
+  const validateRevision = (input: Record<string, unknown>): ExplorerMutationContext => {
+    if (input.workspaceRevision !== snapshot.revision || explorerWorkspaceSignature(dependencies.snapshot()) !== signature) throw new Error(staleMessage)
+    return { expectedRevision: snapshot.revision }
+  }
+  const run = (name: string, raw: unknown, options: WebMcpExecutionOptions | undefined, action: () => Promise<JsonValue>): Promise<JsonValue> =>
+    executeWithActivity({ toolName: name, source, args: raw, run: async () => {
+      options?.signal?.throwIfAborted()
+      const output = await action()
+      if (JSON.stringify(output).length > explorerOutputBudget) throw new Error('Explorer output exceeded its response limit.')
+      return output
+    } })
+  const mutate = async (action: () => void | Promise<void>, options?: WebMcpExecutionOptions): Promise<JsonValue> => {
+    await action()
+    // The adapter checks cancellation before its guarded commit. That commit can
+    // refresh the registry and abort this definition's registration signal.
+    await dependencies.reveal({ signal: options?.signal })
+    return mutationOutput(dependencies.snapshot())
+  }
+  const drugs: JsonSchema = {
+    type: 'array', minItems: 0, maxItems: 4, items: drugSchema(snapshot),
+    description: 'Distinct IDs or names. For remove, use selected drug IDs. Only replace accepts an empty list to clear the selection.',
+  }
+  const firstDrug = snapshot.catalog.find(drug => snapshot.selectedDrugs.some(selected => selected.id === drug.id))?.id ?? snapshot.catalog[0]?.id ?? 'metformin'
+  const firstCard = snapshot.cards[0]?.id ?? 'card-not-yet-created'
+  return [{
+    name: explorerToolNames[0], title: 'Select explorer drugs', category: 'discovery',
+    description: 'Replace, add, or remove up to four drugs in the visible Drug Explorer. Generic or brand terms resolve through the shared catalog. Remove uses selected IDs; replace with an empty drugs list clears selection. Existing fact cards follow the selection. This edits the workspace, not prescriptions or cart items.',
+    inputSchema: objectSchema({ workspaceRevision, drugs: { ...drugs, items: drugSchema(snapshot, true) }, mode: { type: 'string', enum: ['replace', 'add', 'remove'], default: 'replace', description: 'How to change selected drugs. Replace with drugs: [] clears the selection.' } }, ['workspaceRevision', 'drugs']),
+    annotations: changing,
+    exampleInput: { workspaceRevision: snapshot.revision, drugs: [firstDrug], mode: 'replace' },
+    execute: (raw, options) => run(explorerToolNames[0], raw, options, async () => {
+      const input = asInput(raw, ['workspaceRevision', 'drugs', 'mode'])
+      const guard = validateRevision(input)
+      const mode = choice(input.mode ?? 'replace', ['replace', 'add', 'remove'], 'mode')
+      if (mode === 'remove' && Array.isArray(input.drugs) && input.drugs.some((id) => !snapshot.selectedDrugs.some((drug) => drug.id === id))) {
+        throw new Error('Remove accepts only current selected drug IDs. Read cleardose_get_explorer_state for those IDs.')
+      }
+      const terms = drugsInput(input.drugs, mode === 'remove' ? { ...snapshot, catalog: snapshot.selectedDrugs } : snapshot, mode === 'replace')
+      return mutate(() => dependencies.selectDrugs({ ...guard, signal: options?.signal, drugs: terms, mode }), options)
+    }),
+  }, {
+    name: explorerToolNames[1], title: 'Show requested drug facts', category: 'discovery',
+    description: 'Show one or more requested fact cards in the visible Drug Explorer. Use mode replace to show only these facts, or add to keep existing cards. Optional drugs replace the selected drugs before showing facts. Cards share the human workspace. Missing public data stays unavailable; this performs no clinical interaction check.',
+    inputSchema: objectSchema({ workspaceRevision,
+      facts: { type: 'array', minItems: 1, maxItems: 14, items: factSchema(), description: 'Exactly the fact cards requested. Use replace to hide all other facts.' },
+      mode: { type: 'string', enum: ['replace', 'add'], default: 'add', description: 'Replace shows only the requested facts. Add keeps existing cards and reuses duplicates.' },
+      drugs: { ...drugs, minItems: 1, description: 'Optional replacement selection, one to four catalog IDs or generic/brand names. Omit to use current selected drugs.' },
+    }, ['workspaceRevision', 'facts']),
+    annotations: changing,
+    exampleInput: { workspaceRevision: snapshot.revision, facts: ['side-effects', 'pricing'], mode: 'replace', drugs: [firstDrug] },
+    execute: (raw, options) => run(explorerToolNames[1], raw, options, async () => {
+      const input = asInput(raw, ['workspaceRevision', 'facts', 'mode', 'drugs'])
+      const guard = validateRevision(input)
+      const facts = factsInput(input.facts)
+      const mode = choice(input.mode ?? 'add', ['replace', 'add'], 'mode')
+      const terms = input.drugs === undefined ? undefined : drugsInput(input.drugs, snapshot)
+      if (!terms && !snapshot.selectedDrugs.length) throw new Error('Select at least one drug first, or include drugs with the requested facts.')
+      return mutate(() => dependencies.showFacts({ ...guard, signal: options?.signal, facts, mode, ...(terms ? { drugs: terms } : {}) }), options)
+    }),
+  }, {
+    name: explorerToolNames[2], title: 'Change an explorer fact card', category: 'discovery',
+    description: 'Change one current Drug Explorer card to a different supported fact. The card keeps the shared drug selection. Use current card IDs from cleardose_get_explorer_state. This edits only the visible workspace and does not alter medication records.',
+    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(snapshot), factType: factSchema() }, ['workspaceRevision', 'cardId', 'factType']),
+    annotations: { ...changing, idempotentHint: true },
+    exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard, factType: 'ingredients' },
+    execute: (raw, options) => run(explorerToolNames[2], raw, options, async () => {
+      const input = asInput(raw, ['workspaceRevision', 'cardId', 'factType'])
+      const guard = validateRevision(input)
+      const cardId = choice(input.cardId, snapshot.cards.map((card) => card.id), 'cardId')
+      const factType = choice(input.factType, drugFactTypes, 'factType')
+      return mutate(() => dependencies.updateFactCard({ ...guard, signal: options?.signal, cardId, factType }), options)
+    }),
+  }, {
+    name: explorerToolNames[3], title: 'Remove an explorer fact card', category: 'discovery',
+    description: 'Remove one current fact card from the visible Drug Explorer. Selected drugs and medication data remain unchanged. Use a card ID from cleardose_get_explorer_state and refresh tools after the removal.',
+    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(snapshot) }, ['workspaceRevision', 'cardId']),
+    annotations: { ...changing, idempotentHint: true, openWorldHint: false },
+    exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard },
+    execute: (raw, options) => run(explorerToolNames[3], raw, options, async () => {
+      const input = asInput(raw, ['workspaceRevision', 'cardId'])
+      const guard = validateRevision(input)
+      const cardId = choice(input.cardId, snapshot.cards.map((card) => card.id), 'cardId')
+      return mutate(() => dependencies.removeFactCard({ ...guard, signal: options?.signal, cardId }), options)
+    }),
+  }, {
+    name: explorerToolNames[4], title: 'Read the drug explorer workspace', category: 'discovery',
+    description: 'Read selected drug IDs, current fact card IDs and types, or the loaded catalog without changing the page. Workspace combines selection and cards. Follow nextOffset with the returned workspaceRevision and stateRevision to read all rows. Use compare_medications for complete public medication sections, not this workspace-state tool.',
+    inputSchema: objectSchema({
+      section: { type: 'string', enum: [...stateSections], default: 'workspace', description: 'Workspace lists selected drugs and fact cards. Catalog lists loaded IDs usable by explorer tools.' },
+      offset: { type: 'integer', minimum: 0, maximum: 112, default: 0, description: 'Zero-based row offset. Follow nextOffset to read every state row.' },
+      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Maximum rows per page. The character budget can return fewer rows without skipping data.' },
+      workspaceRevision: { type: 'string', minLength: 1, maxLength: 96, description: 'Optional on the first page; required with offset greater than zero to prevent mixing different workspace versions.' },
+      stateRevision: { type: 'string', minLength: 1, maxLength: 64, description: 'Return this read token on later pages. It also detects catalog changes that do not edit the workspace.' },
+    }, []),
+    annotations: { readOnlyHint: true, untrustedContentHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    exampleInput: { section: 'workspace' },
+    execute: (raw, options) => run(explorerToolNames[4], raw, options, async () => {
+      const input = asInput(raw, ['section', 'offset', 'limit', 'workspaceRevision', 'stateRevision'])
+      const current = normalizeSnapshot(dependencies.snapshot())
+      const stateRevision = currentReadRevision(dependencies, current)
+      const section = choice(input.section ?? 'workspace', stateSections, 'section')
+      const offset = integer(input.offset, 0, 0, 112, 'offset')
+      const limit = integer(input.limit, 5, 1, 10, 'limit')
+      if (input.workspaceRevision !== undefined && input.workspaceRevision !== current.revision) throw new Error(staleMessage)
+      if (input.stateRevision !== undefined && input.stateRevision !== stateRevision) throw new Error('Explorer state or catalog changed. Restart at offset zero before reading more pages.')
+      if (offset > 0 && (input.workspaceRevision === undefined || input.stateRevision === undefined)) {
+        throw new Error('Follow nextOffset with the returned workspaceRevision and stateRevision to read later pages safely.')
+      }
+      return stateOutput(current, stateRevision, section, offset, limit)
+    }),
+  }]
+}

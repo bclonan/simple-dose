@@ -119,7 +119,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'search_medications',
     title: 'Search medications',
     description:
-      'Search the fictional catalog by generic name, brand, category, strength, or form. Use this first when the user names a medication or treatment category. The visible medication results update with the same matches.',
+      'Search public drug sources and the loaded catalog by generic name or brand. Existing categories and demo configurations remain available in hybrid mode. The visible results update with the same matches. Use returned IDs for details or contextual comparison.',
     category: 'discovery',
     inputSchema: objectSchema(
       {
@@ -157,17 +157,17 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
       },
       ['query'],
     ),
-    annotations: idempotentStateChange,
+    annotations: { ...idempotentStateChange, untrustedContentHint: true, openWorldHint: true },
     exampleInput: { query: 'atorvastatin', form: 'tablet', strength: '20 mg' },
   },
   {
     name: 'get_medication_details',
     title: 'Get medication details',
     description:
-      'Read valid forms, strengths, quantities, prescription requirement, and SKU count for one medicationId from search_medications. Use this before comparing an unfamiliar medication configuration.',
+      'Read catalog forms, strengths, demo quantities, source status, and SKU count for one medicationId. Public-only prescription status is unknown. Use compare_medications for complete paged public sections.',
     category: 'discovery',
     inputSchema: objectSchema({ medicationId: medicationIdSchema }, ['medicationId']),
-    annotations: readOnly,
+    annotations: { ...readOnly, untrustedContentHint: true, openWorldHint: true },
     exampleInput: { medicationId: 'med-atorvastatin' },
   },
   {

@@ -23,6 +23,7 @@ const openCart = (): void => {
 
       <nav class="app-nav" aria-label="Primary navigation">
         <RouterLink to="/medications">Medications</RouterLink>
+        <RouterLink to="/drugs/explore">Drug Explorer</RouterLink>
         <RouterLink to="/compare">Compare</RouterLink>
         <RouterLink to="/prescription-card">Prescription Card</RouterLink>
         <RouterLink to="/webmcp">Agent Lab</RouterLink>

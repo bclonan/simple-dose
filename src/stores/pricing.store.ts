@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { demoDatabase } from '../data'
+import { demoCatalog as demoDatabase } from '../plugins/cleardose'
 import { compareFulfillmentOptions, resolveOfferPricing } from '../domain/pricing'
 import type { MedicationOffer, MedicationSku, PriceComparison } from '../types/demo-db'
 import { readStorage, storageKeys, writeStorage } from '../utils/storage'
@@ -41,6 +41,7 @@ export const usePricingStore = defineStore('pricing', {
     },
     comparisonsForSku(sku: MedicationSku, maxDeliveryDays?: number): PriceComparison[] {
       const catalog = useCatalogStore()
+      if (catalog.dataMode === 'live') return []
       return compareFulfillmentOptions({
         sku,
         offers: catalog.offers,

@@ -12,8 +12,8 @@ withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
         </svg>
       </div>
       <p>
-        <strong>Fictional technology demo.</strong>
-        ClearDose does not provide medical advice, dispense medication, process prescriptions, or provide real pharmacy pricing.
+        <strong>Public drug information. Fictional fulfillment.</strong>
+        Source-labeled public records are not medical advice. ClearDose does not dispense medication, process prescriptions, or provide real pharmacy cash prices.
       </p>
     </div>
   </footer>

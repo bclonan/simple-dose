@@ -22,6 +22,7 @@ export interface RegisterClearDoseToolsOptions {
   navigate?: (path: string) => unknown | Promise<unknown>
   documentRef?: WebMcpDocumentLike
   statusStore?: WebMcpStatusStore
+  extraExpectedNames?: () => string[]
 }
 
 export interface ClearDoseToolRegistration {
@@ -47,8 +48,6 @@ const browserDefinition = (definition: WebMcpToolDefinition): WebMcpToolDefiniti
   },
   execute: definition.execute,
 })
-
-const expectedNameSet = new Set(clearDoseToolNames)
 
 export const registerClearDoseTools = async (
   options: RegisterClearDoseToolsOptions = {},
@@ -96,6 +95,8 @@ export const registerClearDoseTools = async (
     const version = ++refreshVersion
     if (disposed) return
     let names: string[]
+    const expectedNames = [...clearDoseToolNames, ...(options.extraExpectedNames?.() ?? [])]
+    const expectedNameSet = new Set(expectedNames)
     try {
       names =
         typeof context.getTools === 'function'
@@ -109,7 +110,7 @@ export const registerClearDoseTools = async (
     }
     if (disposed || version !== refreshVersion) return
     const verified = typeof context.getTools === 'function'
-    const missingNames = clearDoseToolNames.filter((name) => !names.includes(name))
+    const missingNames = expectedNames.filter((name) => !names.includes(name))
     if (verified && missingNames.length > 0) {
       statusStore.setDegraded(names, missingNames)
     } else {

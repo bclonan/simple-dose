@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import type { AgentActivity } from '../types/demo-db'
-import { redactSensitive } from '../utils/redact'
+import { formatActivityJson as safeJson } from '../utils/redact'
 
 defineProps<{ entry: AgentActivity }>()
 
-const safeJson = (value: unknown): string => {
-  let formatted: string
-  try {
-    formatted = JSON.stringify(redactSensitive(value ?? {}), null, 2)
-  } catch {
-    formatted = '{\n  "context": "unavailable"\n}'
-  }
-  if (formatted.length <= 1200) return formatted
-  return `${formatted.slice(0, 1200)}\n... [bounded at 1,200 characters]`
-}
 </script>
 
 <template>

@@ -26,6 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
+    env: { VITE_CLEARDose_DATA_MODE: 'demo' },
     command: `pnpm dev --host 127.0.0.1 --port ${port}`,
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: false,

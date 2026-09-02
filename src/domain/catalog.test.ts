@@ -7,6 +7,11 @@ import { findExactSku, searchMedications } from './catalog'
 const demoDatabase = demoDatabaseJson as unknown as DemoDatabase
 
 describe('medication search', () => {
+  it('matches public form casing without treating different dosage forms as equivalent', () => {
+    const records = [{ ...demoDatabase.medications[0]!, forms: ['TABLET'] }]
+    expect(searchMedications(records, '', { form: 'tablet' })).toHaveLength(1)
+    expect(searchMedications(records, '', { form: 'tablet, extended release' })).toHaveLength(0)
+  })
   it.each([
     ['generic name', 'atorvastatin', ['Atorvastatin']],
     ['brand name', 'Lipitor', ['Atorvastatin']],
