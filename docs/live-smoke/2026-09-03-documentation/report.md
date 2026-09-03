@@ -70,7 +70,7 @@ The production browser discovered all 19 tools. A native `cleardose_get_explorer
 
 Both production routes had correct route titles and no horizontal document overflow at desktop or 390 pixels. The mobile video placeholder measured approximately 341.21 by 191.92 pixels, a 16:9 frame. Direct route loads, in-page links and the pending video state worked. The browser console reported no errors or warnings during these checks.
 
-The screenshot service failed four captures while mobile viewport emulation was active, although accessibility and DOM reads continued to work. Three failures used 390 by 844 and one used 390 by 700. Capturing recovered at the default viewport. The exact capture-service cause remains unresolved; this is not evidence of a broken application connection. No final production mobile screenshot is claimed. The viewport override was reset. The automated mobile browser tests passed independently.
+During the initial release session, the screenshot service failed four captures while mobile viewport emulation was active, although accessibility and DOM reads continued to work. Three failures used 390 by 844 and one used 390 by 700. Capturing recovered at the default viewport. The exact capture-service cause remains unresolved; this is not evidence of a broken application connection. That session produced no final production mobile screenshot. The viewport override was reset. The automated mobile browser tests passed independently. The later recheck below successfully captured both production pages at mobile width.
 
 ### Screenshot evidence
 
@@ -80,6 +80,20 @@ The screenshot service failed four captures while mobile viewport emulation was 
 - `04-production-safe-preview.png`: production example preview and copy feedback.
 - `05-production-native-inspector.png`: production native receipt, registration count and validation status.
 - `06-production-hackathon.png`: final production overview hero and pending video link.
+- `07-recheck-production-hackathon-mobile.png`: final production overview at 390 pixels during the repeated-brief recheck.
+- `08-recheck-production-webmcp-mobile.png`: final production documentation at 390 pixels during the repeated-brief recheck.
+
+## Repeated brief recheck
+
+The attachment `2647cae8-1bca-4dc7-b275-82c3db236b32/pasted-text.txt` repeats requirements already contained in the completed brief. An independent read-only acceptance review found no new implementation gap. No application code, route, registry or hosting configuration changed during this recheck.
+
+Fresh verification on September 3, 2026 passed type checks, all 344 unit tests, 18 workflow evaluations, the production build and all 36 browser tests. The browser suite completed in 1.4 minutes without reproducing the earlier development-test stall. The build still produced `/assets/index-B77lZSS4.js`.
+
+At 05:55 UTC, both hosted routes and all nine assets again returned HTTP 200 and matched the completed build. The live browser showed 19 registered tools and 19 passing documentation examples. Native `cleardose_get_explorer_state` succeeded. Navigation to `/hackathon` showed the correct heading and pending video state, with no console errors or warnings.
+
+Both pages passed 390-pixel layout checks without horizontal document overflow. This session successfully captured the two mobile screenshots listed above. The viewport was reset after testing. This successful retry does not establish the cause of the earlier screenshot failures.
+
+No duplicate deployment was needed because the existing production build already matches the requested implementation. Only this verification report and the two mobile screenshots changed in this recheck. The YouTube URL and GitHub publication of the current source release remain pending.
 
 ## Changed files
 
