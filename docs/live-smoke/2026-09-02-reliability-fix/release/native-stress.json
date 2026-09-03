@@ -1,0 +1,1322 @@
+[
+  {
+    "index": 1,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:43:22.048Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 2,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:43:26.830Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 3,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:43:50.839Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 4,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:43:56.128Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 5,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:00.327Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 6,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:06.031Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 7,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:10.751Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 8,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:14.886Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 9,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:20.615Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 10,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:25.798Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 11,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:40.130Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 12,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:44.349Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 13,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:50.800Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 14,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:44:58.058Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 15,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:03.786Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 16,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:27.463Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 17,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:31.703Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 18,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:37.630Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 19,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:43.606Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 20,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:45:48.605Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 21,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:02.091Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 22,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:04.985Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 23,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:12.426Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 24,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:17.347Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 25,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:22.164Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 26,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:37.298Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 27,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:40.873Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 28,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:45.177Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 29,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:50.595Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 30,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:46:54.733Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 31,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:14.471Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 32,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:17.232Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 33,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:23.991Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 34,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:29.664Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 35,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:36.448Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 36,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:47.942Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 37,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:51.666Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 38,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:47:56.988Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 39,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:48:01.131Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  },
+  {
+    "index": 40,
+    "tool": "cleardose_get_explorer_state",
+    "input": {
+      "section": "catalog",
+      "limit": 1
+    },
+    "timestamp": "2026-09-02T20:48:06.023Z",
+    "native": true,
+    "output": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 1,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 1,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 54,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-84ce2c25-0-hybrid-0"
+    },
+    "status": "passed"
+  }
+]

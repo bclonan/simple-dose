@@ -1,0 +1,119 @@
+[
+  {
+    "timestamp": "2026-09-02T20:43:03.238Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "toolNames": [
+      "search_medications",
+      "get_medication_details",
+      "compare_fulfillment_options",
+      "select_medication_option",
+      "create_prescription_request_card",
+      "add_to_cart",
+      "view_cart",
+      "compare_cart_savings",
+      "remove_cart_item",
+      "set_delivery_option",
+      "checkout_demo_order",
+      "get_order_status",
+      "cleardose_select_drugs",
+      "cleardose_show_drug_fact",
+      "cleardose_update_fact_card",
+      "cleardose_remove_fact_card",
+      "cleardose_get_explorer_state",
+      "find_related_medications",
+      "compare_medications"
+    ],
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "timestamp": "2026-09-02T20:52:56.689Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "timestamp": "2026-09-02T20:53:44.690Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "timestamp": "2026-09-02T20:54:37.601Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications/public-empagliflozin"
+  },
+  {
+    "timestamp": "2026-09-02T20:58:32.987Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "timestamp": "2026-09-02T21:02:41.353Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/compare"
+  },
+  {
+    "timestamp": "2026-09-02T21:03:26.966Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/compare"
+  },
+  {
+    "timestamp": "2026-09-02T21:03:53.612Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/compare"
+  },
+  {
+    "timestamp": "2026-09-02T21:04:19.429Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/compare"
+  },
+  {
+    "timestamp": "2026-09-02T21:04:44.828Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts="
+  },
+  {
+    "timestamp": "2026-09-02T21:08:27.341Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=ingredients,pricing"
+  },
+  {
+    "timestamp": "2026-09-02T21:11:12.232Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=ingredients,pricing"
+  },
+  {
+    "timestamp": "2026-09-02T21:12:00.680Z",
+    "count": 19,
+    "nativeBytes": 17547,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=ingredients,pricing"
+  },
+  {
+    "timestamp": "2026-09-02T21:14:13.936Z",
+    "count": 19,
+    "nativeBytes": 17547,
+    "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/orders/CD-2026-0001"
+  },
+  {
+    "timestamp": "2026-09-02T21:17:03.575Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "timestamp": "2026-09-02T21:20:37.753Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://cleardose-webmcp-demo.netlify.app/medications"
+  }
+]

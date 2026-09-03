@@ -115,4 +115,36 @@ describe('shared drug fact card', () => {
     expect(facts.availableFacts(['med-atorvastatin'])).not.toContain('pregnancy')
     expect(facts.getFacts(['med-atorvastatin'], ['uses', 'ingredients']).map(item => item.type)).toEqual(['uses', 'ingredients'])
   })
+  it('shows a label-only failure next to the blank fact and recovers in the same card', async () => {
+    const { pinia, catalog } = setup()
+    const complete = drug()
+    catalog.publicRecords['med-atorvastatin'] = { status: 'cache', drug: { ...complete, clinical: undefined,
+      sources: [{ source: 'openfda-ndc', retrievedAt: '2026-09-02' }],
+      warnings: [{ source: 'openfda-label', code: 'unavailable', message: 'The FDA label request failed.' }],
+    } }
+    const card = { id: 'fact-unchanged', factType: 'side-effects' as const, drugIds: ['med-atorvastatin'] }
+    const wrapper = mount(DrugInfoCard, { props: { card }, global: { plugins: [pinia] } })
+    expect(wrapper.get('[data-drug-id]').attributes('data-availability')).toBe('provider-failed')
+    expect(wrapper.get('.drug-info-card__status').text()).toBe('FDA label failed to load')
+    expect(wrapper.get('.drug-info-card__empty').text()).toContain('FDA label could not load. Retry public data')
+    expect(wrapper.text()).not.toContain('section is unavailable in the loaded FDA label')
+    catalog.publicRecords['med-atorvastatin'] = { status: 'live', drug: complete }
+    await nextTick()
+    expect(wrapper.get('article').attributes('id')).toBe('fact-unchanged')
+    expect(wrapper.get('[data-drug-id]').attributes('data-availability')).toBe('available')
+    expect(wrapper.text()).toContain('Source reaction text')
+    expect(wrapper.text()).not.toContain('failed to load')
+    expect(wrapper.text()).not.toContain('Retry public data')
+  })
+  it('replaces the displayed fact when selected drug IDs change', async () => {
+    const { pinia, catalog } = setup()
+    catalog.publicRecords['med-metformin'] = { status: 'cache', drug: { ...drug('Metformin'), clinical: undefined, warnings: [{ source: 'openfda-label', code: 'network', message: 'offline' }] } }
+    const wrapper = mount(DrugInfoCard, { props: { card: { id: 'fact-1', factType: 'side-effects', drugIds: ['med-atorvastatin'] } }, global: { plugins: [pinia] } })
+    expect(wrapper.text()).toContain('Source reaction text')
+    await wrapper.setProps({ card: { id: 'fact-1', factType: 'side-effects', drugIds: ['med-metformin'] } })
+    expect(wrapper.text()).toContain('Metformin')
+    expect(wrapper.text()).not.toContain('Source reaction text')
+    expect(wrapper.text()).not.toContain('Atorvastatin')
+    expect(wrapper.get('[data-drug-id]').attributes('data-availability')).toBe('provider-failed')
+  })
 })

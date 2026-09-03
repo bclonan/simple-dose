@@ -1,0 +1,62 @@
+{
+  "startedAt": "2026-09-02T21:05:38.120Z",
+  "sameToolSet": true,
+  "reloads": 0,
+  "kernelResets": 0,
+  "entries": [
+    {
+      "factType": "warnings",
+      "workspaceRevision": "explorer-84ce2c25-4-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "uses",
+      "workspaceRevision": "explorer-84ce2c25-5-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "strengths",
+      "workspaceRevision": "explorer-84ce2c25-6-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "identity",
+      "workspaceRevision": "explorer-84ce2c25-7-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "ingredients",
+      "workspaceRevision": "explorer-84ce2c25-8-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "uses",
+      "workspaceRevision": "explorer-84ce2c25-9-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "warnings",
+      "workspaceRevision": "explorer-84ce2c25-10-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "strengths",
+      "workspaceRevision": "explorer-84ce2c25-11-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "identity",
+      "workspaceRevision": "explorer-84ce2c25-12-hybrid-0",
+      "validated": true
+    },
+    {
+      "factType": "ingredients",
+      "workspaceRevision": "explorer-84ce2c25-13-hybrid-0",
+      "validated": true
+    }
+  ],
+  "completedAt": "2026-09-02T21:08:04.798Z",
+  "successfulCalls": 20,
+  "explorerDefinitionsUnchanged": true,
+  "comparisonNote": "Compare definitions only; browser pageUrl metadata changed with the Explorer facts query string."
+}

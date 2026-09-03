@@ -58,6 +58,45 @@ interface PageResult {
 
 const output = (value: unknown): PageResult => value as PageResult
 
+describe('public comparison source outcomes', () => {
+  beforeEach(() => { setActivePinia(createPinia()); vi.restoreAllMocks() })
+  it('preserves a label-only failure and cache metadata, then refreshes after recovery', async () => {
+    const fixture = setup()
+    const compare = vi.mocked(fixture.dependencies.compare)
+    compare.mockResolvedValue({ drugs: [{ medicationId: 'med-atorvastatin', name: 'Atorvastatin', status: 'cache', drug: {
+      clinical: null,
+      warnings: [{ source: 'openfda-label', code: 'network', message: 'The FDA label could not load.' }],
+      dataMeta: { origin: 'cache', stale: false, retrievedAt: '2026-09-02' },
+    } }], notice: 'Public reference data.' })
+    const tool = createDynamicMedicationTools(fixture.dependencies).find(tool => tool.name === 'compare_medications')!
+    const readAll = async () => {
+      const rows: PageResult['rows'] = []
+      let offset = 0
+      do {
+        const page = output(await tool.execute({ contextRevision: 'catalog-v1', medicationIds: ['med-atorvastatin'], section: 'clinical', offset, limit: 10 }))
+        expect(JSON.stringify(page).length).toBeLessThanOrEqual(dynamicMedicationOutputBudget)
+        rows.push(...page.rows)
+        if (page.nextOffset === null) return rows
+        offset = page.nextOffset
+      } while (true)
+    }
+    const failed = await readAll()
+    expect(failed).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: '/drugs/0/dataAvailability', value: 'provider-failed' }),
+      expect.objectContaining({ path: '/drugs/0/providerWarnings/0/code', value: 'network' }),
+      expect.objectContaining({ path: '/drugs/0/providerWarnings/0/message', value: 'The FDA label could not load.' }),
+      expect.objectContaining({ path: '/drugs/0/freshness/origin', value: 'cache' }),
+    ]))
+    compare.mockResolvedValue({ drugs: [{ medicationId: 'med-atorvastatin', name: 'Atorvastatin', status: 'live', drug: { clinical: { drugInteractions: ['Recovered individual FDA label section.'] }, warnings: [] } }], notice: 'Public reference data.' })
+    const recovered = await readAll()
+    expect(recovered).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: '/drugs/0/dataAvailability', value: 'available' }),
+      expect.objectContaining({ path: '/drugs/0/clinical/drugInteractions/0', value: 'Recovered individual FDA label section.' }),
+    ]))
+    expect(recovered.some(row => row.path.endsWith('/message') && row.value === 'The FDA label could not load.')).toBe(false)
+  })
+})
+
 const fakeContext = () => {
   const tools = new Map<string, WebMcpToolDefinition>()
   const signals: AbortSignal[] = []
@@ -100,7 +139,8 @@ describe('dynamic medication WebMCP tools', () => {
     }
     const ids = tools[0]!.inputSchema.properties?.referenceMedicationId
     expect(ids?.enum).toEqual(['med-atorvastatin', 'med-rosuvastatin'])
-    expect(ids?.oneOf?.[0]).toMatchObject({ const: 'med-atorvastatin', title: 'Atorvastatin' })
+    expect(ids?.oneOf).toBeUndefined()
+    expect(ids?.description).toContain('cleardose_get_explorer_state')
     expect(tools[1]!.inputSchema.properties?.medicationIds?.minItems).toBe(1)
     expect(tools[1]!.inputSchema.properties?.section?.enum).toEqual(['identity', 'product', 'clinical', 'prices', 'sources'])
   })
@@ -205,6 +245,22 @@ describe('dynamic medication WebMCP tools', () => {
     expect(useAgentActivityStore().entries.every((entry) => entry.status === 'error')).toBe(true)
   })
 
+  it('rejects a page change while a public-data read is pending instead of returning stale scope metadata', async () => {
+    const { dependencies, update } = setup()
+    let finish!: () => void
+    dependencies.compare = vi.fn(async () => {
+      await new Promise<void>(resolve => { finish = resolve })
+      return { drugs: [], notice: 'Public data.' }
+    })
+    const tool = createDynamicMedicationTools(dependencies)[1]!
+    const result = tool.execute({ contextRevision: 'catalog-v1', medicationIds: ['med-atorvastatin'], scope: 'page' })
+    await Promise.resolve()
+    update({ ...snapshot(), revision: 'catalog-v2', pageMedicationIds: ['med-rosuvastatin'] })
+    finish()
+    await expect(result).rejects.toThrow('Medication context changed')
+    expect(useAgentActivityStore().entries[0]?.status).toBe('error')
+  })
+
   it('supports an empty catalog and omits page scope when no page medications exist', () => {
     const { dependencies, update } = setup()
     update({ ...snapshot(), catalog: [] })
@@ -230,7 +286,7 @@ describe('dynamic medication WebMCP tools', () => {
     expect(fake.signals[0]!.aborted).toBe(true)
     expect(states.at(-1)).toEqual({ expectedNames: ['find_related_medications', 'compare_medications'], registeredNames: ['compare_medications', 'find_related_medications'], verified: true, revision: 'catalog-v2' })
     expect(fake.tools.get('find_related_medications')!.inputSchema.properties?.referenceMedicationId?.enum).toEqual(['med-new'])
-    expect(fake.tools.get('find_related_medications')!.inputSchema.properties?.referenceMedicationId?.oneOf?.[0]?.title).not.toContain('<')
+    expect(JSON.stringify(fake.tools.get('find_related_medications')!.inputSchema)).not.toContain('<script>')
     await expect(oldTool.execute({ contextRevision: 'catalog-v1', referenceMedicationId: 'med-atorvastatin' })).rejects.toThrow('Medication context changed')
     registration.dispose()
     expect(fake.tools.size).toBe(0)

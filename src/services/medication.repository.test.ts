@@ -34,6 +34,7 @@ describe('shared medication repository', () => {
     const catalog = useCatalogStore()
     catalog.dataMode = 'hybrid'
     const search = vi.spyOn(catalog, 'search').mockResolvedValue([])
+    const bootstrap = vi.spyOn(catalog, 'bootstrapPublicCatalog').mockResolvedValue()
     let finish!: (record: { status: 'live'; drug: ClearDoseDrug }) => void
     const fetch = vi.spyOn(medicationRepository, 'getMedication').mockImplementation(() => new Promise(resolve => { finish = resolve }))
     const pending = catalog.loadMedication('med-metformin')
@@ -43,7 +44,7 @@ describe('shared medication repository', () => {
     await pending
     expect(catalog.publicRecords['med-metformin']).toBeUndefined()
     expect(catalog.dataEpoch).toBe(2)
-    search.mockRestore(); fetch.mockRestore()
+    search.mockRestore(); bootstrap.mockRestore(); fetch.mockRestore()
   })
   it('distinguishes an ambiguous public identity from a network outage', async () => {
     const { repo, data } = setup()
@@ -154,12 +155,14 @@ describe('shared medication repository', () => {
     expect(result.matches.every(match => match.medicationId !== reference.id && match.reasons.length)).toBe(true)
     expect(result.notice).toContain('not therapeutic interchangeability')
   })
-  it('guards existing commerce tools in live mode without clearing saved items', async () => {
+  it('allows explicitly fictional fulfillment independently of live public-data mode', async () => {
     setActivePinia(createPinia())
     const catalog = useCatalogStore()
     catalog.dataMode = 'live'
     const actions = useClearDoseActions()
-    await expect(actions.compareFulfillmentOptions({})).rejects.toThrow('Live retail pricing')
+    const result = await actions.compareFulfillmentOptions({ medicationId: 'med-metformin', form: 'tablet', strength: '500 mg', quantity: 30 })
+    expect(result.options.length).toBeGreaterThan(0)
+    expect(catalog.publicRecords).toEqual({})
   })
   it('retains public drug names in logs and still redacts personal names', () => {
     expect(redactSensitive({ genericName: 'Atorvastatin', brandNames: ['Lipitor'], fullName: 'Private Person', address: { city: 'Private' } })).toEqual({ genericName: 'Atorvastatin', brandNames: ['Lipitor'], fullName: '[redacted]', address: '[redacted]' })

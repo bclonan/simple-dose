@@ -1,0 +1,56 @@
+{
+  "failedCall": {
+    "input": {
+      "workspaceRevision": "explorer-38c82936-1-hybrid-0",
+      "facts": [
+        "identity",
+        "pricing"
+      ],
+      "mode": "add"
+    },
+    "error": "Error: WebMCP tool registration is stale. Call fetchTools() again."
+  },
+  "visibleWorkspace": {
+    "cardCount": 0,
+    "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+    "nextOffset": null,
+    "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+    "offset": 0,
+    "returned": 0,
+    "route": "/drugs/explore",
+    "rows": [],
+    "section": "cards",
+    "selectedDrugCount": 2,
+    "stateRevision": "explorer-state-2",
+    "total": 0,
+    "workspacePath": "/drugs/explore",
+    "workspaceRevision": "explorer-38c82936-1-hybrid-0"
+  },
+  "observation": {
+    "timestamp": "2026-09-02T20:05:52.287Z",
+    "event": "same-tab fresh capability discovery",
+    "oldShowRevision": "explorer-38c82936-0-hybrid-0",
+    "fresh": [
+      {
+        "name": "cleardose_show_drug_fact",
+        "revision": "explorer-38c82936-1-hybrid-0",
+        "page": "https://6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts="
+      },
+      {
+        "name": "cleardose_update_fact_card",
+        "revision": "explorer-38c82936-1-hybrid-0",
+        "page": "https://6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts="
+      },
+      {
+        "name": "cleardose_remove_fact_card",
+        "revision": "explorer-38c82936-1-hybrid-0",
+        "page": "https://6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts="
+      },
+      {
+        "name": "cleardose_select_drugs",
+        "revision": "explorer-38c82936-1-hybrid-0",
+        "page": "https://6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts="
+      }
+    ]
+  }
+}

@@ -420,7 +420,7 @@ describe('Chrome-style ClearDose WebMCP eval dataset', () => {
     expect(calls[1]).toMatchObject({
       functionName: 'compare_fulfillment_options',
       error:
-        'That exact medication configuration is unavailable. Call get_medication_details to read valid forms, strengths, and quantities.',
+        'That exact medication configuration is unavailable. Call get_medication_details and use an exact shopConfigurations entry.',
     })
     expect(calls.slice(2).map((call) => call.functionName)).toEqual([
       'get_medication_details',

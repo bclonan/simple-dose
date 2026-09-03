@@ -46,23 +46,21 @@ export const useSelectionStore = defineStore('selection', {
       const medication = catalog.medicationById(medicationId)
       if (!medication) throw new Error('Medication was not found.')
 
-      const preferredStrength = medication.strengths.includes('20 mg')
-        ? '20 mg'
-        : medication.strengths[0]
-      const preferredQuantity = medication.quantityOptions.includes(90)
-        ? 90
-        : medication.quantityOptions[0]
-      const preferredForm = medication.forms[0]
-
-      if (!preferredStrength || !preferredQuantity || !preferredForm) {
+      const configurations = catalog.skusForMedication(medicationId)
+      const preference = (sku: typeof configurations[number]) =>
+        (sku.strength === '20 mg' ? 4 : 0) +
+        (sku.quantity === 90 ? 2 : 0) +
+        (sku.form === medication.forms[0] ? 1 : 0)
+      const preferred = [...configurations].sort((left, right) => preference(right) - preference(left))[0]
+      if (!preferred) {
         throw new Error('This medication has no available configurations.')
       }
 
       this.setConfiguration({
         medicationId,
-        form: preferredForm,
-        strength: preferredStrength,
-        quantity: preferredQuantity,
+        form: preferred.form,
+        strength: preferred.strength,
+        quantity: preferred.quantity,
       })
     },
     setConfiguration(input: {

@@ -1,4 +1,5 @@
-import { drugFactRegistry, drugFactTypes, type DrugFactType } from '../domain/drug-facts'
+import { drugFactTypes, type DrugFactType } from '../domain/drug-facts'
+import { factAvailabilityValues, type FactAvailability } from '../domain/drug-fact-status'
 import { executeWithActivity } from '../services/cleardose.actions'
 import type { ClearDoseToolDefinition, JsonSchema, JsonValue, WebMcpExecutionOptions } from './types'
 
@@ -17,12 +18,23 @@ export interface ExplorerFactCard {
   drugIds: string[]
 }
 
+export interface ExplorerFactResult {
+  cardId: string
+  drugId: string
+  factType: DrugFactType
+  availability: FactAvailability
+  source: string
+  warnings: Array<{ source: string; code: string }>
+  warningCount?: number
+}
+
 export interface ExplorerWorkspaceSnapshot {
   revision: string
   selectedDrugs: ExplorerDrugIdentity[]
   cards: ExplorerFactCard[]
   catalog: ExplorerDrugIdentity[]
   route?: string
+  factResults?: ExplorerFactResult[]
 }
 
 export interface ExplorerMutationContext {
@@ -50,7 +62,7 @@ export const explorerToolNames = [
 ] as const
 export const explorerOutputBudget = 1_500
 
-const staleMessage = 'Drug Explorer changed. Read its current state and refresh the available WebMCP tools, then retry with the current workspaceRevision.'
+const staleMessage = 'Drug Explorer changed. Read cleardose_get_explorer_state, then retry with its current workspaceRevision.'
 const medicalNotice = 'Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.'
 const stateSections = ['workspace', 'selected', 'cards', 'catalog'] as const
 type StateSection = typeof stateSections[number]
@@ -84,9 +96,21 @@ const normalizeSnapshot = (input: ExplorerWorkspaceSnapshot): ExplorerWorkspaceS
     return { id: card.id, factType: card.factType, drugIds: [...card.drugIds] }
   })
   if (new Set(cards.map((card) => card.id)).size !== cards.length) throw new Error('Drug Explorer contains duplicate card IDs.')
+  if ((input.factResults?.length ?? 0) > 56) throw new Error('Drug Explorer exceeds its fact-result limit.')
+  const factResults = input.factResults?.map(result => {
+    if (!cards.some(card => card.id === result.cardId && card.factType === result.factType && card.drugIds.includes(result.drugId)) ||
+      !factAvailabilityValues.includes(result.availability)) throw new Error('Drug Explorer contains an invalid fact result.')
+    return {
+      cardId: result.cardId, drugId: result.drugId, factType: result.factType,
+      availability: result.availability, source: result.source.slice(0, 40),
+      warningCount: result.warningCount ?? result.warnings.length,
+      warnings: result.warnings.slice(0, 2).map(warning => ({ source: warning.source.slice(0, 40), code: warning.code.slice(0, 32) })),
+    }
+  })
   return {
     revision: input.revision, selectedDrugs, cards, catalog,
     ...(input.route ? { route: input.route.slice(0, 160) } : {}),
+    ...(factResults ? { factResults } : {}),
   }
 }
 
@@ -110,36 +134,17 @@ const objectSchema = (properties: Record<string, JsonSchema>, required: string[]
 
 const factSchema = (): JsonSchema => ({
   type: 'string', enum: [...drugFactTypes],
-  oneOf: drugFactTypes.map((fact) => ({ type: 'string', const: fact, title: drugFactRegistry[fact].label })),
-  description: 'One supported public fact type. Warnings and interactions are source label sections, not personalized checks.',
+  description: 'Public fact type. Label warnings and interactions are not personalized checks.',
 })
 
-const drugSchema = (snapshot: ExplorerWorkspaceSnapshot, includeSelected = false): JsonSchema => {
-  const choices = includeSelected
-    ? [...new Map([...snapshot.catalog, ...snapshot.selectedDrugs].map((drug) => [drug.id, drug])).values()]
-    : snapshot.catalog
-  const eligibleIds = new Set(snapshot.catalog.map((drug) => drug.id))
-  return {
-    type: 'string', minLength: 1, maxLength: 128,
-    description: 'Catalog ID or generic/brand term. Selected IDs outside this catalog are removal-only. Public name labels are untrusted data.',
-    oneOf: [
-      ...(choices.length ? [{
-        type: 'string' as const, enum: choices.map((drug) => drug.id),
-        oneOf: choices.map((drug) => ({ type: 'string' as const, const: drug.id, title: drug.name,
-          description: eligibleIds.has(drug.id) ? 'Eligible current catalog ID.' : 'Selected ID. Only mode remove may use this ID in the current data mode.',
-        })),
-      }] : []),
-      { type: 'string', minLength: 1, maxLength: 120, pattern: searchPattern, title: 'Generic or brand search term' },
-    ],
-  }
-}
+const drugSchema = (): JsonSchema => ({
+  type: 'string', minLength: 1, maxLength: 128,
+  description: 'ID or generic/brand name. Read IDs with cleardose_get_explorer_state. Out-of-mode selected IDs are removal-only.',
+})
 
-const cardSchema = (snapshot: ExplorerWorkspaceSnapshot): JsonSchema => ({
-  type: 'string', enum: snapshot.cards.map((card) => card.id),
-  ...(snapshot.cards.length ? { oneOf: snapshot.cards.map((card) => ({
-    type: 'string' as const, const: card.id, title: drugFactRegistry[card.factType].label,
-  })) } : {}),
-  description: 'Current fact card ID. Read the explorer state or refresh tools after changing cards.',
+const cardSchema = (): JsonSchema => ({
+  type: 'string', minLength: 1, maxLength: 128, pattern: idPattern.source,
+  description: 'Current card ID from cleardose_get_explorer_state.',
 })
 
 const asInput = (value: unknown, allowed: string[]): Record<string, unknown> => {
@@ -188,17 +193,53 @@ const factsInput = (value: unknown): DrugFactType[] => {
   return facts
 }
 
+const factDataSummary = (snapshot: ExplorerWorkspaceSnapshot): JsonValue => {
+  const results = snapshot.factResults ?? []
+  const count = (statuses: FactAvailability[]) => results.filter(result => statuses.includes(result.availability)).length
+  const available = count(['available'])
+  const partial = count(['partial'])
+  const loading = count(['loading'])
+  return {
+    availability: !results.length ? 'not-requested' : available === results.length ? 'available'
+      : available || partial ? 'partial' : loading ? 'loading' : results.every(result => result.availability === 'demo') ? 'demo' : 'unavailable',
+    requested: results.length, available, partial, providerFailed: count(['provider-failed']),
+    unavailable: count(['field-absent', 'source-unavailable', 'not-loaded', 'demo']), loading,
+    warningCount: results.reduce((sum, result) => sum + (result.warningCount ?? result.warnings.length), 0),
+  }
+}
+
+const factDataRow = (result: ExplorerFactResult): JsonValue => ({
+  kind: 'fact-data', id: result.cardId, drugId: result.drugId, factType: result.factType,
+  availability: result.availability, source: result.source,
+  warningCount: result.warningCount ?? result.warnings.length, warnings: result.warnings,
+})
+
 const mutationOutput = (input: ExplorerWorkspaceSnapshot): JsonValue => {
   const snapshot = normalizeSnapshot(input)
-  return {
+  const results = snapshot.factResults ?? []
+  const output = {
     status: 'updated', workspaceRevision: snapshot.revision,
     selectedDrugIds: snapshot.selectedDrugs.map((drug) => drug.id),
     cardCount: snapshot.cards.length,
     workspacePath: '/drugs/explore',
     ...(snapshot.route ? { route: snapshot.route } : {}),
-    nextAction: 'Refresh tools before another edit. Use cleardose_get_explorer_state to read every selected drug and fact card.',
+    data: factDataSummary(snapshot), factResults: [] as JsonValue[], factResultsTotal: results.length, factResultsTruncated: results.length > 0,
+    nextAction: 'Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.',
     notice: medicalNotice,
   }
+  // The edit already committed. Never fail it merely because detailed availability
+  // needs another page; the state reader provides every bounded fact-result row.
+  if (JSON.stringify(output).length > explorerOutputBudget) delete output.route
+  for (const result of results.slice(0, 4)) {
+    output.factResults.push(factDataRow(result))
+    output.factResultsTruncated = output.factResults.length < results.length
+    if (JSON.stringify(output).length > explorerOutputBudget) {
+      output.factResults.pop()
+      output.factResultsTruncated = true
+      break
+    }
+  }
+  return output
 }
 
 const stateOutput = (snapshot: ExplorerWorkspaceSnapshot, stateRevision: string, section: StateSection, offset: number, limit: number): JsonValue => {
@@ -208,6 +249,7 @@ const stateOutput = (snapshot: ExplorerWorkspaceSnapshot, stateRevision: string,
   }
   if (section === 'workspace' || section === 'cards') {
     rows.push(...snapshot.cards.map((card) => ({ kind: 'fact-card', id: card.id, factType: card.factType, drugIds: card.drugIds })))
+    rows.push(...(snapshot.factResults ?? []).map(factDataRow))
   }
   if (section === 'catalog') rows.push(...snapshot.catalog.map((drug) => ({ kind: 'catalog-drug', id: drug.id, label: drug.name })))
   const output = {
@@ -215,12 +257,18 @@ const stateOutput = (snapshot: ExplorerWorkspaceSnapshot, stateRevision: string,
     nextOffset: null as number | null, rows: [] as JsonValue[],
     format: 'Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.',
     selectedDrugCount: snapshot.selectedDrugs.length, cardCount: snapshot.cards.length,
+    data: factDataSummary(snapshot),
     workspacePath: '/drugs/explore', ...(snapshot.route ? { route: snapshot.route } : {}), notice: medicalNotice,
   }
   for (const row of rows.slice(offset, offset + limit)) {
     output.rows.push(row)
     output.returned = output.rows.length
     output.nextOffset = offset + output.returned < rows.length ? offset + output.returned : null
+    if (output.rows.length === 1 && JSON.stringify(output).length > explorerOutputBudget) {
+      delete output.route
+      output.format = 'Follow nextOffset with both revision tokens for every row.'
+      output.notice = 'Public reference data, not personal medical advice. Missing facts are not safety findings.'
+    }
     if (JSON.stringify(output).length > explorerOutputBudget) {
       output.rows.pop()
       output.returned = output.rows.length
@@ -238,15 +286,17 @@ export const createExplorerTools = (
   workspaceSnapshot: ExplorerWorkspaceSnapshot = dependencies.snapshot(),
 ): AppToolDefinition[] => {
   const snapshot = normalizeSnapshot(workspaceSnapshot)
-  const signature = explorerWorkspaceSignature(snapshot)
   const workspaceRevision: JsonSchema = {
-    type: 'string', const: snapshot.revision,
-    description: 'Current workspace revision. Refresh the available tools after each edit or human workspace change.',
+    type: 'string', minLength: 1, maxLength: 96,
+    description: 'Current token from cleardose_get_explorer_state or the last edit.',
   }
   const changing = { readOnlyHint: false, untrustedContentHint: true, destructiveHint: true, idempotentHint: false, openWorldHint: true }
   const validateRevision = (input: Record<string, unknown>): ExplorerMutationContext => {
-    if (input.workspaceRevision !== snapshot.revision || explorerWorkspaceSignature(dependencies.snapshot()) !== signature) throw new Error(staleMessage)
-    return { expectedRevision: snapshot.revision }
+    // Native handles stay stable. Every invocation reads the live workspace;
+    // the shared action checks this same expected revision again before commit.
+    const current = normalizeSnapshot(dependencies.snapshot())
+    if (input.workspaceRevision !== current.revision) throw new Error(staleMessage)
+    return { expectedRevision: current.revision }
   }
   const run = (name: string, raw: unknown, options: WebMcpExecutionOptions | undefined, action: () => Promise<JsonValue>): Promise<JsonValue> =>
     executeWithActivity({ toolName: name, source, args: raw, run: async () => {
@@ -257,40 +307,45 @@ export const createExplorerTools = (
     } })
   const mutate = async (action: () => void | Promise<void>, options?: WebMcpExecutionOptions): Promise<JsonValue> => {
     await action()
-    // The adapter checks cancellation before its guarded commit. That commit can
-    // refresh the registry and abort this definition's registration signal.
+    const committedRevision = dependencies.snapshot().revision
+    // The adapter checks cancellation before its guarded commit. Once committed,
+    // keep the successful result even if later navigation removes the tool.
     await dependencies.reveal({ signal: options?.signal })
+    if (dependencies.snapshot().revision !== committedRevision) {
+      throw new Error('This edit was applied, then a newer workspace or data-mode change superseded it while navigation finished. Review the current workspace before another edit.')
+    }
     return mutationOutput(dependencies.snapshot())
   }
   const drugs: JsonSchema = {
-    type: 'array', minItems: 0, maxItems: 4, items: drugSchema(snapshot),
-    description: 'Distinct IDs or names. For remove, use selected drug IDs. Only replace accepts an empty list to clear the selection.',
+    type: 'array', minItems: 0, maxItems: 4, items: drugSchema(),
+    description: 'Distinct IDs or names. Remove uses selected IDs. Replace accepts an empty list to clear selection.',
   }
   const firstDrug = snapshot.catalog.find(drug => snapshot.selectedDrugs.some(selected => selected.id === drug.id))?.id ?? snapshot.catalog[0]?.id ?? 'metformin'
   const firstCard = snapshot.cards[0]?.id ?? 'card-not-yet-created'
   return [{
     name: explorerToolNames[0], title: 'Select explorer drugs', category: 'discovery',
-    description: 'Replace, add, or remove up to four drugs in the visible Drug Explorer. Generic or brand terms resolve through the shared catalog. Remove uses selected IDs; replace with an empty drugs list clears selection. Existing fact cards follow the selection. This edits the workspace, not prescriptions or cart items.',
-    inputSchema: objectSchema({ workspaceRevision, drugs: { ...drugs, items: drugSchema(snapshot, true) }, mode: { type: 'string', enum: ['replace', 'add', 'remove'], default: 'replace', description: 'How to change selected drugs. Replace with drugs: [] clears the selection.' } }, ['workspaceRevision', 'drugs']),
+    description: 'Replace, add, or remove up to four drugs in the visible Explorer. Generic or brand names resolve through the catalog. Fact cards follow selection. This changes the workspace, not prescriptions or cart items.',
+    inputSchema: objectSchema({ workspaceRevision, drugs, mode: { type: 'string', enum: ['replace', 'add', 'remove'], default: 'replace', description: 'Replace with drugs: [] clears selection. Remove requires selected drug IDs.' } }, ['workspaceRevision', 'drugs']),
     annotations: changing,
     exampleInput: { workspaceRevision: snapshot.revision, drugs: [firstDrug], mode: 'replace' },
     execute: (raw, options) => run(explorerToolNames[0], raw, options, async () => {
       const input = asInput(raw, ['workspaceRevision', 'drugs', 'mode'])
       const guard = validateRevision(input)
       const mode = choice(input.mode ?? 'replace', ['replace', 'add', 'remove'], 'mode')
-      if (mode === 'remove' && Array.isArray(input.drugs) && input.drugs.some((id) => !snapshot.selectedDrugs.some((drug) => drug.id === id))) {
+      const current = normalizeSnapshot(dependencies.snapshot())
+      if (mode === 'remove' && Array.isArray(input.drugs) && input.drugs.some((id) => !current.selectedDrugs.some((drug) => drug.id === id))) {
         throw new Error('Remove accepts only current selected drug IDs. Read cleardose_get_explorer_state for those IDs.')
       }
-      const terms = drugsInput(input.drugs, mode === 'remove' ? { ...snapshot, catalog: snapshot.selectedDrugs } : snapshot, mode === 'replace')
+      const terms = drugsInput(input.drugs, mode === 'remove' ? { ...current, catalog: current.selectedDrugs } : current, mode === 'replace')
       return mutate(() => dependencies.selectDrugs({ ...guard, signal: options?.signal, drugs: terms, mode }), options)
     }),
   }, {
     name: explorerToolNames[1], title: 'Show requested drug facts', category: 'discovery',
-    description: 'Show one or more requested fact cards in the visible Drug Explorer. Use mode replace to show only these facts, or add to keep existing cards. Optional drugs replace the selected drugs before showing facts. Cards share the human workspace. Missing public data stays unavailable; this performs no clinical interaction check.',
+    description: 'Show requested Explorer fact cards. Replace shows only these facts; add keeps existing cards. Optional drugs replace selection in the same edit. Missing public facts stay unavailable. This performs no clinical interaction check.',
     inputSchema: objectSchema({ workspaceRevision,
       facts: { type: 'array', minItems: 1, maxItems: 14, items: factSchema(), description: 'Exactly the fact cards requested. Use replace to hide all other facts.' },
       mode: { type: 'string', enum: ['replace', 'add'], default: 'add', description: 'Replace shows only the requested facts. Add keeps existing cards and reuses duplicates.' },
-      drugs: { ...drugs, minItems: 1, description: 'Optional replacement selection, one to four catalog IDs or generic/brand names. Omit to use current selected drugs.' },
+      drugs: { ...drugs, minItems: 1, description: 'Optional replacement selection. Omit to keep current drugs.' },
     }, ['workspaceRevision', 'facts']),
     annotations: changing,
     exampleInput: { workspaceRevision: snapshot.revision, facts: ['side-effects', 'pricing'], mode: 'replace', drugs: [firstDrug] },
@@ -299,44 +354,45 @@ export const createExplorerTools = (
       const guard = validateRevision(input)
       const facts = factsInput(input.facts)
       const mode = choice(input.mode ?? 'add', ['replace', 'add'], 'mode')
-      const terms = input.drugs === undefined ? undefined : drugsInput(input.drugs, snapshot)
-      if (!terms && !snapshot.selectedDrugs.length) throw new Error('Select at least one drug first, or include drugs with the requested facts.')
+      const current = normalizeSnapshot(dependencies.snapshot())
+      const terms = input.drugs === undefined ? undefined : drugsInput(input.drugs, current)
+      if (!terms && !current.selectedDrugs.length) throw new Error('Select at least one drug first, or include drugs with the requested facts.')
       return mutate(() => dependencies.showFacts({ ...guard, signal: options?.signal, facts, mode, ...(terms ? { drugs: terms } : {}) }), options)
     }),
   }, {
     name: explorerToolNames[2], title: 'Change an explorer fact card', category: 'discovery',
-    description: 'Change one current Drug Explorer card to a different supported fact. The card keeps the shared drug selection. Use current card IDs from cleardose_get_explorer_state. This edits only the visible workspace and does not alter medication records.',
-    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(snapshot), factType: factSchema() }, ['workspaceRevision', 'cardId', 'factType']),
+    description: 'Change one current Explorer card to another supported fact, keeping the shared drug selection. This edits the visible workspace, not medication records.',
+    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(), factType: factSchema() }, ['workspaceRevision', 'cardId', 'factType']),
     annotations: { ...changing, idempotentHint: true },
     exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard, factType: 'ingredients' },
     execute: (raw, options) => run(explorerToolNames[2], raw, options, async () => {
       const input = asInput(raw, ['workspaceRevision', 'cardId', 'factType'])
       const guard = validateRevision(input)
-      const cardId = choice(input.cardId, snapshot.cards.map((card) => card.id), 'cardId')
+      const cardId = choice(input.cardId, normalizeSnapshot(dependencies.snapshot()).cards.map((card) => card.id), 'cardId')
       const factType = choice(input.factType, drugFactTypes, 'factType')
       return mutate(() => dependencies.updateFactCard({ ...guard, signal: options?.signal, cardId, factType }), options)
     }),
   }, {
     name: explorerToolNames[3], title: 'Remove an explorer fact card', category: 'discovery',
-    description: 'Remove one current fact card from the visible Drug Explorer. Selected drugs and medication data remain unchanged. Use a card ID from cleardose_get_explorer_state and refresh tools after the removal.',
-    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(snapshot) }, ['workspaceRevision', 'cardId']),
+    description: 'Remove one current Explorer fact card. Selected drugs and medication records remain unchanged. Read current card IDs with cleardose_get_explorer_state.',
+    inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema() }, ['workspaceRevision', 'cardId']),
     annotations: { ...changing, idempotentHint: true, openWorldHint: false },
     exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard },
     execute: (raw, options) => run(explorerToolNames[3], raw, options, async () => {
       const input = asInput(raw, ['workspaceRevision', 'cardId'])
       const guard = validateRevision(input)
-      const cardId = choice(input.cardId, snapshot.cards.map((card) => card.id), 'cardId')
+      const cardId = choice(input.cardId, normalizeSnapshot(dependencies.snapshot()).cards.map((card) => card.id), 'cardId')
       return mutate(() => dependencies.removeFactCard({ ...guard, signal: options?.signal, cardId }), options)
     }),
   }, {
     name: explorerToolNames[4], title: 'Read the drug explorer workspace', category: 'discovery',
-    description: 'Read selected drug IDs, current fact card IDs and types, or the loaded catalog without changing the page. Workspace combines selection and cards. Follow nextOffset with the returned workspaceRevision and stateRevision to read all rows. Use compare_medications for complete public medication sections, not this workspace-state tool.',
+    description: 'Read selected drug IDs, fact cards, or loaded catalog IDs without changing the page. Follow nextOffset with both returned revision tokens. Use compare_medications for complete public facts.',
     inputSchema: objectSchema({
-      section: { type: 'string', enum: [...stateSections], default: 'workspace', description: 'Workspace lists selected drugs and fact cards. Catalog lists loaded IDs usable by explorer tools.' },
-      offset: { type: 'integer', minimum: 0, maximum: 112, default: 0, description: 'Zero-based row offset. Follow nextOffset to read every state row.' },
-      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Maximum rows per page. The character budget can return fewer rows without skipping data.' },
-      workspaceRevision: { type: 'string', minLength: 1, maxLength: 96, description: 'Optional on the first page; required with offset greater than zero to prevent mixing different workspace versions.' },
-      stateRevision: { type: 'string', minLength: 1, maxLength: 64, description: 'Return this read token on later pages. It also detects catalog changes that do not edit the workspace.' },
+      section: { type: 'string', enum: [...stateSections], default: 'workspace', description: 'Workspace combines selection and cards. Catalog lists current drug IDs and names.' },
+      offset: { type: 'integer', minimum: 0, maximum: 112, default: 0, description: 'Zero-based offset. Follow nextOffset for all rows.' },
+      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Maximum rows per page. The output budget may return fewer.' },
+      workspaceRevision: { type: 'string', minLength: 1, maxLength: 96, description: 'Required after offset zero. Use the first page token to pin the workspace.' },
+      stateRevision: { type: 'string', minLength: 1, maxLength: 64, description: 'Required after offset zero. Detects workspace and catalog changes.' },
     }, []),
     annotations: { readOnlyHint: true, untrustedContentHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     exampleInput: { section: 'workspace' },

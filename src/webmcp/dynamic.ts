@@ -1,4 +1,8 @@
 import { executeWithActivity } from '../services/cleardose.actions'
+import { clearDoseToolCatalog } from './definitions'
+import { assertNativeDeclarationBudget, nativeToolDefinition } from './schema-budget'
+import { isTransientProviderFailure, warningsForFactLoad } from '../domain/drug-fact-status'
+import type { ProviderWarning } from '../../cleardose-data-plugin/src/types'
 import type {
   ClearDoseToolDefinition,
   JsonSchema,
@@ -76,6 +80,7 @@ const normalizeSnapshot = (input: DynamicMedicationSnapshot): DynamicMedicationS
     .map((item) => [item.id, { id: item.id, name: safeName(item.name) || item.id }] as const))
     .values()]
     .sort((left, right) => left.id.localeCompare(right.id))
+  if (catalog.length > 112) throw new Error('Medication context exceeds the 112-record catalog limit.')
   const knownIds = new Set(catalog.map((item) => item.id))
   return {
     revision: input.revision,
@@ -86,39 +91,42 @@ const normalizeSnapshot = (input: DynamicMedicationSnapshot): DynamicMedicationS
   }
 }
 
-export const dynamicMedicationSignature = (snapshot: DynamicMedicationSnapshot): string =>
-  JSON.stringify(normalizeSnapshot(snapshot))
+export const dynamicMedicationSignature = (snapshot: DynamicMedicationSnapshot): string => {
+  const { route: _route, ...context } = normalizeSnapshot(snapshot)
+  return JSON.stringify(context)
+}
 
 const objectSchema = (properties: Record<string, JsonSchema>, required: string[]): JsonSchema => ({
   type: 'object', properties, required, additionalProperties: false,
 })
 
-const medicationSchema = (snapshot: DynamicMedicationSnapshot): JsonSchema => ({
-  type: 'string',
-  description: 'Medication ID from the current loaded catalog. Display labels are public catalog names.',
-  enum: snapshot.catalog.map((item) => item.id),
-  oneOf: snapshot.catalog.map((item) => ({ type: 'string', const: item.id, title: item.name,
-    description: snapshot.pageMedicationIds.includes(item.id) ? 'Visible on the current page.' : 'Loaded catalog record, not on this page.',
-  })),
-})
+const medicationSchema = (snapshot: DynamicMedicationSnapshot): JsonSchema => {
+  const ids = snapshot.catalog.map(item => item.id)
+  const inline = ids.length <= 12 && JSON.stringify(ids).length <= 160
+  return {
+    type: 'string', minLength: 1, maxLength: 128,
+    description: 'Current ID from cleardose_get_explorer_state, section catalog.',
+    ...(inline ? { enum: ids } : { pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$', examples: ids.slice(0, 3) }),
+  }
+}
 
 const commonProperties = (snapshot: DynamicMedicationSnapshot): Record<string, JsonSchema> => ({
   contextRevision: {
     type: 'string', const: snapshot.revision,
-    description: 'Current catalog and page revision. Refresh available tools if this revision becomes stale.',
+    description: 'Current context token. Refresh tools after catalog or page changes.',
   },
   scope: {
     type: 'string', enum: snapshot.pageMedicationIds.length ? ['page', 'catalog'] : ['catalog'],
     default: 'catalog',
-    description: 'Use page for medications visible on the current page, or catalog for every medication currently loaded in the store.',
+    description: 'Page limits IDs to visible medications; catalog uses all loaded IDs.',
   },
   offset: {
     type: 'integer', minimum: 0, maximum: 1_000_000, default: 0,
-    description: 'Zero-based field-row offset. Follow nextOffset to read the full normalized result.',
+    description: 'Zero-based field offset. Follow nextOffset for all rows.',
   },
   limit: {
     type: 'integer', minimum: 1, maximum: 10, default: 5,
-    description: 'Maximum field rows per page. The character budget may return fewer rows without skipping data.',
+    description: 'Maximum rows. The output budget may return fewer.',
   },
 })
 
@@ -140,7 +148,7 @@ const integer = (input: Record<string, unknown>, key: string, fallback: number, 
 }
 
 const choice = <T extends string>(value: unknown, allowed: readonly T[], key: string): T => {
-  if (typeof value !== 'string' || !allowed.includes(value as T)) throw new Error(`${key} must be one of: ${allowed.join(', ')}.`)
+  if (typeof value !== 'string' || !allowed.includes(value as T)) throw new Error(`${key} must be one of the currently available values. Read the current catalog or refresh tools.`)
   return value as T
 }
 
@@ -230,9 +238,18 @@ const pickSection = (result: MedicationComparisonResult, section: MedicationComp
       ? drug && Object.fromEntries(['activeIngredients', 'pharmacologicClasses', 'forms', 'strengths', 'routes', 'manufacturers', 'variants']
         .map((key) => [key, drug[key] ?? null]))
       : drug?.[section]
+    const warnings = Array.isArray(drug?.warnings) ? drug.warnings.filter((warning): warning is ProviderWarning =>
+      Boolean(warning && typeof warning === 'object' && typeof warning.source === 'string' && typeof warning.code === 'string' && typeof warning.message === 'string')) : []
+    const relevant = warningsForFactLoad(warnings, section === 'clinical' ? 'clinical' : section === 'prices' ? 'pricing' : 'product')
+    const publicDetails = section === 'prices' && Array.isArray(details) ? details.filter(quote => quote?.kind !== 'demo') : details
+    const hasContent = publicDetails !== undefined && publicDetails !== null && (Array.isArray(publicDetails) ? publicDetails.length > 0
+      : typeof publicDetails === 'object' ? Object.values(publicDetails).some(value => Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined) : true)
+    const failed = relevant.some(isTransientProviderFailure)
+    const availability = failed ? hasContent ? 'partial' : 'provider-failed' : hasContent ? 'available' : details == null ? 'source-unavailable' : 'field-absent'
     return {
       medicationId: entry.medicationId, name: entry.name, status: entry.status,
       ...(entry.message ? { message: entry.message } : {}),
+      dataAvailability: availability, providerWarnings: warnings, freshness: drug?.dataMeta ?? null,
       [section]: details ?? null,
     }
   }),
@@ -278,12 +295,12 @@ export const createDynamicMedicationTools = (
   const tools: ClearDoseToolDefinition[] = [{
     name: 'find_related_medications',
     title: 'Find related catalog medications',
-    description: 'Find medications sharing a selected catalog field with one current medication. Use page scope for visible candidates or catalog for the loaded store. Results explain matches; similarity is informational and does not establish therapeutic interchangeability.',
+    description: 'Find records sharing a catalog field with one medication. Results explain matches. Catalog similarity is not therapeutic interchangeability or advice about suitability.',
     category: 'discovery',
     inputSchema: objectSchema({
       ...common,
       referenceMedicationId: medicationSchema(snapshot),
-      basis: { type: 'string', enum: similarityBases, default: 'category', description: 'Catalog field to match. Ingredient and class matches use normalized public data when available.' },
+      basis: { type: 'string', enum: similarityBases, default: 'category', description: 'Field to match. Ingredient and class require already-loaded public facts.' },
     }, ['contextRevision', 'referenceMedicationId']),
     annotations,
     exampleInput: { contextRevision: snapshot.revision, referenceMedicationId: catalogIds[0]!, scope: 'catalog', basis: 'category' },
@@ -297,19 +314,20 @@ export const createDynamicMedicationTools = (
       const candidates = scope === 'page' ? snapshot.pageMedicationIds : catalogIds
       const rows = await readRows(JSON.stringify(['related', referenceMedicationId, scope, basis]),
         () => dependencies.findRelated({ referenceMedicationId, candidateMedicationIds: candidates.filter((id) => id !== referenceMedicationId), basis, signal: options?.signal }), options?.signal, offset === 0)
-      return pageOutput(snapshot, scope, 'matches', rows, offset, limit)
+      validateContext(input)
+      return pageOutput({ ...snapshot, route: dependencies.getSnapshot().route }, scope, 'matches', rows, offset, limit)
     }),
   }]
 
   tools.push({
     name: 'compare_medications',
     title: 'Compare medication data',
-    description: 'Read detailed public sections for one medication or compare up to four current medications. Use identity, product, clinical, prices, or sources and nextOffset to read every field. FDA interaction sections are label text, not a pairwise interaction check. This tool makes no treatment or substitution decision.',
+    description: 'Read public sections for one medication or compare up to four. Follow nextOffset for every field. FDA interaction text is not a pairwise check. This makes no treatment or substitution decision.',
     category: 'discovery',
     inputSchema: objectSchema({
       ...common,
-      medicationIds: { type: 'array', minItems: 1, maxItems: 4, items: medicationSchema(snapshot), description: 'One to four distinct current medication IDs. Page scope requires every ID to be visible on the page.' },
-      section: { type: 'string', enum: comparisonSections, default: 'identity', description: 'Normalized section to read. Clinical includes all available FDA label sections, with paging for long text.' },
+      medicationIds: { type: 'array', minItems: 1, maxItems: 4, items: medicationSchema(snapshot), description: 'Distinct current IDs. Page scope requires every ID to be visible.' },
+      section: { type: 'string', enum: comparisonSections, default: 'identity', description: 'Clinical includes all available FDA sections, paged without cutting long text.' },
     }, ['contextRevision', 'medicationIds']),
     annotations,
     exampleInput: { contextRevision: snapshot.revision, medicationIds: catalogIds.slice(0, 2), scope: 'catalog', section: 'identity' },
@@ -329,7 +347,8 @@ export const createDynamicMedicationTools = (
         const result = await dependencies.compare({ medicationIds, section, signal: options?.signal })
         return pickSection(result, section)
       }, options?.signal, offset === 0)
-      return pageOutput(snapshot, scope, section, rows, offset, limit)
+      validateContext(input)
+      return pageOutput({ ...snapshot, route: dependencies.getSnapshot().route }, scope, section, rows, offset, limit)
     }),
   })
   return tools
@@ -360,51 +379,95 @@ export const registerDynamicMedicationTools = async (
   options: RegisterDynamicMedicationOptions,
 ): Promise<DynamicMedicationRegistration> => {
   let disposed = false
-  let controller: AbortController | undefined
-  let definitions: ClearDoseToolDefinition[] = []
-  let registeredSignature: string | null = null
-  let requested: { snapshot: DynamicMedicationSnapshot; extras: ClearDoseToolDefinition[]; signature: string } | undefined
+  interface Entry {
+    definition: ClearDoseToolDefinition
+    signature: string
+    controller: AbortController
+    inFlight: number
+    pending: boolean
+  }
+  const entries = new Map<string, Entry>()
+  let requested: { snapshot: DynamicMedicationSnapshot; definitions: ClearDoseToolDefinition[] } | undefined
   let running: Promise<void> | undefined
-  const pendingDiffers = (signature: string) => requested !== undefined && requested.signature !== signature
+  let deferredTimer: ReturnType<typeof setTimeout> | undefined
+  const signatureOf = (definition: ClearDoseToolDefinition): string => JSON.stringify(nativeToolDefinition(definition))
 
   const refresh = (): Promise<void> => {
     if (disposed) return Promise.resolve()
-    const nextSnapshot = normalizeSnapshot(options.dependencies.getSnapshot())
-    const extras = options.extraDefinitions?.() ?? []
-    requested = { snapshot: nextSnapshot, extras, signature: dynamicMedicationSignature(nextSnapshot) + JSON.stringify(extras.map(tool => [tool.name, tool.inputSchema])) }
+    try {
+      const nextSnapshot = normalizeSnapshot(options.dependencies.getSnapshot())
+      const extras = options.extraDefinitions?.() ?? []
+      const definitions = [...createDynamicMedicationTools(options.dependencies, 'agent', nextSnapshot), ...extras]
+      assertNativeDeclarationBudget([...clearDoseToolCatalog, ...definitions])
+      if (new Set(definitions.map(tool => tool.name)).size !== definitions.length) throw new Error('Duplicate WebMCP tool names in registration.')
+      requested = { snapshot: nextSnapshot, definitions }
+    } catch (error) {
+      options.onError?.(error)
+      return Promise.reject(error)
+    }
     if (running) return running
     running = (async () => {
       while (!disposed && requested) {
-        const { snapshot, extras: currentExtras, signature } = requested
+        const { snapshot, definitions: desired } = requested
         requested = undefined
-        if (signature === registeredSignature) continue
-        controller?.abort()
-        controller = new AbortController()
-        const activeController = controller
-        definitions = [...createDynamicMedicationTools(options.dependencies, 'agent', snapshot), ...currentExtras]
+        let changed = false
+        let deferred = false
         try {
-          for (const definition of definitions) {
+          const desiredNames = new Set(desired.map(tool => tool.name))
+          for (const [name, entry] of entries) {
+            if (desiredNames.has(name)) continue
+            if (entry.inFlight) { entry.pending = true; deferred = true; continue }
+            entry.controller.abort()
+            entries.delete(name)
+            changed = true
+          }
+          for (const definition of desired) {
             if (disposed) break
-            await options.context.registerTool({
-              ...definition,
-              annotations: { readOnlyHint: definition.annotations.readOnlyHint, untrustedContentHint: definition.annotations.untrustedContentHint ?? true },
-            }, { signal: activeController.signal })
-            if (disposed) activeController.abort()
+            const signature = signatureOf(definition)
+            const previous = entries.get(definition.name)
+            if (previous?.signature === signature) { previous.pending = false; continue }
+            // A tool can change its own page/workspace before its promise resolves.
+            // Keep its registration alive until that execution has returned.
+            if (previous?.inFlight) { previous.pending = true; deferred = true; continue }
+            previous?.controller.abort()
+            entries.delete(definition.name)
+            const entry: Entry = { definition, signature, controller: new AbortController(), inFlight: 0, pending: false }
+            entries.set(definition.name, entry)
+            const native = nativeToolDefinition(definition)
+            try {
+              await options.context.registerTool({ ...native, execute: async (input, executionOptions) => {
+                entry.inFlight += 1
+                try { return await definition.execute(input, executionOptions) }
+                finally {
+                  entry.inFlight -= 1
+                  if (!disposed && !entry.inFlight && entry.pending && deferredTimer === undefined) {
+                    // Leave the current promise chain before removing its browser registration.
+                    deferredTimer = setTimeout(() => {
+                      deferredTimer = undefined
+                      if (!disposed) void refresh().catch(() => undefined) // refresh already reports through onError
+                    }, 0)
+                  }
+                }
+              } }, { signal: entry.controller.signal })
+            } catch (error) {
+              entry.controller.abort()
+              entries.delete(definition.name)
+              throw error
+            }
+            changed = true
+            if (disposed) entry.controller.abort()
           }
           if (disposed) break
-          if (pendingDiffers(signature)) continue
-          const expectedNames = definitions.map((tool) => tool.name)
+          if (requested || deferred || !changed) continue
+          const expectedNames = desired.map((tool) => tool.name)
           const verified = typeof options.context.getTools === 'function'
           const registeredNames = verified
             ? (await options.context.getTools!()).map((tool) => tool.name).filter((name) => expectedNames.includes(name))
             : expectedNames
           if (disposed) break
-          if (pendingDiffers(signature)) continue
-          registeredSignature = signature
+          if (requested) continue
           options.onChanged?.({ expectedNames, registeredNames: [...new Set(registeredNames)].sort(), verified, revision: snapshot.revision })
         } catch (error) {
-          activeController.abort()
-          registeredSignature = null
           if (!disposed) options.onError?.(error)
           if (!requested) throw error
         }
@@ -414,16 +477,18 @@ export const registerDynamicMedicationTools = async (
   }
 
   const registration: DynamicMedicationRegistration = {
-    get definitions() { return definitions },
+    get definitions() { return [...entries.values()].map(entry => entry.definition) },
     refresh,
     dispose() {
       if (disposed) return
       disposed = true
       requested = undefined
-      controller?.abort()
-      definitions = []
+      if (deferredTimer !== undefined) clearTimeout(deferredTimer)
+      for (const entry of entries.values()) entry.controller.abort()
+      entries.clear()
     },
   }
-  await refresh()
+  try { await refresh() }
+  catch (error) { registration.dispose(); throw error }
   return registration
 }

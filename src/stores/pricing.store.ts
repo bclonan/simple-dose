@@ -41,7 +41,6 @@ export const usePricingStore = defineStore('pricing', {
     },
     comparisonsForSku(sku: MedicationSku, maxDeliveryDays?: number): PriceComparison[] {
       const catalog = useCatalogStore()
-      if (catalog.dataMode === 'live') return []
       return compareFulfillmentOptions({
         sku,
         offers: catalog.offers,

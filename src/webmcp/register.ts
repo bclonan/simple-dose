@@ -15,8 +15,8 @@ import {
 } from './support'
 import type {
   WebMcpDocumentLike,
-  WebMcpToolDefinition,
 } from './types'
+import { assertNativeDeclarationBudget, nativeToolDefinition } from './schema-budget'
 
 export interface RegisterClearDoseToolsOptions {
   navigate?: (path: string) => unknown | Promise<unknown>
@@ -36,18 +36,6 @@ export type ClearDoseRegistration = ClearDoseToolRegistration
 
 const browserDocument = (): WebMcpDocumentLike | undefined =>
   typeof document === 'undefined' ? undefined : (document as Document & WebMcpDocumentLike)
-
-const browserDefinition = (definition: WebMcpToolDefinition): WebMcpToolDefinition => ({
-  name: definition.name,
-  title: definition.title,
-  description: definition.description,
-  inputSchema: definition.inputSchema,
-  annotations: {
-    readOnlyHint: definition.annotations.readOnlyHint,
-    untrustedContentHint: definition.annotations.untrustedContentHint ?? false,
-  },
-  execute: definition.execute,
-})
 
 export const registerClearDoseTools = async (
   options: RegisterClearDoseToolsOptions = {},
@@ -138,9 +126,10 @@ export const registerClearDoseTools = async (
 
   statusStore.beginRegistration(true)
   try {
+    assertNativeDeclarationBudget(definitions)
     for (const definition of definitions) {
       controller.signal.throwIfAborted()
-      await context.registerTool(browserDefinition(definition), {
+      await context.registerTool(nativeToolDefinition(definition), {
         signal: controller.signal,
       })
     }

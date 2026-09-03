@@ -76,7 +76,6 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   const orders = useOrderStore()
 
   const optionByIds = (offerId: string, deliveryOptionId: string): PriceComparison => {
-    if (catalog.dataMode === 'live') throw new Error('Live mode has no verified retail offers. Switch to hybrid or demo mode to use fictional checkout.')
     const offer = catalog.offers.find((candidate) => candidate.id === offerId)
     if (!offer?.available) {
       throw new Error(
@@ -144,6 +143,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     }
     await catalog.loadMedication(medication.id)
     const record = catalog.publicRecords[medication.id]
+    const configurations = catalog.skusForMedication(medication.id)
     return {
       medicationId: medication.id,
       genericName: medication.genericName,
@@ -152,11 +152,14 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       strengths: medication.strengths,
       quantities: medication.quantityOptions,
       prescriptionRequired: medication.publicOnly ? null : medication.rxRequired,
-      availableSkuCount: catalog.skusForMedication(medication.id).length,
+      availableSkuCount: configurations.length,
+      shopConfigurations: configurations.map(({ form, strength, quantity, unit }) => ({ form, strength, quantity, unit })),
+      shopConfigurationCount: configurations.length,
+      pricingNotice: 'Shop prices and quantities are fictional demo offers, not API prices or dosing advice.',
       dataStatus: record?.status ?? 'unavailable',
       sources: record?.drug?.sources.map(source => source.source) ?? [],
       clinicalSections: record?.drug?.clinical ? Object.keys(record.drug.clinical) : [],
-      nextAction: 'Use compare_medications to read paged public details and compare current catalog entries. Public benchmarks are not checkout offers.',
+      nextAction: 'Use an exact shopConfigurations entry with compare_fulfillment_options for the mock cart. Use compare_medications for paged public facts. Benchmarks are not checkout offers.',
     }
   }
 
@@ -195,7 +198,6 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   }
 
   const compareFulfillmentOptions = async (input: CompareOptionsInput) => {
-    if (catalog.dataMode === 'live') throw new Error('Live retail pricing is unavailable. Hybrid and demo modes retain labeled fictional fulfillment.')
     const exact = resolveExactMedication(input)
     const medication = catalog.medicationById(exact.medicationId)
     if (!medication) {
@@ -213,7 +215,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     const sku = findExactSku(catalog.skus, exact)
     if (!sku) {
       throw new Error(
-        'That exact medication configuration is unavailable. Call get_medication_details to read valid forms, strengths, and quantities.',
+        'That exact medication configuration is unavailable. Call get_medication_details and use an exact shopConfigurations entry.',
       )
     }
 
@@ -265,6 +267,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
         lowest?.offerId === selection.offerId &&
         lowest?.deliveryOptionId === selection.deliveryOptionId,
       pricingScenario: pricing.scenarioLabel,
+      pricingNotice: 'Fictional demo offers only. These are not API retail prices, pharmacy inventory, or dosing advice.',
       route: '/compare',
       nextAction: 'Call select_medication_option with an offerId and deliveryOptionId from these results.',
     }
@@ -360,7 +363,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
         price: delivery.price,
         estimatedMinDays: delivery.estimatedMinDays,
         estimatedMaxDays: delivery.estimatedMaxDays,
-        itemTotal: line.pricing.medicationSubtotal + delivery.price,
+        itemTotal: roundCurrency(line.pricing.medicationSubtotal + delivery.price),
       })),
       subtotal: line.pricing.medicationSubtotal,
       delivery: line.delivery.price,
@@ -504,7 +507,6 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   }
 
   const checkoutDemoOrder = async (input: CheckoutDemoOrderInput) => {
-    if (catalog.dataMode === 'live') throw new Error('Demo checkout is disabled in live mode.')
     if (cart.itemCount === 0) {
       throw new Error('The cart is empty. Call add_to_cart before checkout_demo_order.')
     }

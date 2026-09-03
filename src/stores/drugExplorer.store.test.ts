@@ -4,6 +4,7 @@ import { useCatalogStore } from './catalog.store'
 import { useDrugExplorerStore } from './drugExplorer.store'
 import { medicationRepository } from '../services/medication.repository'
 import { drugFactTypes } from '../domain/drug-facts'
+import type { ClearDoseDrug } from '../../cleardose-data-plugin/src/types'
 
 beforeEach(() => { setActivePinia(createPinia()); vi.restoreAllMocks() })
 const publicEmpagliflozin = () => {
@@ -15,6 +16,36 @@ const publicEmpagliflozin = () => {
 }
 
 describe('shared drug explorer workspace', () => {
+  it('preserves label-only failures through URL hydration and clears them after retry in the same cards', async () => {
+    const catalog = useCatalogStore()
+    catalog.dataMode = 'hybrid'
+    const drug: ClearDoseDrug = {
+      identity: { id: 'rxcui-1', slug: 'metformin', genericName: 'Metformin', brandNames: [], ndcs: [], productNdcs: [], applicationNumbers: [], splSetIds: [] },
+      variants: [], forms: [], strengths: [], routes: [], activeIngredients: [], manufacturers: [], pharmacologicClasses: [],
+      prices: [{ id: 'nadac', kind: 'nadac-benchmark', amount: 3, currency: 'USD', basis: 'prescription', label: 'Public benchmark', consumerMeaning: 'Not retail', source: { source: 'nadac', retrievedAt: '2026-09-02' } }],
+      sources: [{ source: 'openfda-ndc', retrievedAt: '2026-09-02' }],
+      warnings: [{ source: 'openfda-label', code: 'network', message: 'FDA label failed.' }],
+    }
+    const fetch = vi.spyOn(medicationRepository, 'getMedication').mockResolvedValue({ status: 'cache', drug })
+    const store = useDrugExplorerStore()
+    await store.hydrateFromRoute({ drugs: 'metformin', facts: 'side-effects,pricing,unsupported' })
+    const ids = store.cards.map(card => card.id)
+    expect(store.message).toContain('Some requested public facts could not load')
+    expect(store.message).toContain('Unsupported fact names')
+    expect(store.factResults.map(result => result.availability)).toEqual(['provider-failed', 'available'])
+    fetch.mockResolvedValue({ status: 'live', drug: { ...drug, warnings: [], clinical: {
+      indications: [], contraindications: [], warnings: [], boxedWarnings: [], adverseReactions: ['Recovered FDA text.'], drugInteractions: ['FDA interaction section.'],
+      clinicalPharmacology: [], pregnancy: [], pediatricUse: [], geriatricUse: [], dosageAndAdministration: [],
+    } } })
+    await store.loadSelected(true)
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(store.cards.map(card => card.id)).toEqual(ids)
+    expect(store.factResults.every(result => result.availability === 'available')).toBe(true)
+    expect(store.message).toBe('')
+    await store.setFacts(['interactions'], 'replace')
+    expect(store.factResults).toEqual([expect.objectContaining({ factType: 'interactions', availability: 'available' })])
+    expect(store.cards.map(card => card.factType)).toEqual(['interactions'])
+  })
   it('resolves generic and brand names and evolves existing cards for every selected drug', async () => {
     publicEmpagliflozin()
     const store = useDrugExplorerStore()
@@ -91,6 +122,73 @@ describe('shared drug explorer workspace', () => {
     await expect(pending).rejects.toThrow('workspace changed')
     expect(store.selectedDrugIds).toEqual([])
   })
+  it('rejects an applied edit superseded by route hydration while facts load, without restoring the old selection', async () => {
+    const catalog = useCatalogStore()
+    const store = useDrugExplorerStore()
+    let finish!: () => void
+    const facts = new Promise<void>(resolve => { finish = resolve })
+    vi.spyOn(catalog, 'loadMedication').mockReturnValue(facts)
+    const pending = store.configureWorkspace({ drugs: ['metformin', 'atorvastatin'], facts: ['warnings', 'pricing'] })
+    await vi.waitFor(() => expect(store.cards).toHaveLength(2))
+    await store.hydrateFromRoute({})
+    const laterRevision = store.revisionNumber
+    finish()
+    await expect(pending).rejects.toThrow('superseded after it was applied')
+    expect(store.selectedDrugIds).toEqual([])
+    expect(store.cards).toEqual([])
+    expect(store.revisionNumber).toBe(laterRevision)
+    expect(store.message).toBe('')
+    expect(store.loading).toBe(false)
+  })
+  it('preserves a later successful edit when an older committed edit finishes its fact fetch', async () => {
+    const catalog = useCatalogStore()
+    const store = useDrugExplorerStore()
+    let finish!: () => void
+    const facts = new Promise<void>(resolve => { finish = resolve })
+    vi.spyOn(catalog, 'loadMedication').mockResolvedValue().mockReturnValueOnce(facts)
+    const pending = store.configureWorkspace({ drugs: ['metformin'], facts: ['pricing'] })
+    await vi.waitFor(() => expect(store.cards).toHaveLength(1))
+    await store.configureWorkspace({ drugs: ['atorvastatin'], facts: ['uses'] })
+    const current = { selection: [...store.selectedDrugIds], cards: JSON.stringify(store.cards), revision: store.revisionNumber }
+    finish()
+    await expect(pending).rejects.toThrow('superseded')
+    expect(store.selectedDrugIds).toEqual(current.selection)
+    expect(JSON.stringify(store.cards)).toBe(current.cards)
+    expect(store.revisionNumber).toBe(current.revision)
+    expect(store.message).toBe('')
+  })
+  it('preserves a direct card removal without replacing its state or message after an old fetch', async () => {
+    const catalog = useCatalogStore()
+    const store = useDrugExplorerStore()
+    let finish!: () => void
+    const facts = new Promise<void>(resolve => { finish = resolve })
+    vi.spyOn(catalog, 'loadMedication').mockReturnValue(facts)
+    const pending = store.configureWorkspace({ drugs: ['metformin'], facts: ['pricing'] })
+    await vi.waitFor(() => expect(store.cards).toHaveLength(1))
+    store.removeFactCard(store.cards[0]!.id)
+    store.message = 'A newer workspace message.'
+    finish()
+    await expect(pending).rejects.toThrow('superseded')
+    expect(store.selectedDrugIds).toEqual(['med-metformin'])
+    expect(store.cards).toEqual([])
+    expect(store.message).toBe('A newer workspace message.')
+    expect(store.loading).toBe(false)
+  })
+  it('does not report success if the data mode changes after the edit commits', async () => {
+    const catalog = useCatalogStore()
+    const store = useDrugExplorerStore()
+    let finish!: () => void
+    const facts = new Promise<void>(resolve => { finish = resolve })
+    vi.spyOn(catalog, 'loadMedication').mockReturnValue(facts)
+    const pending = store.configureWorkspace({ drugs: ['metformin'], facts: ['pricing'] })
+    await vi.waitFor(() => expect(store.cards).toHaveLength(1))
+    catalog.dataEpoch++
+    finish()
+    await expect(pending).rejects.toThrow('superseded')
+    expect(store.selectedDrugIds).toEqual(['med-metformin'])
+    expect(store.cards.map(card => card.factType)).toEqual(['pricing'])
+    expect(store.loading).toBe(false)
+  })
   it('only requests selected facts and adds adverse-event loading on demand', async () => {
     const catalog = useCatalogStore()
     const load = vi.spyOn(catalog, 'loadMedication').mockResolvedValue()
@@ -108,7 +206,7 @@ describe('shared drug explorer workspace', () => {
     await store.configureWorkspace({ drugs: ['metformin', 'atorvastatin'], facts: ['pricing'] })
     expect(store.selectedDrugIds).toHaveLength(2)
     expect(store.cards).toHaveLength(1)
-    expect(store.message).toContain('Some public details')
+    expect(store.message).toContain('Some requested public facts')
   })
   it('preserves every supported fact and does not mutate demo offers', async () => {
     const catalog = useCatalogStore()

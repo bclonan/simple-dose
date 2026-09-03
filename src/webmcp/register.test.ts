@@ -44,6 +44,17 @@ const readOnlyNames = new Set([
   'get_order_status',
 ])
 const destructiveNames = new Set(['remove_cart_item', 'checkout_demo_order'])
+// These outputs can include public medication names, forms, or strengths.
+// The other commerce tools return controlled IDs, numbers, and local labels.
+const untrustedContentNames = new Set([
+  'search_medications',
+  'get_medication_details',
+  'compare_fulfillment_options',
+  'create_prescription_request_card',
+  'view_cart',
+  'compare_cart_savings',
+  'get_order_status',
+])
 
 const expectSchemaBudgets = (schema: WebMcpToolDefinition['inputSchema']): void => {
   if (schema.description) {
@@ -145,7 +156,7 @@ describe('ClearDose WebMCP registration', () => {
         readOnlyHint: readOnlyNames.has(tool.name),
         destructiveHint: destructiveNames.has(tool.name),
         openWorldHint: ['search_medications', 'get_medication_details'].includes(tool.name),
-        untrustedContentHint: ['search_medications', 'get_medication_details'].includes(tool.name),
+        untrustedContentHint: untrustedContentNames.has(tool.name),
       })
       expect(tool.title).not.toBe('')
       expect(tool.description.length).toBeGreaterThan(30)
@@ -330,6 +341,7 @@ describe('ClearDose WebMCP registration', () => {
       getTools: async () => [{
         name: 'get_medication_details',
         description: 'Demo details tool.',
+        annotations: { readOnlyHint: true },
       }],
       executeTool: (async (_tool: RegisteredWebMcpTool, input: unknown) => {
         inputs.push(input)
@@ -451,7 +463,7 @@ describe('ClearDose WebMCP registration', () => {
     const registration = await registerClearDoseTools({ documentRef: fake.documentRef })
 
     const invalidCalls: Array<[string, Record<string, JsonValue>, string]> = [
-      ['search_medications', { query: 'atorvastatin', form: 'syrup' }, 'form must be one of'],
+      ['search_medications', { query: 'atorvastatin', form: 'x'.repeat(81) }, 'form is too long'],
       [
         'compare_fulfillment_options',
         {

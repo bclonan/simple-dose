@@ -6,7 +6,7 @@ import { OpenFdaProvider, type OpenFdaNdcRow } from '../../cleardose-data-plugin
 import { NadacProvider } from '../../cleardose-data-plugin/src/providers/nadac'
 import { LocalMedicareProvider } from '../../cleardose-data-plugin/src/providers/local-medicare'
 import { LegacyDemoCashPriceProvider } from '../../cleardose-data-plugin/src/providers/demo-cash'
-import { getJson } from '../../cleardose-data-plugin/src/utils/http'
+import { getJson, HttpTimeoutError } from '../../cleardose-data-plugin/src/utils/http'
 import { resolveConfig, type ClearDosePluginConfig } from '../../cleardose-data-plugin/src/config'
 
 const row: OpenFdaNdcRow = {
@@ -303,11 +303,11 @@ describe('public price semantics', () => {
     expect(await new NadacProvider('https://data.medicaid.gov', 'test', 2026).getQuotes({ name: 'metformin' })).toEqual([])
     expect(fetcher).not.toHaveBeenCalled()
   })
-  it('caps package requests and reports subset coverage', async () => {
+  it('looks up five exact package NDCs in one bounded batch', async () => {
     const fetcher = vi.fn().mockImplementation(async () => json({ results: [] })); vi.stubGlobal('fetch', fetcher)
     const result = await new NadacProvider('https://data.medicaid.gov', 'test', 2026).getQuotesWithWarnings({ ndcs: ['12345678901', '12345678902', '12345678903', '12345678904', '12345678905'] })
-    expect(fetcher).toHaveBeenCalledTimes(4)
-    expect(result.warnings[0]?.message).toContain('first 4')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(result.quotes).toEqual([])
   })
   it('does not mistake medication quantity for Medicare days supply', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(json({ generatedAt: '2026-09-02', release: 'test', prices: [{ ndc: '12345-6789-01', unitCost: .25, daysSupply: 30, planName: 'Test plan' }] })))
@@ -322,6 +322,128 @@ describe('public price semantics', () => {
     const quotes = await provider.getQuotes({ drug, quantity: 30 })
     expect(quotes[0]).toMatchObject({ kind: 'demo', product: { skuId: 'sku-1', strength: '500 mg', form: 'tablet' } })
     expect(quotes[0]?.label).toContain('500 mg, tablet, 30 tablet')
+  })
+})
+
+describe('targeted FDA label lookup and recovery', () => {
+  it('bounds SPL set queries and requests the latest single source label', async () => {
+    const fetcher = vi.fn().mockResolvedValue(json({ results: [label] }))
+    vi.stubGlobal('fetch', fetcher)
+    await new OpenFdaProvider('https://api.fda.gov').labelsBySetIds(Array.from({ length: 20 }, (_, index) => `set-${String(index).padStart(2, '0')}`))
+    const params = new URL(String(fetcher.mock.calls[0]?.[0])).searchParams
+    expect(params.get('search')?.split(' OR ')).toHaveLength(12)
+    expect(params.get('search')).toContain('set_id:"set-00"')
+    expect(params.get('search')).not.toContain('set-19')
+    expect(params.get('sort')).toBe('effective_time:desc')
+    expect(params.get('limit')).toBe('1')
+  })
+
+  it('uses source SPL IDs first and preserves the newest matching label text and provenance', async () => {
+    const old = { ...label, set_id: 'older-label', effective_time: '20200101', drug_interactions: ['Old label.'] }
+    const newest = { ...label, effective_time: '20260902', drug_interactions: ['Complete source paragraph. '.repeat(1000)] }
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => json({ results: String(input).includes('/label') ? [old, newest] : [{ ...row, openfda: { ...row.openfda, spl_set_id: ['older-label', 'label-1'] } }] }))
+    vi.stubGlobal('fetch', fetcher)
+    const drug = await service().getDrug('Metformin Hydrochloride', { includePrices: false })
+    expect(drug.clinical?.drugInteractions).toEqual(newest.drug_interactions)
+    expect(drug.sources.find(source => source.source === 'openfda-label')).toMatchObject({ effectiveAt: '20260902', url: expect.stringContaining('label-1') })
+    expect(String(fetcher.mock.calls.find(call => String(call[0]).includes('/label'))?.[0])).toContain('set_id')
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
+  it('falls back from a successful SPL miss to an exact name query without accepting a combination label', async () => {
+    const combination = { ...label, set_id: 'combo', effective_time: '20260903', openfda: { generic_name: ['Empagliflozin and Metformin Hydrochloride'], rxcui: ['6809'] }, drug_interactions: ['WRONG COMBINATION'] }
+    const standalone = { ...label, drug_interactions: ['Standalone interactions.'] }
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      if (!url.pathname.includes('/label')) return json({ results: [row] })
+      if (url.searchParams.get('search')?.includes('set_id:')) return json({}, 404)
+      return json({ results: [combination, standalone] })
+    })
+    vi.stubGlobal('fetch', fetcher)
+    const drug = await service().getDrug('Metformin Hydrochloride', { includePrices: false })
+    expect(drug.clinical?.drugInteractions).toEqual(['Standalone interactions.'])
+    const requests = fetcher.mock.calls.map(call => new URL(String(call[0]))).filter(url => url.pathname.includes('/label'))
+    expect(requests).toHaveLength(2)
+    expect(requests[1]?.searchParams.get('search')).toContain('openfda.generic_name.exact:"METFORMIN HYDROCHLORIDE"')
+    expect(requests[1]?.searchParams.get('search')).not.toContain('openfda.generic_name:"')
+    expect(drug.sources.find(source => source.source === 'openfda-label')?.disclaimer).toContain('generic-matched')
+  })
+
+  it('does not reuse a label cache across distinct source products with the same generic name', async () => {
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input))
+      const beta = url.searchParams.get('search')?.includes('Beta') || url.searchParams.get('search')?.includes('set-beta')
+      if (url.pathname.includes('/label')) return json({ results: [{ ...label, set_id: beta ? 'set-beta' : 'set-alpha', openfda: { generic_name: ['Common ingredient'] }, drug_interactions: [beta ? 'Beta source.' : 'Alpha source.'] }] })
+      return json({ results: [{ ...row, generic_name: 'Common ingredient', brand_name: beta ? 'Beta' : 'Alpha', product_ndc: beta ? '22222-2222' : '11111-1111', openfda: { spl_set_id: [beta ? 'set-beta' : 'set-alpha'] } }] })
+    })
+    vi.stubGlobal('fetch', fetcher)
+    const data = service()
+    expect((await data.getDrug('Alpha', { includePrices: false })).clinical?.drugInteractions).toEqual(['Alpha source.'])
+    expect((await data.getDrug('Beta', { includePrices: false })).clinical?.drugInteractions).toEqual(['Beta source.'])
+    expect(fetcher.mock.calls.filter(call => String(call[0]).includes('/label'))).toHaveLength(2)
+  })
+
+  it('does not reuse the old broad label cache namespace', async () => {
+    const cache = new MemoryCache()
+    const get = vi.spyOn(cache, 'get').mockResolvedValue(undefined)
+    vi.stubGlobal('fetch', mockProducts())
+    await service({}, cache).getDrug('Metformin Hydrochloride', { includePrices: false })
+    expect(get.mock.calls.some(([key]) => key.includes(':labels-targeted-v2:'))).toBe(true)
+    expect(get.mock.calls.some(([key]) => key.includes(':labels:'))).toBe(false)
+  })
+
+  it('reports a timeout explicitly and recovers labels without refetching cached products', async () => {
+    vi.useFakeTimers()
+    let offline = true
+    const fetcher = vi.fn(async (input: RequestInfo | URL, options?: RequestInit) => {
+      if (!String(input).includes('/label')) return json({ results: [row] })
+      if (!offline) return json({ results: [label] })
+      return new Promise<Response>((_resolve, reject) => options?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true }))
+    })
+    vi.stubGlobal('fetch', fetcher)
+    const data = service()
+    const pending = data.getDrug('Metformin Hydrochloride', { includePrices: false })
+    await vi.advanceTimersByTimeAsync(501)
+    const unavailable = await pending
+    expect(unavailable.clinical).toBeUndefined()
+    expect(unavailable.warnings).toContainEqual(expect.objectContaining({ source: 'openfda-label', code: 'network', message: expect.stringContaining('timed out after 500 ms') }))
+    offline = false
+    const recovered = await data.getDrug('Metformin Hydrochloride', { includePrices: false })
+    expect(recovered.clinical?.adverseReactions).toEqual(label.adverse_reactions)
+    expect(recovered.warnings?.some(warning => warning.message.includes('timed out'))).toBe(false)
+    expect(fetcher.mock.calls.filter(call => !String(call[0]).includes('/label'))).toHaveLength(1)
+    expect(fetcher.mock.calls.filter(call => String(call[0]).includes('/label'))).toHaveLength(2)
+  })
+
+  it('distinguishes interrupted connections, invalid JSON and invalid clinical fields', async () => {
+    for (const failure of ['network', 'json', 'field'] as const) {
+      vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL) => {
+        if (!String(input).includes('/label')) return json({ results: [row] })
+        if (failure === 'network') throw new TypeError('Failed to fetch')
+        if (failure === 'json') return new Response('invalid json', { status: 200 })
+        return json({ results: [{ ...label, drug_interactions: { invalid: 'not source text' } }] })
+      }))
+      const drug = await service().getDrug('Metformin Hydrochloride', { includePrices: false })
+      expect(drug.clinical).toBeUndefined()
+      const warning = drug.warnings?.find(item => item.source === 'openfda-label')
+      expect(warning?.code).toBe(failure === 'network' ? 'network' : 'malformed-response')
+      expect(warning?.message).toContain(failure === 'network' ? 'could not be reached' : failure === 'json' ? 'invalid JSON' : 'invalid label record')
+    }
+  })
+
+  it('bounds configured timeout retries without mislabeling a caller cancellation', async () => {
+    vi.useFakeTimers()
+    const fetcher = vi.fn((_input: RequestInfo | URL, options?: RequestInit) => new Promise<Response>((_resolve, reject) => options?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })))
+    vi.stubGlobal('fetch', fetcher)
+    const pending = getJson('https://api.fda.gov/drug/label.json', {}, { timeoutMs: 10, retries: 1 })
+    const checked = expect(pending).rejects.toBeInstanceOf(HttpTimeoutError)
+    await vi.advanceTimersByTimeAsync(271); await checked
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    const controller = new AbortController()
+    const cancelled = getJson('https://api.fda.gov/drug/label.json', {}, { timeoutMs: 10, retries: 1, signal: controller.signal })
+    const cancellation = expect(cancelled).rejects.not.toBeInstanceOf(HttpTimeoutError)
+    controller.abort(); await cancellation
+    expect(fetcher).toHaveBeenCalledTimes(3)
   })
 })
 

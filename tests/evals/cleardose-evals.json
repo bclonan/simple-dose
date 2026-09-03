@@ -402,7 +402,7 @@
             "quantity": 90,
             "maxDeliveryDays": 5
           },
-          "expectedError": "That exact medication configuration is unavailable. Call get_medication_details to read valid forms, strengths, and quantities."
+          "expectedError": "That exact medication configuration is unavailable. Call get_medication_details and use an exact shopConfigurations entry."
         },
         {
           "functionName": "get_medication_details",

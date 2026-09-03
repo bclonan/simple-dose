@@ -1,0 +1,129 @@
+- link "Skip to content":
+  - /url: "#main-content"
+- banner:
+  - link "ClearDose home":
+    - /url: /
+    - generic: ClearDose
+  - navigation "Primary navigation":
+    - link "Medications":
+      - /url: /medications
+    - link "Drug Explorer":
+      - /url: /drugs/explore
+    - link "Compare":
+      - /url: /compare
+    - link "Prescription Card":
+      - /url: /prescription-card
+    - link "Agent Lab":
+      - /url: /webmcp
+  - button "Open cart, 0 items":
+    - generic: Cart
+    - generic: "0"
+- main:
+  - paragraph: Medication reference workspace
+  - heading "Drug Explorer" [level=1]
+  - paragraph: Choose up to 4 medications, then compare only the facts you want to see.
+  - button "Copy workspace link"
+  - button "Clear workspace"
+  - region "Choose medications":
+    - heading "Choose medications" [level=2]
+    - paragraph: Search a generic or brand name. Selecting a result adds it to every card.
+    - generic: Data mode
+    - combobox "Data mode":
+      - option "Hybrid public + demo"
+      - option "Public data only" [selected]
+      - option "Deterministic demo"
+    - search "Find medications for Drug Explorer":
+      - generic: Search explorer medications
+      - searchbox "Search explorer medications"
+      - button "Search medications" [disabled]
+    - paragraph: Public records only. Benchmarks are not retail prices or pharmacy availability.
+    - region "Selected medications 2 / 4":
+      - heading "Selected medications 2 / 4" [level=3]
+      - list "Selected medications":
+        - generic: Metformin
+        - button "Remove Metformin":
+          - generic: ×
+        - generic: Empagliflozin
+        - button "Remove Empagliflozin":
+          - generic: ×
+  - region "Choose facts":
+    - heading "Choose facts" [level=2]
+    - paragraph: One card compares the same fact across your selected medications. Adding an existing fact focuses its card.
+    - group "Quick fact cards":
+      - button "Uses"
+      - button "Side effects"
+      - button "Warnings"
+      - button "Boxed warnings"
+      - button "FDA-labeled drug interactions"
+      - button "Active ingredients"
+      - button "Pricing and benchmarks"
+    - generic: All available facts
+    - combobox "All available facts":
+      - option "Drug identity" [selected]
+      - option "Uses"
+      - option "Active ingredients"
+      - option "Strengths and forms"
+      - option "Side effects"
+      - option "Warnings"
+      - option "Boxed warnings"
+      - option "FDA-labeled drug interactions"
+      - option "Pricing and benchmarks"
+      - option "Clinical pharmacology"
+      - option "Pregnancy information"
+      - option "Pediatric use"
+      - option "Geriatric use"
+      - option "Reported adverse events"
+    - button "Add fact card"
+  - region "Selected medication data status":
+    - strong: Metformin
+    - text: · Public data
+    - strong: Empagliflozin
+    - text: · Public data
+    - button "Retry requested facts"
+    - paragraph: Missing facts do not establish safety. Label interactions are not a pairwise interaction check. Do not change medication or dosage based on this workspace.
+  - region "Selected medication fact cards":
+    - article "FDA-labeled drug interactions" [active]:
+      - paragraph: FDA label
+      - heading "FDA-labeled drug interactions" [level=2]
+      - generic: Change FDA-labeled drug interactions fact
+      - combobox "Change FDA-labeled drug interactions fact":
+        - option "Drug identity"
+        - option "Uses"
+        - option "Active ingredients"
+        - option "Strengths and forms"
+        - option "Side effects"
+        - option "Warnings"
+        - option "Boxed warnings"
+        - option "FDA-labeled drug interactions" [selected]
+        - option "Pricing and benchmarks"
+        - option "Clinical pharmacology"
+        - option "Pregnancy information"
+        - option "Pediatric use"
+        - option "Geriatric use"
+        - option "Reported adverse events"
+      - button "Remove FDA-labeled drug interactions card": Remove
+      - paragraph: These are individual medication label sections, not a complete pairwise interaction check. Selecting two drugs does not establish that they interact.
+      - heading "Metformin HCl" [level=3]
+      - status: Public data
+      - paragraph: "7 DRUG INTERACTIONS Table 3 presents clinically significant drug interactions with Metformin Hydrochloride tablets. Table 3: Clinically Significant Drug Interactions with Metformin Hydrochloride Tablets Carbonic Anhydrase Inhibitors Clinical Impact: Carbonic anhydrase inhibitors frequently cause a decrease in serum bicarbonate and induce non-anion gap, hyperchloremic metabolic acidosis. Concomitant use of these drugs with Metformin Hydrochloride may increase the risk for lactic acidosis. Intervention: Consider more frequent monitoring of these patients. Examples: Topiramate, zonisamide, acetazolamide or dichlorphenamide. Drugs that Reduce Metformin Hydrochloride Clearance Clinical Impact: Concomitant use of drugs that interfere with common renal tubular transport systems involved in the renal elimination of metformin (e.g., organic cationic transporter-2 [OCT2] / multidrug and toxin extrusion [MATE] inhibitors) could increase systemic exposure to metformin and may increase the risk for lactic acidosis [see Clinical Pharmacology (12.3) ]. Intervention: Consider the benefits and risks of concomitant use with Metformin Hydrochloride. Examples: Ranolazine, vandetanib, dolutegravir, and cimetidine. Alcohol Clinical Impact: Alcohol is known to potentiate the effect of metformin on lactate metabolism. Intervention: Warn patients against excessive alcohol intake while receiving Metformin Hydrochloride. Insulin Secretagogues or Insulin Clinical Impact: Coadministration of Metformin Hydrochloride with an insulin secretagogue (e.g., sulfonylurea) or insulin may increase the risk of hypoglycemia. Intervention: Patients receiving an insulin secretagogue or insulin may require lower doses of the insulin secretagogue or insulin. Drugs Affecting Glycemic Control Clinical Impact: Certain drugs tend to produce hyperglycemia and may lead to loss of glycemic control. Intervention: When such drugs are administered to a patient receiving Metformin Hydrochloride, observe the patient closely for loss of blood glucose control. When such drugs are withdrawn from a patient receiving Metformin Hydrochloride tablets, observe the patient closely for hypoglycemia. Examples: Thiazides and other diuretics, corticosteroids, phenothiazines, thyroid products, estrogens, oral contraceptives, phenytoin, nicotinic acid, sympathomimetics, calcium channel blockers, and isoniazid. Carbonic anhydrase inhibitors may increase risk of lactic acidosis. Consider more frequent monitoring ( 7 ) Drugs that reduce metformin clearance (such as ranolazine, vandetanib, dolutegravir, and cimetidine) may increase the accumulation of metformin. Consider the benefits and risks of concomitant use ( 7 ) Alcohol can potentiate the effect of metformin on lactate metabolism. Warn patients against excessive alcohol intake ( 7 )"
+      - button "Show more for Metformin HCl":
+        - text: Show more
+        - generic: for Metformin HCl
+      - generic "Sources and freshness"
+      - generic "Source notices"
+      - heading "Empagliflozin" [level=3]
+      - status: Public data
+      - paragraph: 7 DRUG INTERACTIONS See Table 4 for clinically relevant interactions with JARDIANCE. Table 4 Clinically Relevant Interactions with JARDIANCE Diuretics Clinical Impact Coadministration of empagliflozin with diuretics resulted in increased urine volume and frequency of voids, which might enhance the potential for volume depletion. Intervention Before initiating JARDIANCE, assess volume status and renal function. In patients with volume depletion, correct this condition before initiating JARDIANCE. Monitor for signs and symptoms of volume depletion, and renal function after initiating therapy. Insulin or Insulin Secretagogues Clinical Impact The risk of hypoglycemia is increased when JARDIANCE is used in combination with insulin secretagogues (e.g., sulfonylurea) or insulin. Intervention Coadministration of JARDIANCE with an insulin secretagogue (e.g., sulfonylurea) or insulin may require lower dosages of the insulin secretagogue or insulin to reduce the risk of hypoglycemia. Lithium Clinical Impact Concomitant use of an SGLT2 inhibitor with lithium may decrease serum lithium concentrations. Intervention Monitor serum lithium concentration more frequently during JARDIANCE initiation and dosage changes. Positive Urine Glucose Test Clinical Impact SGLT2 inhibitors increase urinary glucose excretion and will lead to positive urine glucose tests. Intervention Monitoring glycemic control with urine glucose tests is not recommended in patients taking SGLT2 inhibitors. Use alternative methods to monitor glycemic control. Interference with 1,5-anhydroglucitol (1,5-AG) Assay Clinical Impact Measurements of 1,5-AG are unreliable in assessing glycemic control in patients taking SGLT2 inhibitors. Intervention Monitoring glycemic control with 1,5-AG assay is not recommended. Use alternative methods to monitor glycemic control. See full prescribing information for information on drug interactions and interference of JARDIANCE with laboratory tests. ( 7 )
+      - button "Show more for Empagliflozin":
+        - text: Show more
+        - generic: for Empagliflozin
+      - generic "Sources and freshness"
+      - generic "Source notices"
+  - paragraph: Your selected medications and facts stay in the page link. WebMCP tools use this same workspace, so agent changes appear here.
+- contentinfo:
+  - paragraph:
+    - strong: Public drug information. Fictional fulfillment.
+    - text: Source-labeled public records are not medical advice. ClearDose does not dispense medication, process prescriptions, or provide real pharmacy cash prices.
+- button "Open WebMCP activity, 19 tools available, 6 recent calls":
+  - strong: WebMCP
+  - generic: 19 tools available · 6 logged

@@ -23,8 +23,10 @@ interface Bridge {
 type TestWindow = Window & { explorerTestWebMcp: Bridge }
 interface WorkspaceResult {
   workspaceRevision: string
+  stateRevision: string
   rows: Array<{ kind: string; id: string; factType?: string; drugIds?: string[] }>
   nextOffset: number | null
+  total: number
 }
 
 async function nativeRegistry(page: Page) {
@@ -74,6 +76,7 @@ async function providers(page: Page) {
   const drugs = [
     { name: 'Metformin', brand: 'Glucophage', rxcui: '33001', ndc: '54321-0301-01' },
     { name: 'Empagliflozin', brand: 'Jardiance', rxcui: '33002', ndc: '54321-0302-01' },
+    { name: 'Linagliptin', brand: 'Tradjenta', rxcui: '33003', ndc: '54321-0303-01' },
   ]
   await page.addInitScript(() => {
     if (!localStorage.getItem('cleardose:data-mode')) localStorage.setItem('cleardose:data-mode', JSON.stringify('hybrid'))
@@ -120,20 +123,32 @@ async function providers(page: Page) {
 }
 
 async function mutation(page: Page, name: string, input: Record<string, unknown>) {
-  await expect.poll(() => page.evaluate(async (name) => {
-    const bridge = (window as unknown as TestWindow).explorerTestWebMcp
-    const state = await bridge.call('cleardose_get_explorer_state', {}) as WorkspaceResult
-    return bridge.tools().find(tool => tool.name === name)?.inputSchema.properties?.workspaceRevision?.const === state.workspaceRevision
-  }, name)).toBe(true)
   return page.evaluate(async ({ name, input }) => {
     const bridge = (window as unknown as TestWindow).explorerTestWebMcp
-    const revision = bridge.tools().find(tool => tool.name === name)!.inputSchema.properties!.workspaceRevision!.const
-    return bridge.call(name, { ...input, workspaceRevision: revision })
+    const state = await bridge.call('cleardose_get_explorer_state', {}) as WorkspaceResult
+    return bridge.call(name, { ...input, workspaceRevision: state.workspaceRevision })
   }, { name, input })
 }
 
 const readState = (page: Page, input: Record<string, unknown> = {}) => page.evaluate(async input =>
   (window as unknown as TestWindow).explorerTestWebMcp.call('cleardose_get_explorer_state', input) as Promise<WorkspaceResult>, input)
+async function readCatalogIds(page: Page) {
+  let result = await readState(page, { section: 'catalog', limit: 3 })
+  const ids: string[] = []
+  const revision = { workspaceRevision: result.workspaceRevision, stateRevision: result.stateRevision }
+  const total = result.total
+  while (true) {
+    expect(JSON.stringify(result).length).toBeLessThanOrEqual(1_500)
+    expect(result.rows.every(row => row.kind === 'catalog-drug')).toBe(true)
+    ids.push(...result.rows.map(row => row.id))
+    if (result.nextOffset === null) break
+    expect(result.nextOffset).toBe(ids.length)
+    result = await readState(page, { section: 'catalog', limit: 3, offset: result.nextOffset, ...revision })
+  }
+  expect(ids).toHaveLength(total)
+  expect(new Set(ids).size).toBe(total)
+  return ids
+}
 const factCard = (page: Page, fact: string) => page.locator(`[data-testid="drug-info-card"][data-fact-type="${fact}"]`)
 
 test('registered tools resolve a new public drug and configure exactly the requested visible facts', async ({ page }) => {
@@ -143,10 +158,21 @@ test('registered tools resolve a new public drug and configure exactly the reque
   await nativeRegistry(page)
   await page.goto('/')
   await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
-  const initialIds = await page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools()
-    .find(tool => tool.name === 'find_related_medications')!.inputSchema.properties!.referenceMedicationId!.enum!)
-  expect(initialIds).toHaveLength(12)
-  expect(initialIds).not.toContain('med-public-empagliflozin')
+  // Startup may already load Jardiance. Read a complete current catalog instead
+  // of relying on a fixed seed count or repeating all IDs in each tool schema.
+  await expect(async () => {
+    const initialIds = await readCatalogIds(page)
+    expect(initialIds).toEqual(expect.arrayContaining(['med-metformin', 'med-public-empagliflozin']))
+    expect(initialIds).not.toContain('med-public-linagliptin')
+  }).toPass()
+
+  // Linagliptin is not a startup query, so this proves brand resolution still
+  // adds a new public record after the initial catalog has loaded.
+  const discovered = await mutation(page, 'cleardose_select_drugs', { drugs: ['Metformin', 'Tradjenta'], mode: 'replace' })
+  expect(discovered).toMatchObject({ selectedDrugIds: ['med-metformin', 'med-public-linagliptin'], route: '/drugs/explore' })
+  expect(await readCatalogIds(page)).toContain('med-public-linagliptin')
+  await expect(page.getByTestId('explorer-selected')).toContainText('Linagliptin')
+  expect(source.requests.some(url => url.toLowerCase().includes('tradjenta'))).toBe(true)
 
   const selected = await mutation(page, 'cleardose_select_drugs', { drugs: ['Metformin', 'Jardiance'], mode: 'replace' })
   expect(selected).toMatchObject({ selectedDrugIds: ['med-metformin', 'med-public-empagliflozin'], route: '/drugs/explore' })
@@ -154,8 +180,7 @@ test('registered tools resolve a new public drug and configure exactly the reque
   await expect(page.getByTestId('explorer-selected')).toContainText('Metformin')
   await expect(page.getByTestId('explorer-selected')).toContainText('Empagliflozin')
   await expect(page.getByTestId('drug-info-card')).toHaveCount(0)
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools()
-    .find(tool => tool.name === 'cleardose_select_drugs')?.inputSchema.properties?.drugs?.items?.oneOf?.[0]?.enum ?? [])).toContain('med-public-empagliflozin')
+  await expect.poll(async () => (await readState(page)).rows.filter(row => row.kind === 'selected-drug').map(row => row.id)).toContain('med-public-empagliflozin')
 
   const oldRevision = (await readState(page)).workspaceRevision
   await page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.hold('cleardose_show_drug_fact'))
@@ -192,7 +217,7 @@ test('registered tools resolve a new public drug and configure exactly the reque
   await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
   const reloaded = await readState(page)
   expect(reloaded.rows.filter(row => row.kind === 'fact-card').map(row => row.factType)).toEqual(['interactions'])
-  expect(source.requests.some(url => url.toLowerCase().includes('jardiance'))).toBe(true)
+  expect(source.requests.some(url => url.toLowerCase().includes('empagliflozin'))).toBe(true)
   expect(await page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.duplicates)).toEqual([])
   expect(errors).toEqual([])
 })
@@ -202,7 +227,10 @@ test('registered card edits, removal, human changes, and resolution failures sha
   await nativeRegistry(page)
   await page.goto('/drugs/explore')
   await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
-  await mutation(page, 'cleardose_show_drug_fact', { drugs: ['Metformin', 'Jardiance'], facts: ['warnings', 'uses'], mode: 'replace' })
+  const configured = await mutation(page, 'cleardose_show_drug_fact', { drugs: ['Metformin', 'Jardiance'], facts: ['warnings', 'uses'], mode: 'replace' })
+  expect(configured).toMatchObject({ status: 'updated', selectedDrugIds: ['med-metformin', 'med-public-empagliflozin'], cardCount: 2 })
+  await expect(page.getByTestId('drug-info-card')).toHaveCount(2)
+  await expect(factCard(page, 'warnings')).toBeVisible()
   let state = await readState(page)
   const warningId = state.rows.find(row => row.factType === 'warnings')!.id
   await mutation(page, 'cleardose_update_fact_card', { cardId: warningId, factType: 'ingredients' })

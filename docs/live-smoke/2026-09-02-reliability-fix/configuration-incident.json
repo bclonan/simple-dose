@@ -1,0 +1,14 @@
+{
+  "previewDeployId": "6a987d73c0db894bb2c83ffd",
+  "phase": "first preview verification before the stable Explorer schema fix",
+  "observedAfterReceiptStep": 20,
+  "successfulAppReceipts": 32,
+  "toolCountBeforeFailure": 19,
+  "lastMeasuredNativeDeclarationBytes": 21935,
+  "lastMeasuredNativeDeclarationBytesScope": "Before adding the two Explorer fact cards",
+  "message": "WebMCP is disabled for this page because the site's WebMCP configuration exceeds supported limits. After correcting the configuration, reset NodeREPL and refresh the browser tab to retry.",
+  "trigger": "Fresh native tool discovery after the first two Explorer fact cards were created",
+  "appState": "Two selected public medications and two fact cards. The last native mutation completed and its success receipt was visible.",
+  "causeStatus": "The browser client does not report which internal limit was exceeded. This observation does not prove a byte, count, or rate threshold.",
+  "plannedCorrection": "Keep the five Explorer declarations stable across workspace edits, retain runtime revision and membership validation, and reduce the application's native declaration byte budget. Do not retry the unchanged configuration."
+}

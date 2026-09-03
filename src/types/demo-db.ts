@@ -1,7 +1,7 @@
 export type CurrencyCode = 'USD'
 
-export type MedicationForm = 'tablet' | 'capsule'
-export type MedicationUnit = 'tablet' | 'capsule'
+export type MedicationForm = string
+export type MedicationUnit = string
 export type PharmacyType = 'mail-order' | 'community' | 'express' | 'hybrid'
 export type FulfillmentType =
   | 'standard-delivery'
@@ -25,6 +25,8 @@ export interface Medication {
   genericName: string
   brandNames: string[]
   category: string
+  categorySource?: 'source-class' | 'catalog-mapping' | 'fallback'
+  categoryDetail?: string
   rxRequired: boolean
   displaySummary: string
   forms: string[]
@@ -34,6 +36,11 @@ export interface Medication {
   publicOnly?: boolean
   publicSource?: string
   publicSummary?: { brandNames: string[]; forms: string[]; strengths: string[] }
+  demoConfiguration?: {
+    form: string
+    strength: string
+    configuration: 'source-listed' | 'synthetic'
+  }
 }
 
 export interface MedicationSku {
@@ -44,6 +51,11 @@ export interface MedicationSku {
   quantity: number
   unit: MedicationUnit
   rxRequired: boolean
+  demoProvenance?: {
+    kind: 'generated-demo'
+    configuration: 'source-listed' | 'synthetic'
+    notice: string
+  }
 }
 
 export interface Pharmacy {

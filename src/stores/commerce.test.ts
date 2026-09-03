@@ -2,6 +2,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useClearDoseActions } from '../services/cleardose.actions'
+import type { Medication } from '../types/demo-db'
+import { useCatalogStore } from './catalog.store'
 import { useCartStore } from './cart.store'
 import { useOrderStore } from './order.store'
 import { usePrescriptionStore } from './prescription.store'
@@ -21,7 +23,79 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   vi.useRealTimers()
+})
+
+const publicMedication = (name: string, facts: Partial<Medication> = {}): Medication => ({
+  id: `med-public-${name}`, slug: `public-${name}`, genericName: name,
+  brandNames: [], category: 'other-medications', categorySource: 'fallback',
+  rxRequired: false, publicOnly: true, publicSource: 'openfda-ndc',
+  displaySummary: 'Public reference record.', forms: ['SOLUTION'], strengths: ['1 mg/mL'],
+  quantityOptions: [], searchTerms: [name], ...facts,
+})
+
+describe('public records in the mock cart', () => {
+  it('chooses an exact generated SKU without inventing factual quantity options', async () => {
+    const catalog = useCatalogStore()
+    catalog.dataMode = 'live'
+    catalog.mergePublicMedications([publicMedication('public-example')])
+    const selection = useSelectionStore()
+    selection.initializeMedication('med-public-public-example')
+    expect(catalog.medicationById(selection.medicationId!)?.quantityOptions).toEqual([])
+    const sku = catalog.skuById(selection.skuId!)!
+    expect(sku).toMatchObject({ form: 'SOLUTION', strength: '1 mg/mL', quantity: 90 })
+    expect(sku.demoProvenance?.kind).toBe('generated-demo')
+    vi.spyOn(catalog, 'loadMedication').mockResolvedValue()
+    const detail = await useClearDoseActions().getMedicationDetails({ medicationId: sku.medicationId })
+    expect(detail.prescriptionRequired).toBeNull()
+    expect(detail.shopConfigurations).toContainEqual({ form: sku.form, strength: sku.strength, quantity: sku.quantity, unit: sku.unit })
+    expect(detail.pricingNotice).toContain('fictional')
+    const comparison = await useClearDoseActions().compareFulfillmentOptions({})
+    expect(comparison.options.length).toBeGreaterThan(1)
+    expect(comparison.options.every(option => Number.isFinite(option.total) && option.total > 0)).toBe(true)
+  })
+
+  it('restores multiple public cart lines and their exact prices before creating a local order', async () => {
+    let catalog = useCatalogStore()
+    catalog.dataMode = 'live'
+    catalog.mergePublicMedications([publicMedication('first-example'), publicMedication('second-example')])
+    let actions = useClearDoseActions()
+    for (const id of ['med-public-first-example', 'med-public-second-example']) {
+      const sku = catalog.skusForMedication(id)[0]!
+      const options = await actions.compareFulfillmentOptions({ medicationId: id, form: sku.form, strength: sku.strength, quantity: sku.quantity })
+      const chosen = options.options.at(-1)!
+      actions.addToCart({ offerId: chosen.offerId, deliveryOptionId: chosen.deliveryOptionId })
+    }
+    const before = actions.viewCart()
+    expect(before.itemCount).toBe(2)
+    expect(before.grandTotal).toBe(Number(before.grandTotal.toFixed(2)))
+    const savings = actions.compareCartSavings()
+    expect(savings.currentTotal).toBe(before.grandTotal)
+    expect(savings.potentialSavings).toBeGreaterThanOrEqual(0)
+    setActivePinia(createPinia())
+    catalog = useCatalogStore()
+    catalog.dataMode = 'live'
+    actions = useClearDoseActions()
+    expect(actions.viewCart()).toMatchObject({ itemCount: 2, grandTotal: before.grandTotal, items: before.items })
+    const order = await actions.checkoutDemoOrder({
+      fullName: 'Fictional Test User',
+      address: { line1: '100 Demo Street', city: 'Baltimore', state: 'MD', postalCode: '21201' },
+      prescriptionStatus: 'provider-will-send',
+    })
+    expect(order.total).toBe(before.grandTotal)
+    expect((await actions.getOrderStatus({ orderId: order.orderId })).items).toHaveLength(2)
+    expect(actions.viewCart().itemCount).toBe(0)
+  })
+
+  it('keeps unknown clinical fields empty while a synthetic demo configuration remains selectable', () => {
+    const catalog = useCatalogStore()
+    catalog.mergePublicMedications([publicMedication('unknown-example', { forms: [], strengths: [] })])
+    const selection = useSelectionStore()
+    selection.initializeMedication('med-public-unknown-example')
+    expect(catalog.medicationById(selection.medicationId!)?.strengths).toEqual([])
+    expect(catalog.skuById(selection.skuId!)?.demoProvenance).toMatchObject({ configuration: 'synthetic', notice: expect.stringContaining('synthetic') })
+  })
 })
 
 describe('cart pricing', () => {

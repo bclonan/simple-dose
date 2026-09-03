@@ -5,11 +5,11 @@ import type { ClearDosePluginConfig, ResolvedClearDosePluginConfig } from './con
 import { resolveConfig } from './config';
 import { LocalMedicareProvider } from './providers/local-medicare';
 import { NadacProvider } from './providers/nadac';
-import { OpenFdaProvider, type OpenFdaNdcRow } from './providers/openfda';
+import { labelSetLimit, validLabelSetIds, OpenFdaProvider, type OpenFdaLabel, type OpenFdaNdcRow } from './providers/openfda';
 import { RxNormProvider } from './providers/rxnorm';
 import type { DrugPriceProvider } from './providers/types';
 import { DataProviderError, type ClearDoseDrug, type CompareResult, type DataMeta, type DataSourceId, type DrugClinical, type DrugPriceQuote, type DrugSearchHit, type GetDrugOptions, type ProviderWarning, type SearchOptions, type SourceStamp } from './types';
-import { HttpError } from './utils/http';
+import { HttpError, HttpTimeoutError } from './utils/http';
 import { normalizeNdc11 } from './utils/ndc';
 import { slugify, stableId, uniq } from './utils/text';
 
@@ -18,11 +18,16 @@ interface CachedResult<T> { value: T; meta: DataMeta; warnings: ProviderWarning[
 
 function providerWarning(source: DataSourceId, error: unknown): ProviderWarning {
   if (error instanceof DataProviderError) return { source: error.source, code: error.code, message: error.message };
+  if (error instanceof HttpTimeoutError) return { source, code: 'network', message: `${source} timed out after ${error.timeoutMs} ms. Retry to request this source again; other records remain usable.` };
   if (error instanceof HttpError) {
     const code = error.status === 429 ? 'rate-limit' : error.status === 404 ? 'not-found' : 'unavailable';
     return { source, code, message: code === 'rate-limit' ? `${source} is rate limited. Retry later or use cached data.` : `${source} is unavailable. Other sources may still work.` };
   }
-  return { source, code: error instanceof SyntaxError || error instanceof TypeError && !String(error.message).toLowerCase().includes('fetch') ? 'malformed-response' : 'network', message: `${source} could not load valid data. Cached data may be available.` };
+  if (error instanceof SyntaxError) return { source, code: 'malformed-response', message: `${source} returned invalid JSON. No missing clinical text was inferred.` };
+  if (error instanceof TypeError && !/fetch|network|load failed|failed to load/i.test(error.message) || error instanceof Error && error.name === 'DataCloneError') {
+    return { source, code: 'malformed-response', message: `${source} returned or cached data that could not be processed. No missing clinical text was inferred.` };
+  }
+  return { source, code: 'network', message: `${source} could not be reached or its response was interrupted. Retry when connected; cached records may still be available.` };
 }
 
 function uniqueWarnings(values: ProviderWarning[]): ProviderWarning[] {
@@ -210,24 +215,38 @@ export class ClearDoseDataService {
     let clinical: DrugClinical | undefined;
     if (options.includeClinical !== false) {
       try {
-        const labels = await this.cached(`labels:${genericName.toLowerCase()}`, 'openfda-label', this.config.cache.clinicalTtlMs, () => this.openFda!.labelsByName(genericName));
-        warnings.push(...labels.warnings);
-        stages.push(labels.meta);
-        const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\s+/g, ' ');
-        const label = labels.value.find(candidate => {
-          const identity = candidate?.openfda;
-          return identity && (
-            Array.isArray(identity.product_ndc) && identity.product_ndc.some((id: string) => product.productNdcs.includes(id)) ||
-            Array.isArray(identity.rxcui) && resolvedRxCui && identity.rxcui.includes(resolvedRxCui) ||
-            Array.isArray(identity.generic_name) && identity.generic_name.some((name: string) => typeof name === 'string' && normalizeName(name) === normalizeName(genericName))
-          );
+        const setIds = validLabelSetIds(product.splSetIds);
+        const checkedSetIds = setIds.slice(0, labelSetLimit);
+        const labelKey = JSON.stringify({ generic: genericName.toLowerCase(), sets: checkedSetIds, products: product.productNdcs.slice().sort() });
+        const labels = await this.cached(`labels-targeted-v2:${labelKey}`, 'openfda-label', this.config.cache.clinicalTtlMs, async () => {
+          const normalizeName = (value: string) => value.trim().toLowerCase().replace(/\bhcl\b/g, 'hydrochloride').replace(/\s+/g, ' ');
+          const matching = (candidate: OpenFdaLabel, allowGeneric: boolean) => {
+            const names = candidate.openfda?.generic_name ?? [];
+            // A shared ingredient RxCUI alone cannot authorize a combination label.
+            if (names.length && names.some(name => normalizeName(name) !== normalizeName(genericName))) return false;
+            return Boolean(candidate.set_id && checkedSetIds.includes(candidate.set_id) ||
+              candidate.openfda?.product_ndc?.some(id => product.productNdcs.includes(id)) ||
+              allowGeneric && names.some(name => normalizeName(name) === normalizeName(genericName)));
+          };
+          const targeted = checkedSetIds.length ? await this.openFda!.labelsBySetIds(checkedSetIds) : [];
+          let label = targeted.find(candidate => matching(candidate, false));
+          const genericFallback = !label;
+          // Only a successful no-match lookup falls back. A failed request stays
+          // retryable, with no second burst after rate limiting or a timeout.
+          if (!label) label = (await this.openFda!.labelsByName(genericName)).find(candidate => matching(candidate, true));
+          if (!label) throw new DataProviderError('openfda-label', 'not-found', 'No matching FDA label is available for this product identity. Missing text does not imply safety.');
+          const warnings: ProviderWarning[] = setIds.length > checkedSetIds.length ? [{ source: 'openfda-label', code: 'partial', message: `Selected the latest matching label among the first ${labelSetLimit} source SPL sets. Other product labels may differ.` }] : [];
+          return { label, genericFallback, warnings };
         });
-        if (label) {
-          clinical = this.openFda.normalizeLabel(label);
-          const labelUrl = new URL(`${this.config.openFda.baseUrl}/drug/label.json`);
-          labelUrl.searchParams.set('search', typeof label.set_id === 'string' ? `set_id:"${label.set_id}"` : `openfda.generic_name:"${genericName}"`);
-          sources.push({ source: 'openfda-label', url: labelUrl.href, retrievedAt: labels.meta.retrievedAt, effectiveAt: typeof label.effective_time === 'string' ? label.effective_time : undefined, disclaimer: 'FDA label source text, not individualized medical advice or a complete pairwise interaction check.' });
-        } else warnings.push({ source: 'openfda-label', code: 'not-found', message: 'FDA label information is unavailable for this product. Missing text does not imply safety.' });
+        warnings.push(...labels.warnings);
+        warnings.push(...labels.value.warnings);
+        stages.push(labels.meta);
+        const label = labels.value.label;
+        clinical = this.openFda.normalizeLabel(label);
+        const labelUrl = new URL(`${this.config.openFda.baseUrl}/drug/label.json`);
+        labelUrl.searchParams.set('search', label.set_id ? `set_id:"${label.set_id}"` : `openfda.generic_name.exact:"${genericName.replace(/([\\"])/g, '\\$1')}"`);
+        sources.push({ source: 'openfda-label', url: labelUrl.href, retrievedAt: labels.meta.retrievedAt, effectiveAt: label.effective_time,
+          disclaimer: `${labels.value.genericFallback ? 'Representative generic-matched FDA label; product formulations may differ. ' : ''}FDA label source text, not individualized medical advice or a complete pairwise interaction check.` });
       } catch (error) { warnings.push(providerWarning('openfda-label', error)); }
     }
 
@@ -241,7 +260,7 @@ export class ClearDoseDataService {
       const tasks: Array<Promise<void>> = [];
       if (this.nadac) tasks.push((async () => {
         try {
-          const result = await this.cached(`nadac:${product.ndcs.slice().sort().join(',')}:${quantity}`, 'nadac', this.config.cache.priceTtlMs, () => this.nadac!.getQuotesWithWarnings({ ndcs: product.ndcs, quantity }));
+          const result = await this.cached(`nadac-v2:${product.ndcs.join(',')}:${quantity}`, 'nadac', this.config.cache.priceTtlMs, () => this.nadac!.getQuotesWithWarnings({ ndcs: product.ndcs, quantity }));
           drug.prices.push(...result.value.quotes); warnings.push(...result.warnings, ...result.value.warnings); stages.push(result.meta);
           if (!result.value.quotes.length) warnings.push({ source: 'nadac', code: 'not-found', message: 'No NADAC benchmark is available for the checked package NDCs. No retail price is implied.' });
         } catch (error) { warnings.push(providerWarning('nadac', error)); }

@@ -4,11 +4,11 @@
 
 ## Overview
 
-ClearDose combines public medication reference data with a fictional prescription purchasing workflow for the WebMCP Challenge. A person can search generic or brand names, inspect normalized public records and source labels, and compare related catalog records. The original catalog also supports exact demo SKUs, fictional pharmacy offers, a multi-item cart, savings review, and simulated checkout.
+ClearDose combines public medication reference data with a fictional prescription purchasing workflow for the WebMCP Challenge. A person can search generic or brand names, inspect source-labeled records, and compare related catalog records. Public medications and the original fixtures support exact demo configurations, fictional pharmacy offers, a multi-item cart, savings review, and simulated checkout.
 
 Production: [cleardose-webmcp-demo.netlify.app](https://cleardose-webmcp-demo.netlify.app)
 
-An agent follows the same application services through twelve static browser tools and two dynamic medication tools when the active catalog is nonempty. Public drug requests go through `cleardose-data-plugin`; workflow state and caches remain browser-local. There is no application backend, account system, payment processor, or app-side model API. The connected browser agent supplies the LLM and receives current catalog choices through WebMCP schemas and results.
+An agent follows the same application services through twelve static browser tools, two dynamic medication tools, and five Drug Explorer tools. Public drug requests go through `cleardose-data-plugin`; workflow state and caches remain browser-local. There is no application backend, account system, payment processor, or app-side model API. The connected browser agent supplies the LLM and reads current catalog choices through compact WebMCP schemas and paged results.
 
 ## Challenge concept
 
@@ -60,11 +60,13 @@ The catalog page has a data-mode selector. Production defaults to `hybrid`; dete
 
 | Mode | Medication information | Commerce |
 | --- | --- | --- |
-| `hybrid` | Public queries, cached records, and labeled local fallback | Original fictional SKU and pharmacy workflow remains available |
-| `live` | Public records where available, including cached public data | Fictional fulfillment and checkout are disabled |
+| `hybrid` | Public queries, cached records, and labeled local fallback | Generated public-drug demo offers and original fictional fixtures |
+| `live` | Public records where available, including cached public data | The same clearly labeled mock cart, separate from public facts |
 | `demo` | Original deterministic catalog; no public detail fetch | Original fictional workflow |
 
-RxNorm identity lookup, openFDA product and label data, and NADAC benchmarks are enabled. Search starts with lightweight records. Details and comparisons request richer sections on demand. The store retains up to 100 public medication identities alongside the 12 original seed records. Existing `med-*`, SKU, offer, and route identifiers remain intact; new public records use `med-public-*` IDs and do not receive invented purchasable SKUs.
+RxNorm identity lookup, openFDA product and label data, and NADAC benchmarks are enabled. On startup, hybrid and live modes run 24 medication-name searches with three workers and at most four hits per query. Cached names appear immediately; partial failures do not block browsing or the cart. More names can be loaded through search. Details and comparisons request clinical sections and benchmarks on demand. This does not preload the entire FDA database.
+
+The store retains up to 100 active public identities alongside the 12 original seed records. Explorer selections remain in that active limit. A separate archive preserves identities referenced by saved carts, orders, or requests. Existing IDs remain intact. New `med-public-*` records receive stable pseudo-random demo offers from `src/domain/demo-public-fulfillment.ts`. Their saved configuration and prices survive enrichment and reload. Generated form/strength pairings, quantities, inventory and prices are explicitly fictional. Missing clinical fields and prescription status stay unknown. Categories use supported catalog mappings or source classes, with Other medications as the fallback.
 
 NADAC queries cover up to four exact package NDCs per drug in parallel under one timeout, and keep the latest available row for each checked NDC. Coverage can be partial. A benchmark is a pharmacy acquisition-cost reference, not retail cash pricing, patient copay, or pharmacy inventory. The quote's NDC and quantity remain visible and do not automatically match the selected demo SKU. The reusable plugin supports a local Medicare index, but this app keeps it disabled because no genuine preprocessed index is configured. The bundled example is not production Medicare data.
 
@@ -110,12 +112,12 @@ The main routes are `/`, `/medications`, `/medications/:slug`, `/compare`, `/pre
 
 ## WebMCP tools
 
-ClearDose retains twelve static tools and registers two additional context-sensitive tools when the active catalog has medication choices. A populated hybrid catalog therefore exposes fourteen tools through `document.modelContext.registerTool`.
+ClearDose retains twelve static workflow tools and five Explorer tools with stable declarations. Two additional context-sensitive medication tools register when the active catalog has medication choices. A populated hybrid catalog therefore exposes nineteen tools through `document.modelContext.registerTool`.
 
 | Tool | Effect profile | What it does |
 | --- | --- | --- |
 | `search_medications` | State change, idempotent | Searches the catalog, persists the search state, updates the visible results, and opens `/medications`. |
-| `get_medication_details` | Read only, idempotent | Loads shared public details and returns configuration metadata, source names, available clinical sections, and data status. Public-only records have no purchasable SKU or verified prescription status. |
+| `get_medication_details` | Read only, idempotent | Loads shared public details and pages through exact mock-shop configurations. Returns source names, available clinical sections, and data status. Generated demo configurations are separate from public facts; prescription status stays unknown when the source does not establish it. |
 | `compare_fulfillment_options` | State change, idempotent | Compares one exact SKU or reuses the current exact selection, persists the comparison, and opens `/compare`. |
 | `select_medication_option` | State change, idempotent | Saves one exact offer and delivery option in the shared selection state. |
 | `create_prescription_request_card` | State change | Creates and displays a local request summary. It does not issue or transmit a prescription. |
@@ -129,9 +131,11 @@ ClearDose retains twelve static tools and registers two additional context-sensi
 | `find_related_medications` | Read only, dynamic | Matches one current medication against page or loaded-catalog candidates by ingredient, class, category, or form, with an explicit reason for each match. |
 | `compare_medications` | Read only, dynamic | Reads full normalized sections for one medication or compares up to four current IDs, with paginated field rows. |
 
-Chrome's current Imperative API receives `readOnlyHint` and `untrustedContentHint`. Search, medication details, and both dynamic medication tools mark externally sourced content as untrusted. The original fulfillment and commerce tools still return controlled demo records. The Agent Lab also records local effect metadata for destructive and idempotent behavior. Chrome may ignore that extra metadata, so consequential effects stay explicit in descriptions and the interface. `remove_cart_item` deletes one cart line. `checkout_demo_order` creates a local order and consumes the cart.
+Chrome's current Imperative API receives `readOnlyHint` and `untrustedContentHint`. Public-data tools and commerce outputs containing source-derived medication labels mark that content as untrusted. The Agent Lab also records local effect metadata for destructive and idempotent behavior. Consequential effects stay explicit in descriptions and the interface. `remove_cart_item` deletes one cart line. `checkout_demo_order` creates a local order and consumes the cart.
 
-The twelve static registrations share one abort-owned lifetime. Dynamic medication registrations use a separate controller and a serialized refresh queue. Their ID enums and short public name labels come from the active store. A `contextRevision` constant identifies the current route, catalog, scope, and data mode; stale handlers fail with instructions to refresh tools. A session nonce prevents recorded revisions from accidentally matching a different browser session. Public label text stays in results, never in schema instructions.
+The twelve static registrations share one abort-owned lifetime. Each dynamic registration has its own controller and declaration signature. Only changed tools are replaced, and an executing tool keeps its registration until it returns. Unchanged refreshes do not rediscover the registry. A route-only change keeps handles when the available medication IDs and page scope are unchanged; results still report the current route. Stale contexts fail with instructions to refresh tools.
+
+Small catalogs use compact ID enums. Larger catalogs use bounded IDs and direct the agent to `cleardose_get_explorer_state` with `section: "catalog"` for paged ID/name context. Runtime membership and revision checks still apply. ClearDose enforces its own tested 18,000-byte aggregate declaration budget, not a claimed browser limit. Public label paragraphs stay in results, never in schema instructions. Explorer declarations remain stable across workspace edits. Each mutation reads current state and validates the supplied revision and IDs at execution time.
 
 ClearDose does not pass `exposedTo`, so it does not opt any tool into cross-origin exposure. When `getTools` exists, the app verifies expected names and refreshes the count after `toolchange`. A partial registry is `degraded` and lists missing names. An available tool can still run natively; a missing tool-card example uses the shared local definition. If registration succeeds without discovery, the status is `ready-unverified`, and the count is configured rather than verified.
 
@@ -139,13 +143,13 @@ ClearDose does not pass `exposedTo`, so it does not opt any tool into cross-orig
 
 Schemas reject undeclared fields with `additionalProperties: false` and use required fields, enums, patterns, and numeric limits. Runtime parsers repeat those checks, including exact IDs, real calendar dates, state codes, postal codes, and the rule that a comparison receives all four exact SKU fields or none. Errors name the next tool to call when recovery is possible.
 
-Agent Lab manual execution follows the current native contract. It serializes the input object to JSON text before calling `document.modelContext.executeTool(tool, jsonInput)`, then parses JSON results when the browser returns them as text. A narrow compatibility retry supports older preview browsers that explicitly reject JSON text and request an object. Other failures are not retried.
+Agent Lab manual execution serializes input to JSON text before calling `document.modelContext.executeTool(tool, jsonInput)`, then parses textual JSON results. Only a read-only call may retry an older object-input convention after an explicit format rejection. A mutation is never repeated under a different convention after an uncertain response.
 
 The contracts follow Chrome's character budgets: 500 for a tool description, 150 for a parameter description, 30 for tool and parameter names, and 1,500 for serialized output. `create_prescription_request_card` keeps its longer original challenge name as a compatibility exception. Workflow tools use bounded pages with continuation offsets. Dynamic medication tools return JSON Pointer field rows; long strings have ordered `part` and `parts` values. Follow `nextOffset` to read the full selected section. `identity`, `product`, `clinical`, `prices`, and `sources` remain separate, and clinical paging preserves long label sections. Starting at offset zero refreshes the result; continuation pages use its saved result snapshot.
 
 Order results omit recipient names and addresses. Logs retain bounded context and redact personal fields. Dynamic read receipts preserve their complete bounded field-row page, continuation metadata, and notice. Recorded catalog and cart ID lists support up to 112 IDs.
 
-Replay requires visible review and confirmation. It checks every recorded step's before and after data mode before running, then checks the mode again at each step. For the two dynamic read tools, it requires a recorded revision and verifies that saved IDs still belong to the current mode-eligible catalog and requested page scope. Only then does it bind the current revision. All other saved arguments remain unchanged, and normal runtime stale-context checks still apply. Checkout identity and address fields are never replayed.
+Replay requires visible review and confirmation. It checks every recorded step's before and after data mode before running, then checks the mode again at each step. For the two dynamic medication tools, it validates saved IDs against the current catalog and requested page scope before binding the current context revision. Explorer mutation replay binds the current workspace revision after checking the recorded context and any required selection. A saved card ID rebinds only to a current card with the same fact and medication IDs. Read-state replay also updates a saved workspace revision but keeps its saved `stateRevision`, so changed catalog or workspace pages must restart. Other arguments remain unchanged, except optional redacted fields are removed. Normal runtime stale-context checks still apply. Checkout identity and address fields are never replayed.
 
 ## Local demo database
 
@@ -192,7 +196,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-`pnpm test` runs domain, provider, repository, and WebMCP registration tests. `pnpm test:evals` runs deterministic call-contract, multi-cart, savings-swap, replay-security, ordering, and recovery coverage. These checks do not score a live language model. Chromium tests cover the existing purchase/replay flows plus mocked official-provider requests, public-only details, cache fallback, clinical comparison, live-mode restrictions, and dynamic native-registry behavior. `pnpm build` runs the TypeScript check before Vite creates `dist`.
+`pnpm test` runs domain, provider, repository, and WebMCP registration tests. `pnpm test:evals` runs deterministic call-contract, multi-cart, savings-swap, replay-security, ordering, and recovery coverage. These checks do not score a live language model. Chromium tests cover purchase/replay flows, mocked official providers, public-drug shopping in live/hybrid modes, cache recovery, clinical comparison, long native-registration sequences, and card layout at four widths. `pnpm build` runs the TypeScript check before Vite creates `dist`.
 
 Run the full local gate after Chromium is installed:
 
@@ -211,7 +215,7 @@ pnpm exec vitest run src/webmcp/register.test.ts
 ClearDose does not hide WebMCP behind an application setting. Native registration becomes available when the browser exposes the current imperative `document.modelContext.registerTool` API.
 
 1. Start ClearDose and open `/webmcp` in a WebMCP-compatible browser or agent environment.
-2. Check the Agent Lab status. `ready` means the page read the real registry with `document.modelContext.getTools` and found all currently expected tools, usually fourteen in hybrid mode. `degraded` lists missing tools. `ready-unverified` means registration completed without browser discovery.
+2. Check the Agent Lab status. `ready` means the page read the real registry with `document.modelContext.getTools` and found all currently expected tools, usually nineteen in hybrid mode. `degraded` lists missing tools. `ready-unverified` means registration completed without browser discovery.
 3. Run an example from a tool card or send one of the prompts below through the connected agent.
 4. Watch the same search, comparison, selection, prescription, cart, and order state update in the interface.
 5. Expand the floating WebMCP control. Inspect a journey's calls, redacted context, timing, and before and after state.

@@ -5,6 +5,7 @@ import MedicationSearch from '../components/MedicationSearch.vue'
 import { useClearDoseActions } from '../services/cleardose.actions'
 import { useCatalogStore } from '../stores/catalog.store'
 import { discoveryAttributes } from '../domain/catalog'
+import { medicationCategoryLabel, medicationFormLabel } from '../utils/medication-presentation'
 
 const catalog = useCatalogStore()
 const actions = useClearDoseActions()
@@ -12,11 +13,11 @@ const modeError = ref('')
 const discoveryMedications = computed(() => catalog.medications.map(medication => discoveryAttributes(medication, catalog.dataMode !== 'demo')))
 const forms = computed(() => [...new Set(discoveryMedications.value.flatMap((medication) => medication.forms.map(form => form.trim().toLowerCase())))])
 const strengths = computed(() => [...new Set(discoveryMedications.value.flatMap((medication) => medication.strengths))].sort())
-const categories = computed(() => [...new Set(catalog.medications.map((medication) => medication.category))].filter((category) => category && category !== 'uncategorized').sort())
+const categories = computed(() => [...new Set(catalog.medications.map((medication) => medication.category))].filter((category) => category && !['uncategorized', 'other-medications'].includes(category)).sort())
 const modeDescription = computed(() => {
   if (catalog.dataMode === 'demo') return 'Deterministic local fixtures. Prices, pharmacies, and checkout are fictional.'
-  if (catalog.dataMode === 'live') return 'Public medication records only. Cash prices and pharmacy availability remain unavailable unless a provider supplies them.'
-  return 'Public medication information with cached records and explicit demo fallback. Pharmacy offers and checkout remain fictional.'
+  if (catalog.dataMode === 'live') return 'Public medication facts. Shop prices, pharmacy offers, and checkout are simulated and do not show real availability.'
+  return 'Public medication facts with cached records and demo fallback. Shop prices, pharmacy offers, and checkout are always simulated.'
 })
 
 onMounted(async () => {
@@ -57,6 +58,7 @@ const provenance = (medicationId: string): string => {
   if (record?.status === 'cache') return 'Cached public source data'
   if (record?.status === 'stale-cache') return 'Older cached public source data'
   if (record?.status === 'demo' || catalog.dataMode === 'demo') return 'Demo catalog fixture'
+  if (catalog.medicationById(medicationId)?.publicSource) return 'Public reference data · shop prices are simulated'
   return 'Open to inspect sources and available details'
 }
 
@@ -73,18 +75,20 @@ const setFilters = (): void => {
         <h1>Find your exact medication</h1>
         <p>Search generic names, brands, categories, forms, and strengths. Public searches use the medication data providers; your cart stays in this browser.</p>
       </div>
-      <span class="catalog-count">{{ catalog.medications.length }} medications</span>
+      <span class="catalog-count">{{ catalog.medications.length }} loaded medications</span>
     </header>
 
     <section class="catalog-data-mode" aria-label="Medication data mode">
-      <label><span>Data mode</span><select :value="catalog.dataMode" :disabled="catalog.searchLoading" data-testid="catalog-data-mode" @change="changeMode"><option value="hybrid">Hybrid public + demo fallback</option><option value="live">Public data only</option><option value="demo">Deterministic demo</option></select></label>
+      <label><span>Data mode</span><select :value="catalog.dataMode" :disabled="catalog.searchLoading" data-testid="catalog-data-mode" @change="changeMode"><option value="hybrid">Hybrid public + demo fallback</option><option value="live">Public facts + demo shop</option><option value="demo">Deterministic demo</option></select></label>
       <p>{{ modeDescription }}</p>
     </section>
 
     <MedicationSearch />
 
+    <p v-if="catalog.dataMode !== 'demo' && (catalog.bootstrapLoading || catalog.bootstrapMessage || catalog.bootstrapComplete)" class="catalog-search-message" role="status" data-testid="catalog-bootstrap-status">{{ catalog.bootstrapLoading ? 'Loading the public medication catalog. You can search while it loads.' : catalog.bootstrapMessage || 'The public catalog loading attempt is complete.' }}</p>
+
     <nav class="catalog-categories" aria-label="Browse medication categories">
-      <button v-for="category in categories" :key="category" class="button button--text button--small" type="button" :disabled="catalog.searchLoading" @click="browseCategory(category)">{{ category.replaceAll('-', ' ') }}</button>
+      <button v-for="category in categories" :key="category" class="button button--text button--small" type="button" :disabled="catalog.searchLoading" @click="browseCategory(category)">{{ medicationCategoryLabel(category) }}</button>
     </nav>
 
     <p v-if="catalog.searchLoading" class="catalog-search-message" role="status">Searching public and cached medication records...</p>
@@ -96,7 +100,7 @@ const setFilters = (): void => {
         <span>Form</span>
         <select v-model="catalog.formFilter" @change="setFilters">
           <option value="">All forms</option>
-          <option v-for="form in forms" :key="form" :value="form">{{ form }}</option>
+          <option v-for="form in forms" :key="form" :value="form">{{ medicationFormLabel(form) }}</option>
         </select>
       </label>
       <label>

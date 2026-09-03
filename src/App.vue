@@ -108,6 +108,13 @@ const replayJourney = async (entries: AgentActivity[]): Promise<void> => {
 }
 
 onMounted(async () => {
+  void catalog.bootstrapPublicCatalog()
+  try { await explorerRoute.ready() }
+  catch (error) {
+    if (!unmounted) webmcp.setError(error)
+    return
+  }
+  if (unmounted) return
   const nextRegistration = await registerClearDoseTools({
     navigate: (path) => router.push(path),
     extraExpectedNames: () => dynamicDefinitions.value.map(tool => tool.name),

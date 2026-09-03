@@ -1,0 +1,31 @@
+[
+  {
+    "phase": "after native call 41",
+    "kind": "screenshot helper",
+    "detail": "Close locator matched the backdrop and header button. No native call failed or was repeated."
+  },
+  {
+    "phase": "closing screenshot drawer",
+    "kind": "browser execution timeout",
+    "detail": "The following inspection cell timed out and the browser runtime reset automatically. Reacquiring the same tab showed the drawer closed, all41 receipts, the same catalog and session revisions, and no page reload. Simplified capture helper uses the unique header close control and avoids transient animation selectors."
+  },
+  {
+    "phase": "manual navigation before details read",
+    "kind": "approval context changed",
+    "detail": "The browser rejected the read because navigation and the WebMCP call shared one execution cell. The requested detail page is now observed. No read result or app mutation was returned. Subsequent calls separate navigation from native execution."
+  },
+  {
+    "timestamp": "2026-09-02T21:14:01.386Z",
+    "kind": "capture-helper-binding",
+    "description": "The provider-will-send checkout completed and its output was saved. Assignment to a name from an earlier rejected cell raised a local JavaScript reference error afterward. Recovered the saved order output and did not repeat checkout.",
+    "orderId": "CD-2026-0001",
+    "appReload": false,
+    "nativeMutationRetried": false
+  },
+  {
+    "timestamp": "2026-09-02T21:20:47.701Z",
+    "kind": "full-page-screenshot-stitching",
+    "description": "The full-page production capture repeated part of each card during stitching. DOM showed one attributes and footer block per card. A single-frame viewport capture after a documented scroll verified the actual layout. Use63-production-medication-cards-settled.png for card UI evidence, not61-production-medication-cards.png.",
+    "appChange": false
+  }
+]

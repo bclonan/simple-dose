@@ -1,0 +1,120 @@
+Browser tab: 7, Title: "ClearDose | Transparent prescriptions. Agent-ready.", URL: "https://6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=identity,pricing".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 1049-1052
+~0 AXWebArea ClearDose | Transparent prescriptions. Agent-ready., URL: 6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=identity,pricing
+~	1 link Description: Skip to content, Value: 6a987d73c0db894bb2c83ffd--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=identity,pricing#main-content
++			1054 container Selected medication fact cards
++				1055 container Drug identity, ID: fact-1
++					1056 container
++						1057 text FDA products and RxNorm
++						1058 heading Drug identity, Value: 2, ID: fact-1-title
++							1059 text Drug identity
++						1060 text Change Drug identity fact
++						1061 pop up button (collapsed, settable) Description: Change Drug identity fact, Value: Drug identity, Secondary Actions: Expand
++							1062 menu
++								1063 (selected) Drug identity
++								1064 Uses
++								1065 Active ingredients
++								1066 Strengths and forms
++								1067 Side effects
++								1068 Warnings
++								1069 Boxed warnings
++								1070 FDA-labeled drug interactions
++								1071 Pricing and benchmarks
++								1072 Clinical pharmacology
++								1073 Pregnancy information
++								1074 Pediatric use
++								1075 Geriatric use
++								1076 Reported adverse events
++						1077 button Remove Drug identity card
++					1078 container
++						1079 heading Empagliflozin, Value: 3
++							1080 text Empagliflozin
++						1081 text Cached public data
++						1082 definition list
++							1083 container Generic name
++								1084 text Generic name
++							1085 text Empagliflozin
++							1086 container Brand names
++								1087 text Brand names
++							1088 text Jardiance, JARDIANCE
++							1089 container RxCUI
++								1090 text RxCUI
++							1091 text 1545653
++							1092 container Package NDCs
++								1093 text Package NDCs
++							1094 text 50090438400, 50090438401, 50090449200, 50090449201, 71610017709, 71610017715, 71610017742, 71610017745, 71610017781, 71610017799, 71610090009, 71610090097, 50090645200, 50090645700, 55154041108, 55154041208, 00597015207, 00597015230, 00597015237, 00597015290, 00597015307, 00597015330, 00597015337, 00597015390, 67296232403
++						1095 button (collapsed) Show more for Empagliflozin, Secondary Actions: Expand
++							1096 text Show more
++							1097 text for Empagliflozin
++						1098 button (collapsed) Sources and freshness, Secondary Actions: Expand
++							1099 text Sources and freshness
++						1100 button (collapsed) Source notices, Secondary Actions: Expand
++							1101 text Source notices
++					1102 container
++						1103 heading Cetirizine HCl, Value: 3
++							1104 text Cetirizine HCl
++						1105 text Public data
++						1106 definition list
++							1107 container Generic name
++								1108 text Generic name
++							1109 text Cetirizine HCl
++							1110 container Brand names
++								1111 text Brand names
++							1112 text Allergy Relief, ALLERGY RELIEF, Cetirizine HCl, foster and thrive childrens allergy relief, Topcare Childrens All Day Allergy, Equaline childrens all day allergy, Cetirza, Good Sense Childrens All Day Allergy, Childrens 24 Hour Allergy, childrens allergy relief, All Day Allergy Relief, childrens cetirizine hydrochloride, Childrens All Day Allergy, CHILDRENS ALL DAY ALLERGY, Kirkland Signature Childrens Aller Tec, Wal-Zyr, Childrens Allergy Relief, All Day Allergy, careone childrens allergy relief, Medline, childrens dye free allergy relief, childrens all day allergy, TopCare Childrens All Day Allergy, Basic Care Childrens All Day Allergy, Leader Childrens All Day Allergy, Leader Childrens all day allergy, Dye Free Childrens Cetirizine Hydrocholride, Good Neighbor Pharmacy Childrens All Day Allergy, Cetirizine HCL, CAREALL Allergy Relief, DG Health Childrens All Day Allergy, allergy relief childrens, basic care childrens all day allergy, Indoor and Outdoor Allergy Relief, Allergy Relief All Day
++							1113 container RxCUI
++								1114 text RxCUI
++							1115 text 203150
++							1116 container Package NDCs
++								1117 text Package NDCs
++							1118 text 72090002801, 72090002820, 72090002803, 51316006425, 51316006440, 30142099525, 30142099540, 30142099550, 70677104201, 70677104701, 46122061363, 36800018926, 41163047526, 50332015402, 68788880301, 41250047500, 41250047526, 41250047534, 55910093045, 55910093090, 00113018926, 72090005920, 79481067002, 79481067102, 80136085623, 11822118900, 62011038401, 84324000101, 68788818801, 84324000102, 30142047526, 72288081834, 63981047543, 69452047988, 42507020326, 50090706800, 51316080630, 51316081005, 51316081125, 51316081140, 71205072204, 00363060603, 00363060605, 00363060614, 00363060630, 00363060645, 00363634115, 00363634178, 55319096205, 55319096214, 55319096230, 11673065015, 21130036425, 59779050926, 59779050934, 41520021225, 41520030126, 56062006425, 79903034425, 11673024215, 53329003333, 53329003338, 79903034725, 51316090019, 72288098234, 30142064326, 42507047526, 59450002015, 59450002086, 79903008425, 67091035114, 72090002804, 36800047500, 36800047526, 46122081564, 30142068926, 63868043325, 72288033034, 68788409301, 70000021401, 70000021501, 68094000462, 46122020326, 17856676501, 17856676503, 79481764006, 36800054215, 36800054286, 59726006412, 41250018900, 41250018926, 36800054315, 36800054386, 51824010430, 55910071426, 00113050326, 00113050334, 69230030401, 69230030405, 69230030430, 55910003945, 56062045286, 59726012903, 59726012905, 59726012914, 00904676520, 49035084125, 59779083726, 59779083734, 71335973301, 71335973302, 71335973303, 71335973304, 71335973305, 71335973306, 71335973307, 71335973308, 71335973309, 56062049586, 70677005701, 53943021940, 72476006425, 72288047534, 87509000203, 55910012945, 41520090226, 59726074112
++						1119 button (collapsed) Show more for Cetirizine HCl, Secondary Actions: Expand
++							1120 text Show more
++							1121 text for Cetirizine HCl
++						1122 button (collapsed) Sources and freshness, Secondary Actions: Expand
++							1123 text Sources and freshness
++						1124 button (collapsed) Source notices, Secondary Actions: Expand
++							1125 text Source notices
++				1126 container Pricing and benchmarks, ID: fact-2
++					1127 container
++						1128 text Each price keeps its own source
++						1129 heading Pricing and benchmarks, Value: 2, ID: fact-2-title
++							1130 text Pricing and benchmarks
++						1131 text Change Pricing and benchmarks fact
++						1132 pop up button (collapsed, settable) Description: Change Pricing and benchmarks fact, Value: Pricing and benchmarks, Secondary Actions: Expand
++							1133 menu
++								1134 Drug identity
++								1135 Uses
++								1136 Active ingredients
++								1137 Strengths and forms
++								1138 Side effects
++								1139 Warnings
++								1140 Boxed warnings
++								1141 FDA-labeled drug interactions
++								1142 (selected) Pricing and benchmarks
++								1143 Clinical pharmacology
++								1144 Pregnancy information
++								1145 Pediatric use
++								1146 Geriatric use
++								1147 Reported adverse events
++						1148 button Remove Pricing and benchmarks card
++					1149 text Compare only like-for-like products and quantities. Public benchmarks never become purchasable cart offers.
++					1150 container
++						1151 heading Empagliflozin, Value: 3
++							1152 text Empagliflozin
++						1153 text Cached public data No price or benchmark was available from the requested providers. This does not establish retail availability.
++						1154 button (collapsed) Sources and freshness, Secondary Actions: Expand
++							1155 text Sources and freshness
++						1156 button (collapsed) Source notices, Secondary Actions: Expand
++							1157 text Source notices
++					1158 container
++						1159 heading Cetirizine HCl, Value: 3
++							1160 text Cetirizine HCl
++						1161 text Public data No price or benchmark was available from the requested providers. This does not establish retail availability.
++						1162 button (collapsed) Sources and freshness, Secondary Actions: Expand
++							1163 text Sources and freshness
++						1164 button (collapsed) Source notices, Secondary Actions: Expand
++							1165 text Source notices
+~		282 button (collapsed) Description: Open WebMCP activity, 19 tools available, 32 recent calls, Secondary Actions: Expand
+~			976 text  · 32 logged
+The focused UI element is 282 button (collapsed) Description: Open WebMCP activity, 19 tools available, 32 recent calls, Secondary Actions: Expand

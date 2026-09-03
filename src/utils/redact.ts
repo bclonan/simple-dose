@@ -33,9 +33,9 @@ export const compactSummary = (value: unknown): unknown => {
   const record = value as Record<string, unknown>
   // Contextual tools already page their normalized output to 1,500 characters.
   // Preserve those field rows and their notice so the visible receipt is useful.
-  if ((typeof record.format === 'string' && record.format.startsWith('JSON Pointer field rows.') || typeof record.workspaceRevision === 'string') &&
-    Array.isArray(record.rows) && JSON.stringify(record).length <= 1_500) {
-    return { ...redactSensitive(record) as Record<string, unknown>, rows: record.rows.slice(0, 10).map(redactSensitive) }
+  if ((typeof record.format === 'string' && record.format.startsWith('JSON Pointer field rows.') && Array.isArray(record.rows) ||
+    typeof record.workspaceRevision === 'string' && (Array.isArray(record.rows) || record.status === 'updated')) && JSON.stringify(record).length <= 1_500) {
+    return { ...redactSensitive(record) as Record<string, unknown>, ...(Array.isArray(record.rows) ? { rows: record.rows.slice(0, 10).map(redactSensitive) } : {}) }
   }
 
   const entries = Object.entries(record).slice(0, 8)

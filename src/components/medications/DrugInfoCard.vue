@@ -31,9 +31,10 @@ const bodyId = (drugId: string) => `${props.card.id}-${drugId}-content`
     </header>
     <p v-if="data.notice" class="drug-info-card__notice">{{ data.notice }}</p>
     <p v-if="!data.drugs.length" class="drug-info-card__empty">Select a medication to show this fact.</p>
-    <section v-for="drug in data.drugs" :key="drug.drugId" class="drug-info-card__drug" :aria-busy="drug.loading" :data-drug-id="drug.drugId">
+    <section v-for="drug in data.drugs" :key="drug.drugId" class="drug-info-card__drug" :aria-busy="drug.loading" :data-drug-id="drug.drugId" :data-availability="drug.availability">
       <div class="drug-info-card__drug-heading"><h3>{{ drug.label }}</h3><span class="drug-info-card__status" :class="{ 'drug-info-card__status--stale': drug.status === 'stale-cache' }" role="status">{{ drug.statusLabel }}</span></div>
       <p v-if="drug.message" class="drug-info-card__empty">{{ drug.message }}</p>
+      <p v-if="drug.failureMessage" class="drug-info-card__empty" role="status">{{ drug.failureMessage }}</p>
       <p v-if="!drug.hasContent" class="drug-info-card__empty">{{ drug.emptyMessage }}</p>
       <template v-else-if="drug.content">
         <div :id="bodyId(drug.drugId)" class="drug-info-card__body" :class="{ 'drug-info-card__body--preview': drug.expandable && !expanded[drug.drugId] }">

@@ -46,6 +46,8 @@ const select = (option: PriceComparison): void => {
         <div><span>Quantity</span><strong>{{ sku.quantity }} count</strong></div>
       </section>
 
+      <p v-if="sku.demoProvenance" class="comparison-notice">{{ sku.demoProvenance.notice }}</p>
+
       <DemoScenarioSwitch />
 
       <PriceComparisonTable
@@ -73,3 +75,7 @@ const select = (option: PriceComparison): void => {
 
   </main>
 </template>
+
+<style scoped>
+.comparison-notice { padding: 1rem; border: 1px solid var(--cd-border); border-radius: .75rem; background: var(--cd-mint); color: var(--cd-muted-dark); line-height: 1.6; }
+</style>

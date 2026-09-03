@@ -2,6 +2,8 @@
 
 This report records the first public-data release. The subsequent [Drug Explorer implementation report](drug-explorer.md) covers the current 19-tool workspace, requested FAERS loading, category enrichment, and later verification results.
 
+The September 2 reliability follow-up changes the earlier commerce restriction described below. Public records now receive stable, explicitly fictional shopping offers in hybrid and live modes. Public facts and benchmarks remain separate. See the current [README](../README.md) for startup loading, retention, and registration behavior.
+
 ## Read-first dependency map
 
 The inventory covered every app store, service, route, DTO, tool, replay path and test configuration, plus all plugin source files and examples.

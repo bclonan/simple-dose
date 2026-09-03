@@ -118,7 +118,7 @@ describe('cart-savings WebMCP ordering acceptance', () => {
     )
     expect(descriptor?.annotations).toMatchObject({
       readOnlyHint: true,
-      untrustedContentHint: false,
+      untrustedContentHint: true,
     })
     if (!definition) throw new Error('Missing compare_cart_savings definition.')
 

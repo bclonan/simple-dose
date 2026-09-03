@@ -47,13 +47,14 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
         <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="cart-title">
           <header class="drawer-header">
             <div>
-              <p class="section-kicker">Your selection</p>
+              <p class="section-kicker">Mock shopping cart</p>
               <h2 id="cart-title">Cart <span>({{ cart.itemCount }})</span></h2>
             </div>
             <button ref="closeButton" class="icon-button" type="button" aria-label="Close cart" @click="cart.closeDrawer()">×</button>
           </header>
 
           <p class="drawer-feedback" aria-live="polite">{{ cart.feedbackMessage }}</p>
+          <p class="drawer-feedback">Demo prices and fulfillment only. No medication can be purchased here.</p>
 
           <div v-if="cart.itemCount" class="cart-lines">
             <article v-for="line in cart.detailedItems" :key="line.item.id" class="cart-line">
@@ -65,6 +66,7 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
                 <strong>{{ formatCurrency(line.total) }}</strong>
               </div>
               <p>{{ line.pharmacy.name }}</p>
+              <p v-if="line.sku.demoProvenance">{{ line.sku.demoProvenance.notice }}</p>
               <p v-if="(savingsFor(line.item.id)?.savings ?? 0) > 0" class="cart-line__saving">
                 Save {{ formatCurrency(savingsFor(line.item.id)?.savings ?? 0) }} with the lowest current delivered option.
               </p>

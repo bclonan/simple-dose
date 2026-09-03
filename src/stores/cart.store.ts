@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { calculateDeliveredTotal } from '../domain/pricing'
+import { calculateDeliveredTotal, roundCurrency } from '../domain/pricing'
 import type {
   Cart,
   CartItem,
@@ -105,13 +105,13 @@ export const useCartStore = defineStore('cart', {
       })
     },
     medicationSubtotal(): number {
-      return this.detailedItems.reduce((sum, line) => sum + line.pricing.medicationSubtotal, 0)
+      return roundCurrency(this.detailedItems.reduce((sum, line) => sum + line.pricing.medicationSubtotal, 0))
     },
     deliveryTotal(): number {
-      return this.detailedItems.reduce((sum, line) => sum + line.delivery.price, 0)
+      return roundCurrency(this.detailedItems.reduce((sum, line) => sum + line.delivery.price, 0))
     },
     grandTotal(): number {
-      return this.detailedItems.reduce((sum, line) => sum + line.total, 0)
+      return roundCurrency(this.detailedItems.reduce((sum, line) => sum + line.total, 0))
     },
   },
   actions: {

@@ -7,6 +7,7 @@ import { useCatalogStore } from '../stores/catalog.store'
 import { usePrescriptionStore } from '../stores/prescription.store'
 import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
+import { formatCurrency } from '../utils/format'
 
 const router = useRouter()
 const catalog = useCatalogStore()
@@ -51,13 +52,15 @@ const cardText = computed(() => {
   const sku = catalog.skuById(request.skuId)
   const pharmacy = catalog.pharmacies.find((candidate) => candidate.id === request.pharmacyId)
   return [
-    'CLEARDOSE PRESCRIPTION REQUEST',
+    'CLEARDOSE DEMO PRESCRIPTION REQUEST',
     'For your prescriber',
+    sku?.demoProvenance?.notice ?? 'Fictional demo only. Configuration, quantity, price, and fulfillment are for a mock shopping workflow, not dosing guidance, a pharmacy quote, or verified availability.',
     `Medication: ${medication?.genericName ?? ''}`,
     `Form: ${sku?.form ?? ''}`,
     `Strength: ${sku?.strength ?? ''}`,
     `Quantity: ${sku?.quantity ?? ''}`,
-    `Preferred fulfillment: ${pharmacy?.name ?? ''}`,
+    `Demo estimate: ${formatCurrency(request.estimatedTotal)} simulated delivered total`,
+    `Simulated pharmacy destination: ${pharmacy?.name ?? ''}`,
     `Demo pharmacy ID: ${pharmacy?.demoPharmacyId ?? ''}`,
     'This is a prescription request summary, not a prescription.',
   ].join('\n')

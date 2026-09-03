@@ -1,0 +1,896 @@
+[
+  {
+    "name": "search_medications",
+    "description": "Search public sources and the loaded catalog by drug name, brand or catalog category. Updates visible results. Use returned IDs for details or comparison.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "description": "Exact form filter.",
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "limit": {
+          "description": "Page size, default 5. Does not limit visible results.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "description": "Offset, default 0.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "query": {
+          "description": "Drug name, brand or catalog category.",
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "strength": {
+          "description": "Exact strength and unit filter.",
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "get_medication_details",
+    "description": "Read source status and exact mock-cart shopConfigurations. Configurations and prices are fictional, not dosing advice. Use compare_medications for full public facts.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "Configurations per page, default 5.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "medicationId": {
+          "description": "ID from search_medications.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^med-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Configuration offset, default 0. Follow nextOffset for all.",
+          "maximum": 10000,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "medicationId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "compare_fulfillment_options",
+    "description": "Compare fictional pharmacy, delivery and total prices, not public benchmarks. Supply all four exact SKU fields from get_medication_details, or omit all four for the current selection. Never infer dosing or substitutions.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "form": {
+          "description": "Exact form from get_medication_details shopConfigurations.",
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "maxDeliveryDays": {
+          "description": "Maximum delivery days; 0 requires pickup today.",
+          "maximum": 30,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maxResults": {
+          "description": "Page size, default 5. Does not limit the visible comparison.",
+          "maximum": 8,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "medicationId": {
+          "description": "ID from search_medications.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^med-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Rank offset, default 0.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "quantity": {
+          "description": "Exact shopConfigurations quantity. Never infer a dose.",
+          "maximum": 1000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "strength": {
+          "description": "Exact shopConfigurations strength and unit.",
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "select_medication_option",
+    "description": "Select an offer and delivery from compare_fulfillment_options. Changes selection, not the cart.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "deliveryOptionId": {
+          "description": "Delivery ID for that offer.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$",
+          "type": "string"
+        },
+        "offerId": {
+          "description": "Exact compared offer ID.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^offer-[a-z0-9-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "offerId",
+        "deliveryOptionId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": false
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "create_prescription_request_card",
+    "description": "Display a demo request card for exact offer and delivery IDs from compare_fulfillment_options. Never issues or transmits a prescription.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dateOfBirth": {
+          "description": "Demo birth date, YYYY-MM-DD.",
+          "format": "date",
+          "maxLength": 10,
+          "type": "string"
+        },
+        "deliveryOptionId": {
+          "description": "Delivery ID for that offer.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$",
+          "type": "string"
+        },
+        "offerId": {
+          "description": "Exact compared offer ID.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^offer-[a-z0-9-]+$",
+          "type": "string"
+        },
+        "patientName": {
+          "description": "Demo patient name.",
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        },
+        "practice": {
+          "description": "Demo practice name.",
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "prescriberName": {
+          "description": "Demo prescriber name.",
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "offerId",
+        "deliveryOptionId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "add_to_cart",
+    "description": "After the user chooses, add offer and delivery IDs from compare_fulfillment_options to the demo cart and open it. Does not check out.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "deliveryOptionId": {
+          "description": "Delivery ID for that offer.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$",
+          "type": "string"
+        },
+        "offerId": {
+          "description": "Exact compared offer ID.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^offer-[a-z0-9-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "offerId",
+        "deliveryOptionId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": false
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "view_cart",
+    "description": "Read demo cart items, delivery, totals and checkout readiness before editing the cart or preparing checkout.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "Items per page, default 3.",
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "description": "Item offset, default 0.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "compare_cart_savings",
+    "description": "Compare each exact cart SKU with its lowest delivered demo price. Returns savings and replacement IDs. No cart changes or medication substitutions.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "Savings rows per page, default 5.",
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "description": "Line offset, default 0.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "remove_cart_item",
+    "description": "Remove a demo cart item using cartItemId from view_cart or add_to_cart. Updates cart and totals.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "cartItemId": {
+          "description": "Cart item ID from view_cart.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^cart-[A-Za-z0-9-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cartItemId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": false
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "set_delivery_option",
+    "description": "Change cart delivery using an available method from view_cart. Recalculates item and cart totals.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "cartItemId": {
+          "description": "Cart item ID from view_cart.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^cart-[A-Za-z0-9-]+$",
+          "type": "string"
+        },
+        "deliveryOptionId": {
+          "description": "Delivery ID for that offer.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cartItemId",
+        "deliveryOptionId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": false
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "checkout_demo_order",
+    "description": "Only after the user asks to finish demo checkout, create a local simulated order and show confirmation. Never transmits payment, prescriptions or pharmacy requests.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "additionalProperties": false,
+          "properties": {
+            "city": {
+              "description": "Demo city.",
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            "line1": {
+              "description": "Demo street address.",
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "line2": {
+              "description": "Demo apartment or unit.",
+              "maxLength": 120,
+              "minLength": 1,
+              "type": "string"
+            },
+            "postalCode": {
+              "description": "Five-digit or ZIP+4 demo postal code.",
+              "maxLength": 10,
+              "minLength": 5,
+              "pattern": "^[0-9]{5}(?:-[0-9]{4})?$",
+              "type": "string"
+            },
+            "state": {
+              "description": "Two-letter US state code.",
+              "maxLength": 2,
+              "minLength": 2,
+              "pattern": "^[A-Za-z]{2}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "line1",
+            "city",
+            "state",
+            "postalCode"
+          ],
+          "type": "object"
+        },
+        "fullName": {
+          "description": "Demo recipient name.",
+          "maxLength": 100,
+          "minLength": 1,
+          "type": "string"
+        },
+        "prescriptionStatus": {
+          "description": "How the demo prescription requirement is handled.",
+          "enum": [
+            "provider-will-send",
+            "request-prepared"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "fullName",
+        "address",
+        "prescriptionStatus"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": false
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "get_order_status",
+    "description": "Read demo order status. Omit orderId for the current order. Never returns recipient name or address.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "itemLimit": {
+          "description": "Items per page, default 5.",
+          "maximum": 5,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "itemOffset": {
+          "description": "Item offset, default 0.",
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "orderId": {
+          "description": "Demo order ID from checkout_demo_order.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^CD-[0-9]{4}-[0-9]{4}$",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "cleardose_select_drugs",
+    "description": "Replace, add, or remove up to four drugs in the visible Explorer. Generic or brand names resolve through the catalog. Fact cards follow selection. This changes the workspace, not prescriptions or cart items.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "drugs": {
+          "description": "Distinct IDs or names. Remove uses selected IDs. Replace accepts an empty list to clear selection.",
+          "items": {
+            "description": "ID or generic/brand name. Read IDs with cleardose_get_explorer_state. Out-of-mode selected IDs are removal-only.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 0,
+          "type": "array"
+        },
+        "mode": {
+          "description": "Replace with drugs: [] clears selection. Remove requires selected drug IDs.",
+          "enum": [
+            "replace",
+            "add",
+            "remove"
+          ],
+          "type": "string"
+        },
+        "workspaceRevision": {
+          "description": "Current token from cleardose_get_explorer_state or the last edit.",
+          "maxLength": 96,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceRevision",
+        "drugs"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "cleardose_show_drug_fact",
+    "description": "Show requested Explorer fact cards. Replace shows only these facts; add keeps existing cards. Optional drugs replace selection in the same edit. Missing public facts stay unavailable. This performs no clinical interaction check.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "drugs": {
+          "description": "Optional replacement selection. Omit to keep current drugs.",
+          "items": {
+            "description": "ID or generic/brand name. Read IDs with cleardose_get_explorer_state. Out-of-mode selected IDs are removal-only.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "type": "array"
+        },
+        "facts": {
+          "description": "Exactly the fact cards requested. Use replace to hide all other facts.",
+          "items": {
+            "description": "Public fact type. Label warnings and interactions are not personalized checks.",
+            "enum": [
+              "identity",
+              "uses",
+              "ingredients",
+              "strengths",
+              "side-effects",
+              "warnings",
+              "boxed-warnings",
+              "interactions",
+              "pricing",
+              "clinical-pharmacology",
+              "pregnancy",
+              "pediatric",
+              "geriatric",
+              "adverse-events"
+            ],
+            "type": "string"
+          },
+          "maxItems": 14,
+          "minItems": 1,
+          "type": "array"
+        },
+        "mode": {
+          "description": "Replace shows only the requested facts. Add keeps existing cards and reuses duplicates.",
+          "enum": [
+            "replace",
+            "add"
+          ],
+          "type": "string"
+        },
+        "workspaceRevision": {
+          "description": "Current token from cleardose_get_explorer_state or the last edit.",
+          "maxLength": 96,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceRevision",
+        "facts"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "cleardose_update_fact_card",
+    "description": "Change one current Explorer card to another supported fact, keeping the shared drug selection. This edits the visible workspace, not medication records.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "cardId": {
+          "description": "Current card ID from cleardose_get_explorer_state.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$",
+          "type": "string"
+        },
+        "factType": {
+          "description": "Public fact type. Label warnings and interactions are not personalized checks.",
+          "enum": [
+            "identity",
+            "uses",
+            "ingredients",
+            "strengths",
+            "side-effects",
+            "warnings",
+            "boxed-warnings",
+            "interactions",
+            "pricing",
+            "clinical-pharmacology",
+            "pregnancy",
+            "pediatric",
+            "geriatric",
+            "adverse-events"
+          ],
+          "type": "string"
+        },
+        "workspaceRevision": {
+          "description": "Current token from cleardose_get_explorer_state or the last edit.",
+          "maxLength": 96,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceRevision",
+        "cardId",
+        "factType"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "cleardose_remove_fact_card",
+    "description": "Remove one current Explorer fact card. Selected drugs and medication records remain unchanged. Read current card IDs with cleardose_get_explorer_state.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "cardId": {
+          "description": "Current card ID from cleardose_get_explorer_state.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$",
+          "type": "string"
+        },
+        "workspaceRevision": {
+          "description": "Current token from cleardose_get_explorer_state or the last edit.",
+          "maxLength": 96,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspaceRevision",
+        "cardId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "cleardose_get_explorer_state",
+    "description": "Read selected drug IDs, fact cards, or loaded catalog IDs without changing the page. Follow nextOffset with both returned revision tokens. Use compare_medications for complete public facts.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "Maximum rows per page. The output budget may return fewer.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "description": "Zero-based offset. Follow nextOffset for all rows.",
+          "maximum": 112,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "section": {
+          "description": "Workspace combines selection and cards. Catalog lists current drug IDs and names.",
+          "enum": [
+            "workspace",
+            "selected",
+            "cards",
+            "catalog"
+          ],
+          "type": "string"
+        },
+        "stateRevision": {
+          "description": "Required after offset zero. Detects workspace and catalog changes.",
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "workspaceRevision": {
+          "description": "Required after offset zero. Use the first page token to pin the workspace.",
+          "maxLength": 96,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "find_related_medications",
+    "description": "Find records sharing a catalog field with one medication. Results explain matches. Catalog similarity is not therapeutic interchangeability or advice about suitability.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "description": "Field to match. Ingredient and class require already-loaded public facts.",
+          "enum": [
+            "ingredient",
+            "class",
+            "category",
+            "form"
+          ],
+          "type": "string"
+        },
+        "contextRevision": {
+          "const": "catalog-e979baf7-388-26",
+          "description": "Current context token. Refresh tools after catalog or page changes.",
+          "type": "string"
+        },
+        "limit": {
+          "description": "Maximum rows. The output budget may return fewer.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "offset": {
+          "description": "Zero-based field offset. Follow nextOffset for all rows.",
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "referenceMedicationId": {
+          "description": "Current ID from cleardose_get_explorer_state, section catalog.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$",
+          "type": "string"
+        },
+        "scope": {
+          "description": "Page limits IDs to visible medications; catalog uses all loaded IDs.",
+          "enum": [
+            "page",
+            "catalog"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "contextRevision",
+        "referenceMedicationId"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  },
+  {
+    "name": "compare_medications",
+    "description": "Read public sections for one medication or compare up to four. Follow nextOffset for every field. FDA interaction text is not a pairwise check. This makes no treatment or substitution decision.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "contextRevision": {
+          "const": "catalog-e979baf7-388-26",
+          "description": "Current context token. Refresh tools after catalog or page changes.",
+          "type": "string"
+        },
+        "limit": {
+          "description": "Maximum rows. The output budget may return fewer.",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "medicationIds": {
+          "description": "Distinct current IDs. Page scope requires every ID to be visible.",
+          "items": {
+            "description": "Current ID from cleardose_get_explorer_state, section catalog.",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "type": "array"
+        },
+        "offset": {
+          "description": "Zero-based field offset. Follow nextOffset for all rows.",
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scope": {
+          "description": "Page limits IDs to visible medications; catalog uses all loaded IDs.",
+          "enum": [
+            "page",
+            "catalog"
+          ],
+          "type": "string"
+        },
+        "section": {
+          "description": "Clinical includes all available FDA sections, paged without cutting long text.",
+          "enum": [
+            "identity",
+            "product",
+            "clinical",
+            "prices",
+            "sources"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "contextRevision",
+        "medicationIds"
+      ],
+      "type": "object"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "untrustedContentHint": true
+    },
+    "origin": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app",
+    "pageUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/medications"
+  }
+]

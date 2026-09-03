@@ -60,7 +60,7 @@ Search is lightweight. Selecting a medication loads its requested facts. Existin
 
 `/drugs/explore?drugs=atorvastatin,rosuvastatin&facts=uses,side-effects,warnings,pricing`
 
-The URL uses stable slugs and ordered, deduplicated fact names. `prices` is accepted as an alias for `pricing`. A missing `facts` parameter defaults to Uses and Warnings when drugs are selected. `facts=` preserves an intentionally empty card list. Brand or generic names can resolve through public search; the URL then uses the stable application slug. A new Empagliflozin record uses `public-empagliflozin`, without creating a demo SKU.
+The URL uses stable slugs and ordered, deduplicated fact names. `prices` is accepted as an alias for `pricing`. A missing `facts` parameter defaults to Uses and Warnings when drugs are selected. `facts=` preserves an intentionally empty card list. Brand or generic names can resolve through public search; the URL then uses the stable application slug. A new Empagliflozin record uses `public-empagliflozin`. Public-only records now receive separate generated demo SKUs and fictional offers for the mock shop; these do not become public medication facts.
 
 Public records stay in the existing provider cache. The workspace itself is reconstructed from the link, so no second drug-record cache or workspace JSON blob is needed. Unsupported facts show a notice. Unknown or ambiguous medications leave a visible error instead of an inferred identity.
 
@@ -76,7 +76,7 @@ All 14 existing tools remain. Five tools control or read the visible workspace:
 | `cleardose_remove_fact_card` | Remove one card |
 | `cleardose_get_explorer_state` | Read selected drugs, cards, or loaded catalog IDs in bounded pages |
 
-The populated app exposes 19 tools. Workspace schemas use the same fact registry and current card/medication IDs. Name resolution accepts bounded generic or brand terms. Runtime validation repeats schema limits. A workspace revision guards every mutation, including after asynchronous identity resolution. Catalog additions made by that resolution do not invalidate its own commit. Human selection, card, or data-mode edits do.
+The populated app exposes 19 tools. Workspace schemas use the same fact registry and bounded ID fields. Their declarations stay stable across workspace edits; execution reads current card and medication membership from shared state. Name resolution accepts bounded generic or brand terms. Runtime validation repeats schema limits. A supplied workspace revision guards every mutation, including after asynchronous identity resolution. Catalog additions made by that resolution do not invalidate its own commit. Human selection, card, or data-mode edits do.
 
 Mutations update Pinia and reveal the Explorer route. Read-state returns the human's latest changes. `compare_medications` still owns complete paged public sections, so no duplicate side-effect, warning, or pricing read tools were added. Explorer-selected IDs now define page scope for contextual comparisons.
 
@@ -92,9 +92,9 @@ Medicare remains disabled pending a genuine preprocessed index. No real retail c
 
 Long text starts with a short preview; Show more reveals the complete loaded text. Source names, retrieval dates, available effective dates, provider notices, and stale-cache status remain available. The page has named controls, medication-chip removal labels, semantic headings, keyboard focus, and a one-column mobile card layout.
 
-## Verification
+## Earlier Explorer release verification
 
-Verified on September 2, 2026, after the final focus and routing changes:
+The following records the earlier September 2, 2026 Explorer release after its focus and routing changes. These counts, native checks, deployment IDs, and assets are historical, not results for the corrected reliability preview:
 
 - Frozen-lockfile install passed without dependency or lockfile changes.
 - Application and data-plugin typechecks passed.
@@ -109,9 +109,15 @@ Verified on September 2, 2026, after the final focus and routing changes:
 - Native WebMCP also passed on the final production release. Reading state returned Metformin and Empagliflozin with side-effects/pricing cards. The next tool call replaced those with one interactions card. Both selected medications, the FDA sources, the interaction disclaimer, the URL, and the 19-tool activity badge matched the tool response.
 - `git diff --check` passed. There is no configured lint script.
 
-The Netlify workflow published a preview first, checked it, and then promoted the same built files without rebuilding. Final preview deploy: `6a986ce488f285fb2dbcd571`. Final production deploy: `6a986d76bd9497f9b92a7e93`. The production HTML references the verified `index-CF253o5J.js` and `drugExplorer.store-DIi9Ch2U.js` build files.
+That Netlify workflow published a preview first, checked it, and then promoted the same built files without rebuilding. Earlier preview deploy: `6a986ce488f285fb2dbcd571`. Earlier production deploy: `6a986d76bd9497f9b92a7e93`. At that release, production HTML referenced the verified `index-CF253o5J.js` and `drugExplorer.store-DIi9Ch2U.js` build files.
 
 Production: [Drug Explorer](https://cleardose-webmcp-demo.netlify.app/drugs/explore). Screenshots from production checks are in `test-results/production/`.
+
+## Current reliability release
+
+The final automated gate passed after the startup and superseded-edit fixes: 263 unit tests, 18 deterministic evaluations, 26 browser tests, application typecheck, production build, and the diff whitespace check. Native registration now waits for initial navigation and incoming Explorer hydration. Delayed edits reject if a newer workspace or data-mode change supersedes them.
+
+The corrected immutable preview is [deploy `6a988a02da6ff84efd924415`](https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore). The same build is live on [production](https://cleardose-webmcp-demo.netlify.app/drugs/explore), deploy `6a98920a72f612911a495dcb`. The corrected build completed 100 successful native calls across 17 tools, with all 19 registered and no configuration-limit recurrence. The two removal tools were not rerun natively because the browser requires fresh deletion confirmation. The [reliability report](live-smoke/2026-09-02-reliability-fix/report.md) separates earlier failures, corrected-release results, browser-helper recoveries, and verification limits.
 
 ## Remaining limitations
 

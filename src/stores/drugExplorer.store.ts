@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { drugFactTypes, factLoadOptions, type DrugFactCard, type DrugFactType } from '../domain/drug-facts'
+import { drugFactStatus, type DrugFactResult } from '../domain/drug-fact-status'
 import { useCatalogStore } from './catalog.store'
 import type { Medication } from '../types/demo-db'
 
@@ -37,6 +38,13 @@ export const useDrugExplorerStore = defineStore('drugExplorer', {
       const catalog = useCatalogStore()
       return state.selectedDrugIds.flatMap(id => catalog.medicationById(id) ?? [])
     },
+    factResults(state): DrugFactResult[] {
+      const catalog = useCatalogStore()
+      return state.cards.flatMap(card => card.drugIds.map(drugId => ({
+        cardId: card.id, drugId, factType: card.factType,
+        ...drugFactStatus(catalog.publicRecords[drugId], card.factType, Boolean(catalog.detailLoading[drugId]), catalog.dataMode === 'demo'),
+      })))
+    },
   },
   actions: {
     async configureWorkspace(input: ConfigureExplorerInput): Promise<void> {
@@ -44,6 +52,7 @@ export const useDrugExplorerStore = defineStore('drugExplorer', {
       if (input.facts && (input.facts.length > drugFactTypes.length || input.facts.some(fact => !isFact(fact)))) throw new Error('Choose supported medication facts.')
       const version = ++this.operationVersion
       const revision = this.revisionNumber
+      let committedRevision: number | undefined
       this.message = ''
       this.loading = true
       try {
@@ -62,10 +71,15 @@ export const useDrugExplorerStore = defineStore('drugExplorer', {
         if (input.facts) this.applyFacts(input.facts, input.factMode ?? 'replace')
         if (input.focus === false) this.focusedCardId = null
         this.cards.forEach(card => { card.drugIds = [...nextIds] })
-        this.revisionNumber++
+        committedRevision = ++this.revisionNumber
         await this.loadSelected()
+        if (version !== this.operationVersion || committedRevision !== this.revisionNumber || epoch !== catalog.dataEpoch) {
+          throw new Error('This edit was superseded after it was applied. Review the current workspace before trying again.')
+        }
       } catch (error) {
-        if (version === this.operationVersion) this.message = error instanceof Error ? error.message : 'The workspace could not update. Your previous selection is unchanged.'
+        if (version === this.operationVersion && (committedRevision === undefined || committedRevision === this.revisionNumber)) {
+          this.message = error instanceof Error ? error.message : 'The workspace could not update. Your previous selection is unchanged.'
+        }
         throw error
       } finally {
         if (version === this.operationVersion) this.loading = false
@@ -138,9 +152,16 @@ export const useDrugExplorerStore = defineStore('drugExplorer', {
     async loadSelected(force = false): Promise<void> {
       const catalog = useCatalogStore()
       const version = ++this.loadVersion
+      const revision = this.revisionNumber
+      const epoch = catalog.dataEpoch
       const options = factLoadOptions(this.cards.map(card => card.factType))
       const results = await Promise.allSettled(this.selectedDrugIds.map(id => catalog.loadMedication(id, 30, options, force)))
-      if (version === this.loadVersion && results.some(result => result.status === 'rejected')) this.message = 'Some public details could not load. Available facts remain visible. Retry public data to try again.'
+      if (version !== this.loadVersion || revision !== this.revisionNumber || epoch !== catalog.dataEpoch) return
+      const outcomes = this.factResults
+      const failed = results.some(result => result.status === 'rejected') || outcomes.some(result => ['provider-failed', 'partial'].includes(result.availability))
+      const missing = outcomes.some(result => ['field-absent', 'source-unavailable', 'not-loaded'].includes(result.availability))
+      this.message = failed ? 'Some requested public facts could not load. Available facts remain visible. Retry public data to try again.'
+        : missing ? 'Some requested public facts are unavailable. Missing information is not a safety finding.' : ''
     },
     async hydrateFromRoute(query: Record<string, unknown>): Promise<boolean> {
       const drugs = queryList(query.drugs)
@@ -152,7 +173,7 @@ export const useDrugExplorerStore = defineStore('drugExplorer', {
       try {
         await this.configureWorkspace({ drugs: drugs.slice(0, MAX_EXPLORER_DRUGS), facts: requestedFacts.length || query.facts !== undefined ? facts : drugs.length ? ['uses', 'warnings'] : [], focus: false })
         this.focusedCardId = null
-        this.message = notices.join(' ')
+        this.message = [this.message, ...notices].filter(Boolean).join(' ')
         return true
       } catch {
         // Keep the requested URL and previous workspace, with the resolution error visible.

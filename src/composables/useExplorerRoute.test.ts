@@ -7,6 +7,7 @@ import { useCatalogStore } from '../stores/catalog.store'
 import { useDrugExplorerStore } from '../stores/drugExplorer.store'
 import { medicationRepository } from '../services/medication.repository'
 import type { Medication } from '../types/demo-db'
+import type { ClearDoseDrug } from '../../cleardose-data-plugin/src/types'
 import { useExplorerRoute } from './useExplorerRoute'
 
 const empagliflozin: Medication = {
@@ -55,7 +56,13 @@ describe('Explorer public deep-link recovery', () => {
     vi.spyOn(medicationRepository, 'search').mockImplementation(async (query, mode) => ({
       medications: mode !== 'demo' && query === 'empagliflozin' ? [empagliflozin] : [], status: 'public', message: 'Fixture matches.',
     }))
-    vi.spyOn(medicationRepository, 'getMedication').mockResolvedValue({ status: 'unavailable', message: 'Fixture clinical section unavailable.' })
+    vi.spyOn(medicationRepository, 'getMedication').mockImplementation(async medication => ({ status: 'live', drug: {
+      identity: { id: medication.id, slug: medication.slug, genericName: medication.genericName, brandNames: [], ndcs: [], productNdcs: [], applicationNumbers: [], splSetIds: [] },
+      variants: [], forms: [], strengths: [], routes: [], activeIngredients: [], manufacturers: [], pharmacologicClasses: [],
+      clinical: { indications: [], contraindications: [], warnings: [], boxedWarnings: [], adverseReactions: ['Fixture FDA section.'], drugInteractions: [], clinicalPharmacology: [], pregnancy: [], pediatricUse: [], geriatricUse: [], dosageAndAdministration: [] },
+      prices: [{ id: 'nadac', kind: 'nadac-benchmark', amount: 3, currency: 'USD', basis: 'prescription', label: 'Public benchmark', consumerMeaning: 'Not retail', source: { source: 'nadac', retrievedAt: '2026-09-02' } }],
+      sources: [{ source: 'openfda-label', retrievedAt: '2026-09-02' }],
+    } satisfies ClearDoseDrug }))
     const router = await bindRoute('/drugs/explore?drugs=metformin,public-empagliflozin&facts=side-effects,pricing')
     const explorer = useDrugExplorerStore()
     expect(explorer.selectedDrugIds).toEqual([])

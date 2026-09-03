@@ -15,6 +15,13 @@ export class HttpError extends Error {
   }
 }
 
+export class HttpTimeoutError extends Error {
+  constructor(public readonly timeoutMs: number) {
+    super(`The request timed out after ${timeoutMs} ms.`);
+    this.name = 'HttpTimeoutError';
+  }
+}
+
 export async function getJson<T>(
   url: string,
   params: Record<string, string | number | boolean | undefined> = {},
@@ -33,7 +40,9 @@ export async function getJson<T>(
     const controller = new AbortController();
     const abort = () => controller.abort(options.signal?.reason);
     options.signal?.addEventListener('abort', abort, { once: true });
-    const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 12_000);
+    const timeoutMs = options.timeoutMs ?? 12_000;
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
     try {
       const response = await fetch(target, {
         headers: { Accept: 'application/json' },
@@ -45,9 +54,9 @@ export async function getJson<T>(
       }
       return (await response.json()) as T;
     } catch (error) {
-      lastError = error;
+      lastError = timedOut && !options.signal?.aborted ? new HttpTimeoutError(timeoutMs) : error;
       const permanent = error instanceof HttpError && error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429;
-      if (attempt === retries || permanent || options.signal?.aborted || error instanceof SyntaxError) throw error;
+      if (attempt === retries || permanent || options.signal?.aborted || error instanceof SyntaxError) throw lastError;
       await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
     } finally {
       clearTimeout(timer);

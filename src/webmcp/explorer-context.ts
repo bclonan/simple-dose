@@ -12,10 +12,11 @@ export const useExplorerToolDependencies = (revealWorkspace?: () => Promise<void
   const catalog = useCatalogStore()
   const router = useRouter()
   const state = computed<ExplorerWorkspaceSnapshot>(() => {
-    const choices = catalog.medications.filter(item => catalog.dataMode !== 'demo' || !item.publicOnly)
+    const choices = catalog.medications.filter(item => catalog.dataMode === 'demo' ? !item.publicOnly : catalog.dataMode === 'live' ? Boolean(item.publicSource) : true)
     const value = {
       selectedDrugs: explorer.selectedMedications.map(item => ({ id: item.id, name: item.genericName })),
       cards: explorer.cards.map(card => ({ ...card, drugIds: [...card.drugIds] })),
+      factResults: explorer.factResults,
       catalog: choices.map(item => ({ id: item.id, name: item.genericName })),
       route: router.currentRoute.value.path,
     }
@@ -30,7 +31,15 @@ export const useExplorerToolDependencies = (revealWorkspace?: () => Promise<void
     snapshot: () => state.value,
     selectDrugs: input => explorer.configureWorkspace({ drugs: input.drugs, mode: input.mode, beforeCommit: () => check(input) }),
     showFacts: input => explorer.configureWorkspace({ drugs: input.drugs, facts: input.facts, factMode: input.mode, beforeCommit: () => check(input) }),
-    updateFactCard: async input => { check(input); explorer.changeFactCard(input.cardId, input.factType); await explorer.loadSelected() },
+    updateFactCard: async input => {
+      check(input)
+      explorer.changeFactCard(input.cardId, input.factType)
+      const committedRevision = state.value.revision
+      await explorer.loadSelected()
+      if (state.value.revision !== committedRevision) {
+        throw new Error('The fact card changed, then a newer workspace or data-mode change superseded it while facts loaded. Review the current workspace before another edit.')
+      }
+    },
     removeFactCard: input => { check(input); explorer.removeFactCard(input.cardId) },
     // The successful mutation owns this navigation, even after its schema gets refreshed.
     reveal: async () => {

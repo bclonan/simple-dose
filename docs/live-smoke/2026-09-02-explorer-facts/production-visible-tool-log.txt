@@ -1,0 +1,504 @@
+BROWSER-NATIVE TOOLS
+
+WebMCP activity
+
+Inspect redacted calls and replay safe journeys in order.
+
+×
+19 tools verified
+Calls use the same state as the visible ClearDose interface.
+Journeys
+5
+Calls
+38
+
+Recent journeys
+
+Calls are grouped by sequence and stored locally in this browser.
+
+✓
+Medication discovery
+
+14 calls
+·
+644ms
+·
+Sep 2, 5:57 PM
+
+Completed
+cleardose_get_explorer_state
+cleardose_select_drugs
+cleardose_show_drug_fact
+cleardose_get_explorer_state
+cleardose_get_explorer_state
+compare_medications
+compare_medications
+compare_medications
+compare_medications
+compare_medications
+compare_medications
+compare_medications
+compare_medications
+cleardose_show_drug_fact
+3 state-changing
+Stored context is redacted and bounded
+This journey has more than 12 calls. Replay it as smaller reviewed journeys.
+Hide calls
+Review replay
+✓
+Explorer workspace review
+cleardose_get_explorer_state
+success
+
+Browser agent · 7ms
+
+View redacted context
+✓
+Explorer medication selection
+cleardose_select_drugs
+success
+
+Browser agent · 501ms
+
+View redacted context
+✓
+Explorer fact cards
+cleardose_show_drug_fact
+success
+
+Browser agent · 73ms
+
+View redacted context
+✓
+Explorer workspace review
+cleardose_get_explorer_state
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Explorer workspace review
+cleardose_get_explorer_state
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 6ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 5ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 4ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Public medication comparison
+compare_medications
+success
+
+Browser agent · 3ms
+
+View redacted context
+✓
+Explorer fact cards
+cleardose_show_drug_fact
+success
+
+Browser agent · 27ms
+
+View redacted context
+INPUT
+{
+  "facts": [
+    "interactions"
+  ],
+  "mode": "replace",
+  "workspaceRevision": "explorer-a07be71e-3-live-0"
+}
+BOUNDED OUTCOME
+{
+  "status": "updated",
+  "workspaceRevision": "explorer-a07be71e-4-live-0",
+  "selectedDrugIds": [
+    "med-public-metformin-hydrochloride",
+    "med-public-empagliflozin"
+  ],
+  "cardCount": 1,
+  "workspacePath": "/drugs/explore",
+  "route": "/drugs/explore",
+  "data": {
+    "availability": "available",
+    "requested": 2,
+    "available": 2,
+    "partial": 0,
+    "providerFailed": 0,
+    "unavailable": 0,
+    "loading": 0,
+    "warningCount": 1
+  },
+  "factResults": [
+    {
+      "kind": "fact-data",
+      "id": "fact-3",
+      "drugId": "med-public-metformin-hydrochloride",
+      "factType": "interactions",
+      "availability": "available",
+      "source": "openfda-label",
+      "warningCount": 1,
+      "warnings": [
+        {
+          "source": "openfda-label",
+          "code": "partial"
+        }
+      ]
+    },
+    {
+      "kind": "fact-data",
+      "id": "fact-3",
+      "drugId": "med-public-empagliflozin",
+      "factType": "interactions",
+      "availability": "available",
+      "source": "openfda-label",
+      "warningCount": 0,
+      "warnings": []
+    }
+  ],
+  "factResultsTotal": 2,
+  "factResultsTruncated": false,
+  "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+  "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price."
+}
+RECORDED STATE BEFORE
+{
+  "route": "/drugs/explore",
+  "dataMode": "live",
+  "catalogMedicationIds": [
+    "med-atorvastatin",
+    "med-metformin",
+    "med-lisinopril",
+    "med-amlodipine",
+    "med-sertraline",
+    "med-escitalopram",
+    "med-omeprazole",
+    "med-gabapentin",
+    "med-losartan",
+    "med-levothyroxine",
+    "med-rosuvastatin",
+    "med-fluoxetine",
+    "med-public-empagliflozin",
+    "med-public-metformin-hydrochloride",
+    "med-public-atorvastatin-calcium",
+    "med-public-atorvastatin-calcium-film-coated",
+    "med-public-empagliflozin-and-metformin-hydrochloride",
+    "med-public-empagliflozin-and-linagliptin",
+    "med-public-empagliflozin-metformin-hydrochloride",
+    "med-public-empagliflozin-linagliptin-metformin-hydrochloride",
+    "med-public-albuterol",
+    "med-public-albuterol-sulfate",
+    "med-public-dapagliflozin",
+    "med-public-dapagliflozin-and-metformin-hydrochloride",
+    "med-public-montelukast-sodium",
+    "med-public-montelukast",
+    "med-public-cetirizine-hcl",
+    "med-public-cetirizine-hydrochloride",
+    "med-public-loratadine",
+    "med-public-loratadine-and-pseudoephedrine",
+    "med-public-azithromycin",
+    "med-public-amoxicillin",
+    "med-public-amoxicillin-and-clavulanate-potassium",
+    "med-public-doxycycline",
+    "med-public-doxycycline-hyclate",
+    "med-public-pantoprazole",
+    "med-public-pantoprazole-sodium",
+    "med-public-famotidine",
+    "med-public-ondansetron-hydrochloride",
+    "med-public-ondansetron",
+    "med-public-ibuprofen",
+    "med-public-naproxen",
+    "med-public-naproxen-sodium",
+    "med-public-naproxen-sodium-tablet",
+    "med-public-acetaminophen-ibuprofen",
+    "med-public-acetaminophen-dextromethorphan-hbr",
+    "med-public-acetaminophen",
+    "med-public-sumatriptan-succinate",
+    "med-public-sumatriptan",
+    "med-public-rizatriptan-benzoate",
+    "med-public-finasteride",
+    "med-public-tamsulosin-hydrochloride",
+    "med-public-carvedilol",
+    "med-public-carvedilol-phosphate",
+    "med-public-bupropion-hydrochloride",
+    "med-public-duloxetine",
+    "med-public-hydrochlorothiazide",
+    "med-public-valacyclovir-hydrochloride",
+    "med-public-valacyclovir"
+  ],
+  "explorer": {
+    "revision": "explorer-a07be71e-3",
+    "selectedDrugIds": [
+      "med-public-metformin-hydrochloride",
+      "med-public-empagliflozin"
+    ],
+    "cards": [
+      {
+        "id": "fact-1",
+        "factType": "side-effects",
+        "drugIds": [
+          "med-public-metformin-hydrochloride",
+          "med-public-empagliflozin"
+        ]
+      },
+      {
+        "id": "fact-2",
+        "factType": "pricing",
+        "drugIds": [
+          "med-public-metformin-hydrochloride",
+          "med-public-empagliflozin"
+        ]
+      }
+    ]
+  },
+  "pricingScenario": {
+    "id": "current",
+    "label": "Current prices",
+    "effectiveAt": "2026-08-31T12:00:00-04:00"
+  },
+  "selection": {
+    "medicationId": "med-atorvastatin",
+    "skuId": "sku-atorvastatin-tablet-20mg-90",
+    "offerId": null,
+    "deliveryOptionId": null,
+    "form": "tablet",
+    "strength": "20 mg",
+    "quantity": 90
+  },
+  "cart": {
+    "itemCount": 0,
+    "itemIds": [],
+    "offerIds": [],
+    "medicationSubtotal": 0,
+    "deliveryTotal": 0,
+    "grandTotal": 0
+  },
+  "currentOrder": null
+}
+RECORDED STATE AFTER
+{
+  "route": "/drugs/explore",
+  "dataMode": "live",
+  "catalogMedicationIds": [
+    "med-atorvastatin",
+    "med-metformin",
+    "med-lisinopril",
+    "med-amlodipine",
+    "med-sertraline",
+    "med-escitalopram",
+    "med-omeprazole",
+    "med-gabapentin",
+    "med-losartan",
+    "med-levothyroxine",
+    "med-rosuvastatin",
+    "med-fluoxetine",
+    "med-public-empagliflozin",
+    "med-public-metformin-hydrochloride",
+    "med-public-atorvastatin-calcium",
+    "med-public-atorvastatin-calcium-film-coated",
+    "med-public-empagliflozin-and-metformin-hydrochloride",
+    "med-public-empagliflozin-and-linagliptin",
+    "med-public-empagliflozin-metformin-hydrochloride",
+    "med-public-empagliflozin-linagliptin-metformin-hydrochloride",
+    "med-public-albuterol",
+    "med-public-albuterol-sulfate",
+    "med-public-dapagliflozin",
+    "med-public-dapagliflozin-and-metformin-hydrochloride",
+    "med-public-montelukast-sodium",
+    "med-public-montelukast",
+    "med-public-cetirizine-hcl",
+    "med-public-cetirizine-hydrochloride",
+    "med-public-loratadine",
+    "med-public-loratadine-and-pseudoephedrine",
+    "med-public-azithromycin",
+    "med-public-amoxicillin",
+    "med-public-amoxicillin-and-clavulanate-potassium",
+    "med-public-doxycycline",
+    "med-public-doxycycline-hyclate",
+    "med-public-pantoprazole",
+    "med-public-pantoprazole-sodium",
+    "med-public-famotidine",
+    "med-public-ondansetron-hydrochloride",
+    "med-public-ondansetron",
+    "med-public-ibuprofen",
+    "med-public-naproxen",
+    "med-public-naproxen-sodium",
+    "med-public-naproxen-sodium-tablet",
+    "med-public-acetaminophen-ibuprofen",
+    "med-public-acetaminophen-dextromethorphan-hbr",
+    "med-public-acetaminophen",
+    "med-public-sumatriptan-succinate",
+    "med-public-sumatriptan",
+    "med-public-rizatriptan-benzoate",
+    "med-public-finasteride",
+    "med-public-tamsulosin-hydrochloride",
+    "med-public-carvedilol",
+    "med-public-carvedilol-phosphate",
+    "med-public-bupropion-hydrochloride",
+    "med-public-duloxetine",
+    "med-public-hydrochlorothiazide",
+    "med-public-valacyclovir-hydrochloride",
+    "med-public-valacyclovir"
+  ],
+  "explorer": {
+    "revision": "explorer-a07be71e-4",
+    "selectedDrugIds": [
+      "med-public-metformin-hydrochloride",
+      "med-public-empagliflozin"
+    ],
+    "cards": [
+      {
+        "id": "fact-3",
+        "factType": "interactions",
+        "drugIds": [
+          "med-public-metformin-hydrochloride",
+          "med-public-empagliflozin"
+        ]
+      }
+    ]
+  },
+  "pricingScenario": {
+    "id": "current",
+    "label": "Current prices",
+    "effectiveAt": "2026-08-31T12:00:00-04:00"
+  },
+  "selection": {
+    "medicationId": "med-atorvastatin",
+    "skuId": "sku-atorvastatin-tablet-20mg-90",
+    "offerId": null,
+    "deliveryOptionId": null,
+    "form": "tablet",
+    "strength": "20 mg",
+    "quantity": 90
+  },
+  "cart": {
+    "itemCount": 0,
+    "itemIds": [],
+    "offerIds": [],
+    "medicationSubtotal": 0,
+    "deliveryTotal": 0,
+    "grandTotal": 0
+  },
+  "currentOrder": null
+}
+✓
+Medication discovery
+
+2 calls
+·
+126ms
+·
+Sep 2, 5:42 PM
+
+Completed
+cleardose_get_explorer_state
+cleardose_show_drug_fact
+1 state-changing
+Stored context is redacted and bounded
+Inspect calls
+Review replay
+✓
+Medication discovery
+
+1 call
+·
+11ms
+·
+Sep 2, 5:36 PM
+
+Completed
+cleardose_get_explorer_state
+Read-only
+Stored context is redacted and bounded
+Inspect calls
+Review replay
+✓
+Medication discovery
+
+2 calls
+·
+10ms
+·
+Sep 2, 5:20 PM
+
+Completed
+cleardose_get_explorer_state
+view_cart
+Read-only
+Stored context is redacted and bounded
+Inspect calls
+Review replay
+✓
+Medication discovery
+
+1 call
+·
+360ms
+·
+Sep 2, 5:17 PM
+
+Completed
+search_medications
+Read-only
+Stored context is redacted and bounded
+Inspect calls
+Review replay
+Local demo log. Personal checkout fields are not retained here.
+Open Agent Lab

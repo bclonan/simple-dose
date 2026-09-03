@@ -57,7 +57,8 @@ export const executeTool = async (
       await context.executeTool(tool, JSON.stringify(input), options),
     )
   } catch (error) {
-    if (!requiresLegacyObjectInput(error)) throw error
+    // Never retry a mutation under a second calling convention.
+    if (!tool.annotations?.readOnlyHint || !requiresLegacyObjectInput(error)) throw error
     const legacyExecute = context.executeTool as unknown as (
       target: RegisteredWebMcpTool,
       legacyInput: Record<string, JsonValue>,

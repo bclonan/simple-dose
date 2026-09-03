@@ -67,7 +67,7 @@ export class NadacProvider {
     return match.identifier;
   }
 
-  private async query(conditions: Array<{ property: string; value: string; operator?: string }>, limit = 100, signal?: AbortSignal): Promise<NadacRow[]> {
+  private async query(conditions: Array<{ property: string; value: string | string[]; operator?: string }>, limit = 100, signal?: AbortSignal): Promise<NadacRow[]> {
     signal?.throwIfAborted();
     const datasetId = await this.discoverDatasetId();
     signal?.throwIfAborted();
@@ -79,7 +79,8 @@ export class NadacProvider {
     url.searchParams.set('sorts[1][order]', 'desc');
     conditions.forEach((c, index) => {
       url.searchParams.set(`conditions[${index}][property]`, c.property);
-      url.searchParams.set(`conditions[${index}][value]`, c.value);
+      if (Array.isArray(c.value)) c.value.forEach((value, item) => url.searchParams.set(`conditions[${index}][value][${item}]`, value));
+      else url.searchParams.set(`conditions[${index}][value]`, c.value);
       url.searchParams.set(`conditions[${index}][operator]`, c.operator ?? '=');
     });
     const data = await getJson<DkanQueryResponse<NadacRow>>(url.toString(), {}, { ...this.http, signal });
@@ -110,29 +111,47 @@ export class NadacProvider {
     if (!ndcs.length) return { quotes: [], warnings: [] };
     const collected: NadacRow[] = [];
     const warnings: ProviderWarning[] = [];
-    const wanted = new Set(ndcs.slice(0, 4));
+    // Repackagers often have no NADAC row. Search a bounded set across product
+    // packages instead of stopping after the first four repackager codes.
+    const wanted = new Set(ndcs.slice(0, 100));
+    const packages = [...wanted];
+    const batches = Array.from({ length: Math.ceil(packages.length / 25) }, (_, i) => packages.slice(i * 25, (i + 1) * 25));
     let successful = 0;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.http.timeoutMs ?? 12_000);
+    // Up to two request waves share a deadline; each request still has its own
+    // timeout. Do not abort the second wave using the first wave's time budget.
+    const timer = setTimeout(() => controller.abort(), Math.min(20_000, 2 * (this.http.timeoutMs ?? 12_000)));
     try {
-      await Promise.all([...wanted].map(async ndc => {
-        try { collected.push(...await this.byNdc(ndc, controller.signal)); successful++; }
-        catch (error) {
-          warnings.push({ source: 'nadac', code: error instanceof DataProviderError ? error.code : error instanceof HttpError && error.status === 429 ? 'rate-limit' : 'network', message: 'NADAC could not load one or more exact package NDCs.' });
+      let nextBatch = 0;
+      await Promise.all(Array.from({ length: Math.min(2, batches.length) }, async () => {
+        while (nextBatch < batches.length && !controller.signal.aborted) {
+          const batch = batches[nextBatch++]!;
+          try {
+            const rows = batch.length === 1
+              ? await this.byNdc(batch[0]!, controller.signal)
+              : await this.query([{ property: 'ndc', value: batch, operator: 'IN' }], 100, controller.signal);
+            collected.push(...rows.filter(row => batch.includes(normalizeNdc11(String(f<string>(row, 'ndc', 'NDC') ?? '')) ?? '')));
+            successful++;
+            if (rows.length >= 100) warnings.push({ source: 'nadac', code: 'partial', message: 'NADAC returned the latest 100 rows for a package batch. Older package records may be omitted.' });
+          } catch (error) {
+            warnings.push({ source: 'nadac', code: error instanceof DataProviderError ? error.code : error instanceof HttpError && error.status === 429 ? 'rate-limit' : 'network', message: 'NADAC could not load one or more exact package batches. Retry requested facts to try again.' });
+          }
         }
       }));
     } finally { clearTimeout(timer); }
     if (!successful) throw new DataProviderError('nadac', warnings[0]?.code ?? 'unavailable', 'NADAC is unavailable. Other drug data is still usable.');
-    if (ndcs.length > 4) warnings.push({ source: 'nadac', code: 'partial', message: 'Benchmarks cover the first 4 package NDCs, not every product variant.' });
+    if (successful < batches.length && !warnings.some(warning => warning.code === 'network' || warning.code === 'rate-limit')) warnings.push({ source: 'nadac', code: 'network', message: 'Some package batches did not finish. Retry requested facts to try again.' });
+    if (ndcs.length > wanted.size) warnings.push({ source: 'nadac', code: 'partial', message: `Benchmarks cover up to ${wanted.size} of ${ndcs.length} package NDCs, not every product variant.` });
 
     // The yearly dataset contains historical weekly rows. Keep the latest row per NDC.
     const latest = new Map<string, NadacRow>();
     const dateValue = (row: NadacRow) => Date.parse(f<string>(row, 'as_of_date', 'As of Date') ?? f<string>(row, 'effective_date', 'Effective Date') ?? '') || 0;
+    const effectiveValue = (row: NadacRow) => Date.parse(f<string>(row, 'effective_date', 'Effective Date') ?? '') || 0;
     for (const row of collected) {
       const ndc = normalizeNdc11(String(f<string>(row, 'ndc', 'NDC') ?? ''));
       if (!ndc || !wanted.has(ndc)) continue;
       const prev = latest.get(ndc);
-      if (!prev || dateValue(row) >= dateValue(prev)) latest.set(ndc, row);
+      if (!prev || dateValue(row) > dateValue(prev) || dateValue(row) === dateValue(prev) && effectiveValue(row) > effectiveValue(prev)) latest.set(ndc, row);
     }
 
     const source: SourceStamp = {

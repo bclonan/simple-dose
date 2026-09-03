@@ -58,6 +58,33 @@ describe('public medication reference panel', () => {
     expect(wrapper.text()).toContain('<script>alert(1)</script>')
   })
 
+  it('does not mark generated shop offers unavailable when no source demo quote exists', () => {
+    const drug = publicDrug()
+    const wrapper = mount(PublicDrugPanel, { props: { record: { status: 'live', drug } } })
+    expect(wrapper.find('[data-price-kind="demo"]').exists()).toBe(false)
+    expect(wrapper.get('[data-testid="public-price-groups"]').text()).toContain('Simulated shop offers are separate from these source records')
+    expect(wrapper.get('[data-testid="public-price-groups"]').text()).toContain('See Fulfillment options')
+    expect(wrapper.get('[data-price-kind="cash"]').text()).toContain('No provider cash price data is available')
+    expect(drug.prices).toEqual([])
+  })
+
+  it('retains a source-provided demo quote with its fictional label and provenance', () => {
+    const drug = publicDrug()
+    drug.prices.push({
+      id: 'source-demo-example', kind: 'demo', amount: 17.56,
+      currency: 'USD', basis: 'prescription', quantity: 30, unit: 'tablet',
+      label: 'Example source demo quote', consumerMeaning: 'Fictional demonstration only',
+      source: { source: 'demo', retrievedAt: '2026-09-02T00:00:00Z' },
+    })
+    const wrapper = mount(PublicDrugPanel, { props: { record: { status: 'cache', drug } } })
+    const demo = wrapper.get('[data-price-kind="demo"]')
+    expect(demo.get('summary').text()).toBe('Fictional demo cash price 1 records')
+    expect(demo.text()).toContain('$17.56')
+    expect(demo.text()).toContain('not a live pharmacy quote')
+    expect(demo.text()).toContain('Fictional demonstration only')
+    expect(drug.prices).toHaveLength(1)
+  })
+
   it('shows provider notices and exposes an explicit retry action', async () => {
     const drug = publicDrug()
     drug.warnings = [{ source: 'nadac', code: 'network', message: 'The acquisition benchmark could not refresh.' }]

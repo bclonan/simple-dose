@@ -52,7 +52,7 @@ const priceKinds = (Object.keys(drugPriceKinds) as DrugPriceKind[]).map(kind => 
 const priceGroups = computed(() => priceKinds.map((group) => ({
   ...group,
   quotes: drug.value?.prices.filter((price) => price.kind === group.kind) ?? [],
-})))
+})).filter(group => group.kind !== 'demo' || group.quotes.length > 0))
 
 const sourceName = (source: SourceStamp): string => selectFactSource(source).label
 const sourceUrl = (source: SourceStamp): string | undefined => selectFactSource(source).url
@@ -135,6 +135,7 @@ const unitCurrency = (amount: number): string => factMoney(amount, true)
       <section class="public-prices" data-testid="public-price-groups">
         <h3>Prices and benchmarks</h3>
         <p>Each value keeps its original price type. A benchmark applies to the quote's listed NDC and quantity, not automatically to the selected demo SKU. Public benchmarks never enter the demo cart.</p>
+        <p>Simulated shop offers are separate from these source records. See Fulfillment options for any available demo shopping configurations and prices.</p>
         <details v-for="group in priceGroups" :key="group.kind" class="public-detail" :data-price-kind="group.kind" :open="group.kind === 'nadac-benchmark' && group.quotes.length > 0">
           <summary>{{ group.title }} <span>{{ group.quotes.length ? `${group.quotes.length} records` : 'Unavailable' }}</span></summary>
           <div class="public-detail__body">

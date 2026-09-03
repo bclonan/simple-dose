@@ -1,0 +1,82 @@
+{
+  "checkedAt": "2026-09-02T21:20:47.694Z",
+  "site": "https://cleardose-webmcp-demo.netlify.app",
+  "deployId": "6a98920a72f612911a495dcb",
+  "previewDeployId": "6a988a02da6ff84efd924415",
+  "scripts": [
+    "/assets/index-COnjLuut.js"
+  ],
+  "expectedScript": "/assets/index-COnjLuut.js",
+  "assetMatches": true,
+  "tools": {
+    "timestamp": "2026-09-02T21:20:37.753Z",
+    "count": 19,
+    "nativeBytes": 17549,
+    "url": "https://cleardose-webmcp-demo.netlify.app/medications"
+  },
+  "loadedCatalog": {
+    "cardCount": 0,
+    "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+    "nextOffset": 3,
+    "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+    "offset": 0,
+    "returned": 3,
+    "route": "/medications",
+    "rows": [
+      {
+        "id": "med-amlodipine",
+        "kind": "catalog-drug",
+        "label": "Amlodipine"
+      },
+      {
+        "id": "med-atorvastatin",
+        "kind": "catalog-drug",
+        "label": "Atorvastatin"
+      },
+      {
+        "id": "med-escitalopram",
+        "kind": "catalog-drug",
+        "label": "Escitalopram"
+      }
+    ],
+    "section": "catalog",
+    "selectedDrugCount": 0,
+    "stateRevision": "explorer-state-1",
+    "total": 58,
+    "workspacePath": "/drugs/explore",
+    "workspaceRevision": "explorer-ee96ec0d-0-hybrid-0"
+  },
+  "cart": {
+    "checkoutRequirements": {
+      "hasPreparedRequest": false,
+      "prescriptionStatusValues": [
+        "provider-will-send",
+        "request-prepared"
+      ],
+      "requiredFields": [
+        "fullName",
+        "address.line1",
+        "address.city",
+        "address.state",
+        "address.postalCode",
+        "prescriptionStatus"
+      ]
+    },
+    "checkoutRoute": "/checkout",
+    "deliveryTotal": 0,
+    "grandTotal": 0,
+    "itemCount": 0,
+    "items": [],
+    "nextAction": "Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.",
+    "nextOffset": null,
+    "offset": 0,
+    "readyForCheckout": false,
+    "returned": 0,
+    "subtotal": 0,
+    "truncated": false
+  },
+  "cartMutation": false,
+  "cardScreenshot": "63-production-medication-cards-settled.png",
+  "startupScreenshot": "62-production-cards-viewport.png",
+  "console": []
+}

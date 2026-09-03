@@ -14,6 +14,7 @@ import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
 import type { PriceComparison } from '../types/demo-db'
 import { formatCurrency } from '../utils/format'
+import { medicationBrandLabels, medicationCategoryLabel, medicationNameLabel } from '../utils/medication-presentation'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,15 +26,18 @@ const inlineActions = useClearDoseActions()
 const lookupLoading = ref(false)
 const lookupError = ref('')
 const detailFact = ref<DrugFactType | null>('uses')
+const configurationMessage = ref('')
 let lookupVersion = 0
 
 const medication = computed(() => catalog.medicationBySlug(String(route.params.slug)))
+const displayName = computed(() => medicationNameLabel(medication.value?.genericName ?? ''))
+const displayBrands = computed(() => medication.value ? medicationBrandLabels(medication.value.genericName, medication.value.publicSummary?.brandNames ?? medication.value.brandNames) : [])
 const exactSkus = computed(() => medication.value ? catalog.skusForMedication(medication.value.id) : [])
 const hasDemoConfigurations = computed(() => exactSkus.value.length > 0)
-const commerceEnabled = computed(() => catalog.dataMode !== 'live' && hasDemoConfigurations.value)
+const commerceEnabled = computed(() => hasDemoConfigurations.value)
 const configurationForms = computed(() => [...new Set(exactSkus.value.map((item) => item.form))])
-const configurationStrengths = computed(() => [...new Set(exactSkus.value.map((item) => item.strength))])
-const configurationQuantities = computed(() => [...new Set(exactSkus.value.map((item) => item.quantity))])
+const configurationStrengths = computed(() => [...new Set(exactSkus.value.filter(item => !selection.form || item.form === selection.form).map((item) => item.strength))])
+const configurationQuantities = computed(() => [...new Set(exactSkus.value.filter(item => (!selection.form || item.form === selection.form) && (!selection.strength || item.strength === selection.strength)).map((item) => item.quantity))].sort((a, b) => a - b))
 const sku = computed(() => {
   const current = selection.skuId ? catalog.skuById(selection.skuId) : undefined
   return current?.medicationId === medication.value?.id ? current : undefined
@@ -49,7 +53,7 @@ const selectedOptionId = computed(() =>
 watch(() => [String(route.params.slug), catalog.dataMode], async () => {
   const version = ++lookupVersion
   lookupError.value = ''
-  if (medication.value) return
+  if (medication.value) { lookupLoading.value = false; return }
   lookupLoading.value = true
   try {
     await catalog.loadBySlug(String(route.params.slug))
@@ -74,10 +78,10 @@ const changeDetailFact = async (fact: DrugFactType) => {
   if (medication.value) await catalog.loadMedication(medication.value.id, sku.value?.quantity ?? 30, factLoadOptions([fact]))
 }
 
-watch(() => [medication.value?.id, catalog.dataMode, sku.value?.quantity], async () => {
+watch(() => [medication.value?.id, catalog.dataMode, sku.value?.quantity, hasDemoConfigurations.value], async () => {
   const current = medication.value
   if (!current) return
-  if (commerceEnabled.value && selection.medicationId !== current.id) {
+  if (commerceEnabled.value && (selection.medicationId !== current.id || !sku.value)) {
     try {
       selection.initializeMedication(current.id)
     } catch {
@@ -89,16 +93,23 @@ watch(() => [medication.value?.id, catalog.dataMode, sku.value?.quantity], async
 }, { immediate: true })
 
 const updateConfiguration = (key: 'form' | 'strength' | 'quantity', value: string | number): void => {
-  if (!medication.value || !selection.form || !selection.strength || !selection.quantity) return
+  if (!medication.value || !commerceEnabled.value) return
+  configurationMessage.value = ''
+  const candidates = exactSkus.value.filter(item => key === 'form' ? item.form === value
+    : key === 'strength' ? item.form === selection.form && item.strength === value
+      : item.form === selection.form && item.strength === selection.strength && item.quantity === value)
+  const exact = candidates.find(item => item.strength === selection.strength && item.quantity === selection.quantity)
+    ?? candidates.find(item => item.quantity === selection.quantity) ?? candidates[0]
+  if (!exact) { configurationMessage.value = 'This demo configuration is unavailable. Choose one of the listed options.'; return }
   try {
     selection.setConfiguration({
       medicationId: medication.value.id,
-      form: key === 'form' ? String(value) : selection.form,
-      strength: key === 'strength' ? String(value) : selection.strength,
-      quantity: key === 'quantity' ? Number(value) : selection.quantity,
+      form: exact.form,
+      strength: exact.strength,
+      quantity: exact.quantity,
     })
   } catch {
-    // The unavailable state below explains missing exact SKUs without exposing an exception.
+    configurationMessage.value = 'This demo configuration is unavailable. Choose one of the listed options.'
   }
 }
 
@@ -131,16 +142,20 @@ const addToCart = (): void => {
 <template>
   <main v-if="medication" id="main-content" class="page-shell medication-detail-page">
     <nav class="breadcrumb" aria-label="Breadcrumb">
-      <RouterLink to="/medications">Medications</RouterLink><span>/</span><span>{{ medication.genericName }}</span>
+      <RouterLink to="/medications">Medications</RouterLink><span>/</span><span>{{ displayName }}</span>
     </nav>
 
     <div class="detail-hero">
       <section>
-        <p class="eyebrow">{{ medication.category }}</p>
-        <h1>{{ medication.genericName }}</h1>
-        <p v-if="medication.brandNames.length" class="generic-for">Generic for {{ medication.brandNames.join(', ') }}</p>
-        <span v-if="hasDemoConfigurations && medication.rxRequired" class="rx-badge">Prescription required for demo fulfillment</span>
-        <span v-else-if="!hasDemoConfigurations" class="rx-badge">Prescription status unavailable</span>
+        <p class="eyebrow">{{ medicationCategoryLabel(medication.category) }}</p>
+        <h1>{{ displayName }}</h1>
+        <p v-if="displayBrands.length" class="generic-for">Listed brands: {{ displayBrands.join(', ') }}</p>
+        <div class="detail-badges">
+          <span v-if="medication.publicSource" class="rx-badge detail-reference-badge">Public reference data</span>
+          <span v-if="medication.publicOnly" class="rx-badge">Prescription status unavailable</span>
+          <span v-else-if="hasDemoConfigurations && medication.rxRequired" class="rx-badge">Prescription required for demo fulfillment</span>
+          <span v-else-if="!hasDemoConfigurations" class="rx-badge">Prescription status unavailable</span>
+        </div>
 
         <MedicationSelector
           v-if="commerceEnabled && sku && selection.form && selection.strength && selection.quantity"
@@ -150,16 +165,19 @@ const addToCart = (): void => {
           :form="selection.form"
           :strength="selection.strength"
           :quantity="selection.quantity"
+          demo
+          :notice="sku.demoProvenance?.notice"
           @select-form="updateConfiguration('form', $event)"
           @select-strength="updateConfiguration('strength', $event)"
           @select-quantity="updateConfiguration('quantity', $event)"
         />
+        <p v-if="configurationMessage" class="error-banner" role="status">{{ configurationMessage }}</p>
       </section>
 
       <aside v-if="lowest" class="lowest-price-card">
-        <p class="section-kicker">Lowest fictional demo price</p>
+        <p class="section-kicker">Lowest demo price</p>
         <strong>{{ formatCurrency(lowest.medicationSubtotal) }}</strong>
-        <span>Medication only</span>
+        <span>Medication only · simulated fulfillment</span>
         <p>{{ selection.strength }} {{ selection.form }} · {{ selection.quantity }} count</p>
       </aside>
     </div>
@@ -185,10 +203,10 @@ const addToCart = (): void => {
       <section aria-labelledby="fulfillment-title">
         <div class="section-heading">
           <div>
-            <p class="section-kicker">Exact prescription</p>
+            <p class="section-kicker">Selected demo configuration</p>
             <h2 id="fulfillment-title">Fulfillment options</h2>
           </div>
-          <span>Demo pricing only. Not a real pharmacy quote.</span>
+          <span data-testid="demo-fulfillment-notice">Simulated fulfillment. Demo prices only, not real pharmacy quotes or inventory.</span>
         </div>
         <div class="fulfillment-grid">
           <FulfillmentOptionCard
@@ -207,8 +225,8 @@ const addToCart = (): void => {
       <p>Choose another strength or quantity. ClearDose will never substitute a different medication.</p>
     </section>
     <section v-else class="empty-state empty-state--compact" data-testid="public-only-fulfillment">
-      <h2>{{ catalog.dataMode === 'live' ? 'Live mode does not include fictional fulfillment' : 'No pharmacy fulfillment data' }}</h2>
-      <p>Public medication information and benchmarks do not establish cash prices or pharmacy inventory. No cart option is available for this record in the current mode.</p>
+      <h2>Demo shopping is not available for this record yet</h2>
+      <p>Public medication information and benchmarks do not establish cash prices or pharmacy inventory. Demo cart options appear only when a simulated configuration is available in the current mode.</p>
     </section>
 
     <div v-if="lowest" class="sticky-actions">
@@ -232,3 +250,10 @@ const addToCart = (): void => {
     </section>
   </main>
 </template>
+
+<style scoped>
+.detail-hero > section { min-width: 0; }
+.detail-hero h1, .generic-for, .breadcrumb > span:last-child { overflow-wrap: anywhere; }
+.detail-badges { display: flex; flex-wrap: wrap; gap: .5rem; }
+.detail-reference-badge { background: var(--cd-mint); border-color: #cae8e3; color: var(--cd-teal-deep); }
+</style>

@@ -1,0 +1,1358 @@
+[
+  {
+    "label": "preview-initial-state",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "workspace"
+    },
+    "output": {
+      "cardCount": 0,
+      "data": {
+        "availability": "not-requested",
+        "available": 0,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 0,
+        "unavailable": 0,
+        "warningCount": 0
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 0,
+      "route": "/drugs/explore",
+      "rows": [],
+      "section": "workspace",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 0,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-47f7c826-1-live-1"
+    },
+    "durationMs": 4164,
+    "timestamp": "2026-09-02T21:47:17.961Z"
+  },
+  {
+    "label": "preview-select-metformin-jardiance",
+    "name": "cleardose_select_drugs",
+    "input": {
+      "workspaceRevision": "explorer-47f7c826-1-live-1",
+      "drugs": [
+        "Metformin",
+        "Jardiance"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 0,
+      "data": {
+        "availability": "not-requested",
+        "available": 0,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 0,
+        "unavailable": 0,
+        "warningCount": 0
+      },
+      "factResults": [],
+      "factResultsTotal": 0,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-metformin",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-47f7c826-2-live-1"
+    },
+    "durationMs": 7999,
+    "timestamp": "2026-09-02T21:47:30.207Z"
+  },
+  {
+    "label": "final-preview-initial-state",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "workspace"
+    },
+    "output": {
+      "cardCount": 0,
+      "data": {
+        "availability": "not-requested",
+        "available": 0,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 0,
+        "unavailable": 0,
+        "warningCount": 0
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 0,
+      "route": "/drugs/explore",
+      "rows": [],
+      "section": "workspace",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 0,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-1-live-1"
+    },
+    "durationMs": 5037,
+    "timestamp": "2026-09-02T21:51:21.868Z"
+  },
+  {
+    "label": "final-preview-select",
+    "name": "cleardose_select_drugs",
+    "input": {
+      "workspaceRevision": "explorer-827a0e60-1-live-1",
+      "drugs": [
+        "Metformin",
+        "Jardiance"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 0,
+      "data": {
+        "availability": "not-requested",
+        "available": 0,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 0,
+        "unavailable": 0,
+        "warningCount": 0
+      },
+      "factResults": [],
+      "factResultsTotal": 0,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-metformin",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-2-live-1"
+    },
+    "durationMs": 8626,
+    "timestamp": "2026-09-02T21:51:30.495Z"
+  },
+  {
+    "label": "final-preview-side-effects-public-pricing",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-827a0e60-2-live-1",
+      "facts": [
+        "side-effects",
+        "pricing"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-metformin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        },
+        {
+          "availability": "available",
+          "drugId": "med-metformin",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 2,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            },
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        }
+      ],
+      "factResultsTotal": 4,
+      "factResultsTruncated": true,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-metformin",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-3-live-1"
+    },
+    "durationMs": 9422,
+    "timestamp": "2026-09-02T21:51:39.937Z"
+  },
+  {
+    "label": "final-preview-fact-availability-1",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "cards",
+      "limit": 10
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 4,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 4,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "drugIds": [
+            "med-metformin",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-metformin",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "available",
+          "drugId": "med-metformin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "section": "cards",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-2",
+      "total": 6,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-3-live-1"
+    },
+    "durationMs": 4929,
+    "timestamp": "2026-09-02T21:53:00.247Z"
+  },
+  {
+    "label": "final-preview-fact-availability-2",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "cards",
+      "limit": 10,
+      "offset": 4,
+      "workspaceRevision": "explorer-827a0e60-3-live-1",
+      "stateRevision": "explorer-state-2"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 4,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "availability": "available",
+          "drugId": "med-metformin",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 2,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            },
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        }
+      ],
+      "section": "cards",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-2",
+      "total": 6,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-3-live-1"
+    },
+    "durationMs": 4774,
+    "timestamp": "2026-09-02T21:53:05.023Z"
+  },
+  {
+    "label": "final-preview-only-interactions",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-827a0e60-3-live-1",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-metformin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-metformin",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-827a0e60-4-live-1"
+    },
+    "durationMs": 4880,
+    "timestamp": "2026-09-02T21:53:09.906Z"
+  },
+  {
+    "label": "production-initial-existing-cache",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "selected",
+      "limit": 10
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-metformin",
+          "kind": "selected-drug",
+          "label": "Metformin"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        }
+      ],
+      "section": "selected",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 2,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-1-live-0"
+    },
+    "durationMs": 4199,
+    "timestamp": "2026-09-02T21:57:39.294Z"
+  },
+  {
+    "label": "production-select-original-public-drugs",
+    "name": "cleardose_select_drugs",
+    "input": {
+      "workspaceRevision": "explorer-a07be71e-1-live-0",
+      "drugs": [
+        "Metformin Hydrochloride",
+        "Jardiance"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 2,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            },
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        }
+      ],
+      "factResultsTotal": 4,
+      "factResultsTruncated": true,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-2-live-0"
+    },
+    "durationMs": 4487,
+    "timestamp": "2026-09-02T21:57:50.244Z"
+  },
+  {
+    "label": "production-show-side-effects-pricing",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-a07be71e-2-live-0",
+      "facts": [
+        "side-effects",
+        "pricing"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 2,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            },
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        }
+      ],
+      "factResultsTotal": 4,
+      "factResultsTruncated": true,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-3-live-0"
+    },
+    "durationMs": 4155,
+    "timestamp": "2026-09-02T21:57:54.402Z"
+  },
+  {
+    "label": "production-fact-rows-page-1",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "cards",
+      "limit": 10
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 4,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 4,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "section": "cards",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-2",
+      "total": 6,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-3-live-0"
+    },
+    "durationMs": 2676,
+    "timestamp": "2026-09-02T21:58:05.974Z"
+  },
+  {
+    "label": "production-fact-rows-page-2",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "cards",
+      "limit": 10,
+      "offset": 4,
+      "workspaceRevision": "explorer-a07be71e-3-live-0",
+      "stateRevision": "explorer-state-2"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 4,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 2,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            },
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-data",
+          "source": "public-pricing",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "nadac"
+            }
+          ]
+        }
+      ],
+      "section": "cards",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-2",
+      "total": 6,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-3-live-0"
+    },
+    "durationMs": 4122,
+    "timestamp": "2026-09-02T21:58:10.097Z"
+  },
+  {
+    "label": "production-public-clinical-read-sample",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "clinical",
+      "limit": 2
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 2,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 0,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/medicationId",
+          "value": "med-public-metformin-hydrochloride"
+        },
+        {
+          "path": "/drugs/0/name",
+          "value": "Metformin Hydrochloride"
+        }
+      ],
+      "scope": "page",
+      "section": "clinical",
+      "totalRows": 207
+    },
+    "durationMs": 4941,
+    "timestamp": "2026-09-02T21:58:46.255Z"
+  },
+  {
+    "label": "production-public-price-read-sample",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "prices",
+      "limit": 2
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 2,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 0,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/medicationId",
+          "value": "med-public-metformin-hydrochloride"
+        },
+        {
+          "path": "/drugs/0/name",
+          "value": "Metformin Hydrochloride"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 485
+    },
+    "durationMs": 4494,
+    "timestamp": "2026-09-02T21:58:50.751Z"
+  },
+  {
+    "label": "production-public-clinical-read-content",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "clinical",
+      "offset": 2,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 12,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 2,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/status",
+          "value": "live"
+        },
+        {
+          "path": "/drugs/0/dataAvailability",
+          "value": "available"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/source",
+          "value": "openfda-ndc"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/message",
+          "value": "Showing one matching finished-product ingredient group. Other formulations may exist; this does not imply interchangeability."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/source",
+          "value": "openfda-label"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/message",
+          "value": "Selected the latest matching label among the first 12 source SPL sets. Other product labels may differ."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/2/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/2/code",
+          "value": "partial"
+        }
+      ],
+      "scope": "page",
+      "section": "clinical",
+      "totalRows": 207
+    },
+    "durationMs": 4968,
+    "timestamp": "2026-09-02T21:59:02.594Z"
+  },
+  {
+    "label": "production-public-price-read-content",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "prices",
+      "offset": 2,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 12,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 2,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/status",
+          "value": "live"
+        },
+        {
+          "path": "/drugs/0/dataAvailability",
+          "value": "available"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/source",
+          "value": "openfda-ndc"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/0/message",
+          "value": "Showing one matching finished-product ingredient group. Other formulations may exist; this does not imply interchangeability."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/source",
+          "value": "openfda-label"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/1/message",
+          "value": "Selected the latest matching label among the first 12 source SPL sets. Other product labels may differ."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/2/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/2/code",
+          "value": "partial"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 485
+    },
+    "durationMs": 4296,
+    "timestamp": "2026-09-02T21:59:06.894Z"
+  },
+  {
+    "label": "production-public-clinical-label-fields",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "clinical",
+      "offset": 12,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 20,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 12,
+      "returned": 8,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/providerWarnings/2/message",
+          "value": "NADAC returned the latest 100 rows for a package batch. Older package records may be omitted."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/message",
+          "value": "Benchmarks cover up to 100 of 285 package NDCs, not every product variant."
+        },
+        {
+          "path": "/drugs/0/freshness/origin",
+          "value": "live"
+        },
+        {
+          "path": "/drugs/0/freshness/retrievedAt",
+          "value": "2026-09-02T21:57:49.996Z"
+        },
+        {
+          "path": "/drugs/0/freshness/expiresAt",
+          "value": "2026-09-03T21:35:22.986Z"
+        },
+        {
+          "path": "/drugs/0/freshness/stale",
+          "value": false
+        }
+      ],
+      "scope": "page",
+      "section": "clinical",
+      "totalRows": 207
+    },
+    "durationMs": 3837,
+    "timestamp": "2026-09-02T21:59:18.554Z"
+  },
+  {
+    "label": "production-public-price-quote-fields",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "prices",
+      "offset": 12,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 22,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 12,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/providerWarnings/2/message",
+          "value": "NADAC returned the latest 100 rows for a package batch. Older package records may be omitted."
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/source",
+          "value": "nadac"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/code",
+          "value": "partial"
+        },
+        {
+          "path": "/drugs/0/providerWarnings/3/message",
+          "value": "Benchmarks cover up to 100 of 285 package NDCs, not every product variant."
+        },
+        {
+          "path": "/drugs/0/freshness/origin",
+          "value": "live"
+        },
+        {
+          "path": "/drugs/0/freshness/retrievedAt",
+          "value": "2026-09-02T21:57:49.996Z"
+        },
+        {
+          "path": "/drugs/0/freshness/expiresAt",
+          "value": "2026-09-03T21:35:22.986Z"
+        },
+        {
+          "path": "/drugs/0/freshness/stale",
+          "value": false
+        },
+        {
+          "path": "/drugs/0/prices/0/id",
+          "value": "price-nadac-14xco93"
+        },
+        {
+          "path": "/drugs/0/prices/0/kind",
+          "value": "nadac-benchmark"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 485
+    },
+    "durationMs": 4304,
+    "timestamp": "2026-09-02T21:59:22.861Z"
+  },
+  {
+    "label": "production-public-clinical-text",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "clinical",
+      "offset": 20,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 21,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 20,
+      "returned": 1,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/clinical/indications/0",
+          "value": "1 INDICATIONS AND USAGE Metformin hydrochloride tablets are indicated as an adjunct to diet and exercise to improve glycemic control in adults and pediatric patients 10 years of age and older with type 2 diabetes mellitus. Metformin hydrochloride tablets are biguanide indicated as an adjunct to diet and exercise to improve glycemic control in adults and pediatric patients 10 years of age and older with type 2 diabetes mellitus. ( 1 )"
+        }
+      ],
+      "scope": "page",
+      "section": "clinical",
+      "totalRows": 207
+    },
+    "durationMs": 3086,
+    "timestamp": "2026-09-02T21:59:33.052Z"
+  },
+  {
+    "label": "production-public-price-amount",
+    "name": "compare_medications",
+    "input": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "scope": "page",
+      "medicationIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "section": "prices",
+      "offset": 22,
+      "limit": 10
+    },
+    "output": {
+      "contextRevision": "catalog-834d7ab7-570-4",
+      "dataMode": "live",
+      "format": "JSON Pointer field rows. Join string parts in order. Follow nextOffset for all fields.",
+      "nextOffset": 32,
+      "notice": "Catalog similarity is not therapeutic interchangeability, dosing equivalence, or personal medical advice. A clinician must assess medication changes.",
+      "offset": 22,
+      "returned": 10,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "path": "/drugs/0/prices/0/ndc",
+          "value": "70010006401"
+        },
+        {
+          "path": "/drugs/0/prices/0/amount",
+          "value": 0.72
+        },
+        {
+          "path": "/drugs/0/prices/0/currency",
+          "value": "USD"
+        },
+        {
+          "path": "/drugs/0/prices/0/basis",
+          "value": "prescription"
+        },
+        {
+          "path": "/drugs/0/prices/0/quantity",
+          "value": 30
+        },
+        {
+          "path": "/drugs/0/prices/0/unit",
+          "value": "EA"
+        },
+        {
+          "path": "/drugs/0/prices/0/unitAmount",
+          "value": 0.02388
+        },
+        {
+          "path": "/drugs/0/prices/0/effectiveDate",
+          "value": "2026-08-19"
+        },
+        {
+          "path": "/drugs/0/prices/0/asOfDate",
+          "value": "2026-09-02"
+        },
+        {
+          "path": "/drugs/0/prices/0/label",
+          "value": "NADAC benchmark for 30 EA"
+        }
+      ],
+      "scope": "page",
+      "section": "prices",
+      "totalRows": 485
+    },
+    "durationMs": 4592,
+    "timestamp": "2026-09-02T21:59:37.647Z"
+  },
+  {
+    "label": "production-interactions-only",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-a07be71e-3-live-0",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-a07be71e-4-live-0"
+    },
+    "durationMs": 3947,
+    "timestamp": "2026-09-02T21:59:46.393Z"
+  }
+]

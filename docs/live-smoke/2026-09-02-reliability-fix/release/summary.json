@@ -1,0 +1,206 @@
+{
+  "checkedAt": "2026-09-02T21:24:33.278Z",
+  "production": {
+    "checkedAt": "2026-09-02T21:20:47.694Z",
+    "site": "https://cleardose-webmcp-demo.netlify.app",
+    "deployId": "6a98920a72f612911a495dcb",
+    "previewDeployId": "6a988a02da6ff84efd924415",
+    "scripts": [
+      "/assets/index-COnjLuut.js"
+    ],
+    "expectedScript": "/assets/index-COnjLuut.js",
+    "assetMatches": true,
+    "tools": {
+      "timestamp": "2026-09-02T21:20:37.753Z",
+      "count": 19,
+      "nativeBytes": 17549,
+      "url": "https://cleardose-webmcp-demo.netlify.app/medications"
+    },
+    "loadedCatalog": {
+      "cardCount": 0,
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 3,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 3,
+      "route": "/medications",
+      "rows": [
+        {
+          "id": "med-amlodipine",
+          "kind": "catalog-drug",
+          "label": "Amlodipine"
+        },
+        {
+          "id": "med-atorvastatin",
+          "kind": "catalog-drug",
+          "label": "Atorvastatin"
+        },
+        {
+          "id": "med-escitalopram",
+          "kind": "catalog-drug",
+          "label": "Escitalopram"
+        }
+      ],
+      "section": "catalog",
+      "selectedDrugCount": 0,
+      "stateRevision": "explorer-state-1",
+      "total": 58,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-ee96ec0d-0-hybrid-0"
+    },
+    "cart": {
+      "checkoutRequirements": {
+        "hasPreparedRequest": false,
+        "prescriptionStatusValues": [
+          "provider-will-send",
+          "request-prepared"
+        ],
+        "requiredFields": [
+          "fullName",
+          "address.line1",
+          "address.city",
+          "address.state",
+          "address.postalCode",
+          "prescriptionStatus"
+        ]
+      },
+      "checkoutRoute": "/checkout",
+      "deliveryTotal": 0,
+      "grandTotal": 0,
+      "itemCount": 0,
+      "items": [],
+      "nextAction": "Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.",
+      "nextOffset": null,
+      "offset": 0,
+      "readyForCheckout": false,
+      "returned": 0,
+      "subtotal": 0,
+      "truncated": false
+    },
+    "cartMutation": false,
+    "cardScreenshot": "63-production-medication-cards-settled.png",
+    "startupScreenshot": "62-production-cards-viewport.png",
+    "console": []
+  },
+  "automatedReleaseGate": {
+    "unitTests": 263,
+    "unitFiles": 27,
+    "evaluationTests": 18,
+    "chromiumBrowserTests": 26,
+    "typecheck": "passed",
+    "build": "passed",
+    "diffCheck": "passed",
+    "dependencyInstall": "locked install passed",
+    "retryCount": 0
+  },
+  "native": {
+    "registeredTools": 19,
+    "successfulToolNames": [
+      "cleardose_get_explorer_state",
+      "search_medications",
+      "get_medication_details",
+      "compare_fulfillment_options",
+      "select_medication_option",
+      "create_prescription_request_card",
+      "add_to_cart",
+      "view_cart",
+      "set_delivery_option",
+      "compare_cart_savings",
+      "cleardose_select_drugs",
+      "cleardose_show_drug_fact",
+      "cleardose_update_fact_card",
+      "find_related_medications",
+      "compare_medications",
+      "checkout_demo_order",
+      "get_order_status"
+    ],
+    "successfulCalls": 100,
+    "previewSuccessfulCalls": 97,
+    "productionSuccessfulCalls": 3,
+    "receiptEntries": 62,
+    "initialReadOnlyStressCalls": 40,
+    "mixedEditReadCalls": 20,
+    "afterHelperResetBeforePlannedReload": 50,
+    "nativeDeclarationByteRange": [
+      17547,
+      17549
+    ],
+    "configurationLimitRecurrences": 0,
+    "helperKernelResets": 1,
+    "plannedAppReloads": 1,
+    "executionCoverageLimit": "17 of 19 tools executed in this corrected release. remove_cart_item and cleardose_remove_fact_card have automated coverage and historical native evidence, but were not rerun because the browser requires fresh deletion confirmation.",
+    "failures": "Step3 was a browser approval-context rejection before execution. Step56 was an expected incomplete-request validation rejection. Separate screenshot/helper incidents remain in incidents.json. No uncertain mutation was repeated.",
+    "interpretation": "No configuration-limit recurrence was observed. This was not one uninterrupted browser-client run and does not establish Chrome internal limits or a live-model accuracy score."
+  },
+  "persistence": {
+    "startedAt": "2026-09-02T21:11:41.388Z",
+    "kind": "Planned persistence test, not connection recovery",
+    "beforeUrl": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=ingredients,pricing",
+    "beforeCartTotal": 52.71,
+    "beforeCartCount": 2,
+    "beforeCartIds": [
+      "cart-d552807b-2a9e-4102-8274-0f2b05e2b8a5",
+      "cart-464e1023-a952-4f65-bf51-7b193542299d"
+    ],
+    "beforeSelectedIds": [
+      "med-public-empagliflozin",
+      "med-public-cetirizine-hcl"
+    ],
+    "beforeFactTypes": [
+      "ingredients",
+      "pricing"
+    ],
+    "beforeModeDom": [
+      "    - combobox \"Data mode\":",
+      "      - option \"Public data only\" [selected]",
+      "      - option \"Drug identity\" [selected]",
+      "        - option \"Active ingredients\" [selected]",
+      "        - option \"Pricing and benchmarks\" [selected]"
+    ],
+    "after": {
+      "url": "https://6a988a02da6ff84efd924415--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-empagliflozin,public-cetirizine-hcl&facts=ingredients,pricing",
+      "cartTotal": 52.71,
+      "cartCount": 2,
+      "firstCartId": "cart-d552807b-2a9e-4102-8274-0f2b05e2b8a5",
+      "cards": [
+        {
+          "drugIds": [
+            "med-public-empagliflozin",
+            "med-public-cetirizine-hcl"
+          ],
+          "factType": "ingredients",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-empagliflozin",
+            "med-public-cetirizine-hcl"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        }
+      ],
+      "selectedDrugCount": 2,
+      "modeDom": [
+        "    - combobox \"Data mode\":",
+        "      - option \"Public data only\" [selected]",
+        "      - option \"Drug identity\" [selected]",
+        "        - option \"Active ingredients\" [selected]",
+        "        - option \"Pricing and benchmarks\" [selected]",
+        "      - option \"Express delivery · $9.00\" [selected]",
+        "      - option \"Standard delivery · $5.00\" [selected]"
+      ],
+      "secondCartId": "cart-464e1023-a952-4f65-bf51-7b193542299d"
+    },
+    "passed": true
+  },
+  "evidence": {
+    "receiptScreenshots": 62,
+    "primaryMedicationCards": "63-production-medication-cards-settled.png",
+    "primaryCart": "52-live-mode-idempotent-cart-state.png",
+    "notes": "12 and54 state images caught drawer motion; use52 for the settled cart. 61-production-medication-cards.png has a full-page stitching artifact; use63. Repeated stress and continuation reads retain JSON but not duplicate screenshots. Long outputs continue beyond the pictured viewport."
+  },
+  "dataLimits": "Startup uses24 bounded public queries with3workers and up to4hits per query, not the whole FDA catalog. Search loads further public matches. Full label and benchmark details load on demand. Missing classification uses Other medications. Generated prices, configurations, availability and fulfillment remain fictional; unknown clinical facts and prescription status are not invented."
+}

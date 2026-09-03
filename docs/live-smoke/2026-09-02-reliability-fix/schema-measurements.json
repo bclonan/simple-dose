@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2026-09-02T19:54:01.874Z",
+    "toolCount": 19,
+    "reportedBytes": 25184,
+    "declarationBytes": 21935
+  },
+  {
+    "timestamp": "2026-09-02T20:03:48.106Z",
+    "toolCount": 19,
+    "reportedBytes": 25108,
+    "declarationBytes": 21935
+  },
+  {
+    "timestamp": "2026-09-02T20:04:18.505Z",
+    "toolCount": 19,
+    "reportedBytes": 26286,
+    "declarationBytes": 21935
+  },
+  {
+    "timestamp": "2026-09-02T20:04:19.695Z",
+    "toolCount": 19,
+    "reportedBytes": 26286,
+    "declarationBytes": 21935
+  },
+  {
+    "timestamp": "2026-09-02T20:05:33.795Z",
+    "toolCount": 19,
+    "reportedBytes": 26286,
+    "declarationBytes": 21935
+  }
+]

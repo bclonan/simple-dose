@@ -6,6 +6,19 @@ import { DataProviderError } from '../types';
 
 interface FdaResponse<T> { results?: T[] }
 
+export interface OpenFdaLabel {
+  set_id?: string;
+  effective_time?: string;
+  openfda?: { generic_name?: string[]; brand_name?: string[]; product_ndc?: string[]; rxcui?: string[] };
+  [key: string]: unknown;
+}
+
+const clinicalFields = ['indications_and_usage', 'contraindications', 'warnings', 'warnings_and_cautions', 'boxed_warning',
+  'adverse_reactions', 'drug_interactions', 'clinical_pharmacology', 'pregnancy', 'pediatric_use', 'geriatric_use', 'dosage_and_administration'];
+const escapeSearch = (value: string) => value.replace(/([\\"])/g, '\\$1');
+export const labelSetLimit = 12;
+export const validLabelSetIds = (ids: string[]): string[] => uniq(ids).filter(id => /^[a-zA-Z0-9-]{1,128}$/.test(id)).sort();
+
 export interface OpenFdaNdcRow {
   product_ndc?: string;
   brand_name?: string;
@@ -77,13 +90,37 @@ export class OpenFdaProvider {
     return this.validProducts(data.results ?? []);
   }
 
-  async labelsByName(name: string, limit = 5): Promise<any[]> {
-    const escaped = name.replace(/([\\"])/g, '\\$1');
-    const data = await this.query<any>('/drug/label.json', {
-      search: `(openfda.generic_name:"${escaped}") OR (openfda.brand_name:"${escaped}")`,
-      limit
+  async labelsBySetIds(setIds: string[]): Promise<OpenFdaLabel[]> {
+    const ids = validLabelSetIds(setIds).slice(0, labelSetLimit);
+    if (!ids.length) return [];
+    const data = await this.query<OpenFdaLabel>('/drug/label.json', {
+      search: ids.map(id => `set_id:"${id}"`).join(' OR '), sort: 'effective_time:desc', limit: 1
     });
-    return data.results ?? [];
+    return this.validLabels(data.results ?? []);
+  }
+
+  async labelsByName(name: string, limit = 1): Promise<OpenFdaLabel[]> {
+    // The .exact fields are case-sensitive. Try the source spelling and common
+    // harmonized cases without admitting combination names containing this drug.
+    const names = uniq([name.trim(), name.trim().toUpperCase(), name.trim().toLowerCase()]);
+    const search = names.flatMap(value => ['generic_name', 'brand_name'].map(field => `openfda.${field}.exact:"${escapeSearch(value)}"`)).join(' OR ');
+    const data = await this.query<OpenFdaLabel>('/drug/label.json', {
+      search, sort: 'effective_time:desc', limit: Math.min(5, Math.max(1, limit))
+    });
+    return this.validLabels(data.results ?? []);
+  }
+
+  private validLabels(rows: OpenFdaLabel[]): OpenFdaLabel[] {
+    const stringList = (value: unknown) => Array.isArray(value) && value.every(item => typeof item === 'string');
+    if (rows.some(row => !row || typeof row !== 'object' || Array.isArray(row) ||
+      (row.set_id !== undefined && (typeof row.set_id !== 'string' || !/^[a-zA-Z0-9-]{1,128}$/.test(row.set_id))) ||
+      (row.effective_time !== undefined && (typeof row.effective_time !== 'string' || !/^\d{8}$/.test(row.effective_time))) ||
+      (row.openfda !== undefined && (!row.openfda || typeof row.openfda !== 'object' || Array.isArray(row.openfda) ||
+        ['generic_name', 'brand_name', 'product_ndc', 'rxcui'].some(field => row.openfda?.[field as keyof NonNullable<OpenFdaLabel['openfda']>] !== undefined && !stringList(row.openfda[field as keyof NonNullable<OpenFdaLabel['openfda']>])))) ||
+      clinicalFields.some(field => row[field] !== undefined && typeof row[field] !== 'string' && !stringList(row[field])))) {
+      throw new DataProviderError('openfda-label', 'malformed-response', 'FDA returned an invalid label record or clinical section. No text was inferred.');
+    }
+    return rows.slice().sort((left, right) => (right.effective_time ?? '').localeCompare(left.effective_time ?? '') || (left.set_id ?? '').localeCompare(right.set_id ?? ''));
   }
 
   async productsByNdc(ndc: string): Promise<OpenFdaNdcRow[]> {
@@ -240,7 +277,7 @@ export class OpenFdaProvider {
     };
   }
 
-  normalizeLabel(label: any): DrugClinical {
+  normalizeLabel(label: OpenFdaLabel): DrugClinical {
     return {
       indications: asStringArray(label?.indications_and_usage),
       contraindications: asStringArray(label?.contraindications),

@@ -42,7 +42,9 @@ export const useMedicationToolDependencies = (): DynamicMedicationDependencies =
     const choices = catalog.medications.filter(item => catalog.dataMode === 'demo' ? !item.publicOnly : catalog.dataMode === 'live' ? Boolean(item.publicSource) : true)
     const ordered = [...choices.filter(item => pageIds.includes(item.id)), ...choices.filter(item => !pageIds.includes(item.id))]
     const state = { route, dataMode: catalog.dataMode, catalog: ordered.map(item => ({ id: item.id, name: item.genericName })), pageMedicationIds: [...new Set(pageIds.filter(id => ordered.some(item => item.id === id)))] }
-    const signature = JSON.stringify(state)
+    // A route label alone does not change which medication IDs the tool may use.
+    // Results read the current route at execution; scopes still invalidate on ID changes.
+    const signature = JSON.stringify({ dataMode: state.dataMode, catalog: [...state.catalog].sort((a, b) => a.id.localeCompare(b.id)), pageMedicationIds: [...state.pageMedicationIds].sort() })
     if (signature !== previousSignature) {
       previousSignature = signature
       revision = `catalog-${sessionNonce}-${++contextSequence}`

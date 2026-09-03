@@ -35,17 +35,17 @@ const idSchema = (label: string, pattern: string): JsonSchema => ({
 })
 
 const medicationIdSchema = idSchema(
-  'ClearDose medication ID returned by search_medications.',
+  'ID from search_medications.',
   '^med-[a-z0-9-]+$',
 )
 
 const offerIdSchema = idSchema(
-  'Exact offer ID returned by compare_fulfillment_options.',
+  'Exact compared offer ID.',
   '^offer-[a-z0-9-]+$',
 )
 
 const deliveryOptionIdSchema = idSchema(
-  'Delivery option ID attached to the selected offer.',
+  'Delivery ID for that offer.',
   '^[a-z0-9-]+$',
 )
 
@@ -53,19 +53,21 @@ const exactMedicationProperties: Record<string, JsonSchema> = {
   medicationId: medicationIdSchema,
   form: {
     type: 'string',
-    description: 'Exact medication form.',
-    enum: ['tablet', 'capsule'],
+    description: 'Exact form from get_medication_details shopConfigurations.',
+    minLength: 1,
+    maxLength: 80,
   },
   strength: {
     type: 'string',
-    description: 'Exact displayed strength, including its unit, such as 20 mg.',
+    description: 'Exact shopConfigurations strength and unit.',
     minLength: 1,
-    maxLength: 40,
+    maxLength: 120,
   },
   quantity: {
     type: 'integer',
-    description: 'Exact package quantity.',
-    enum: [30, 60, 90],
+    description: 'Exact shopConfigurations quantity. Never infer a dose.',
+    minimum: 1,
+    maximum: 1_000,
   },
 }
 
@@ -119,37 +121,38 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'search_medications',
     title: 'Search medications',
     description:
-      'Search public drug sources and the loaded catalog by generic name or brand. Existing categories and demo configurations remain available in hybrid mode. The visible results update with the same matches. Use returned IDs for details or contextual comparison.',
+      'Search public sources and the loaded catalog by drug name, brand or catalog category. Updates visible results. Use returned IDs for details or comparison.',
     category: 'discovery',
     inputSchema: objectSchema(
       {
         query: {
           type: 'string',
-          description: 'Catalog search text, such as atorvastatin or cholesterol.',
+          description: 'Drug name, brand or catalog category.',
           minLength: 1,
           maxLength: 120,
         },
         form: {
           type: 'string',
-          description: 'Optional exact form filter.',
-          enum: ['tablet', 'capsule'],
+          description: 'Exact form filter.',
+          minLength: 1,
+          maxLength: 80,
         },
         strength: {
           type: 'string',
-          description: 'Optional exact displayed strength filter, such as 20 mg.',
+          description: 'Exact strength and unit filter.',
           minLength: 1,
-          maxLength: 40,
+          maxLength: 120,
         },
         offset: {
           type: 'integer',
-          description: 'Zero-based result offset. Defaults to 0.',
+          description: 'Offset, default 0.',
           minimum: 0,
           maximum: 100,
           default: 0,
         },
         limit: {
           type: 'integer',
-          description: 'Maximum matches to return. Defaults to 5. The visible page still shows every match.',
+          description: 'Page size, default 5. Does not limit visible results.',
           minimum: 1,
           maximum: 10,
           default: 5,
@@ -164,9 +167,12 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'get_medication_details',
     title: 'Get medication details',
     description:
-      'Read catalog forms, strengths, demo quantities, source status, and SKU count for one medicationId. Public-only prescription status is unknown. Use compare_medications for complete paged public sections.',
+      'Read source status and exact mock-cart shopConfigurations. Configurations and prices are fictional, not dosing advice. Use compare_medications for full public facts.',
     category: 'discovery',
-    inputSchema: objectSchema({ medicationId: medicationIdSchema }, ['medicationId']),
+    inputSchema: objectSchema({ medicationId: medicationIdSchema,
+      offset: { type: 'integer', minimum: 0, maximum: 10_000, default: 0, description: 'Configuration offset, default 0. Follow nextOffset for all.' },
+      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Configurations per page, default 5.' },
+    }, ['medicationId']),
     annotations: { ...readOnly, untrustedContentHint: true, openWorldHint: true },
     exampleInput: { medicationId: 'med-atorvastatin' },
   },
@@ -174,27 +180,27 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'compare_fulfillment_options',
     title: 'Compare exact fulfillment options',
     description:
-      'Compare current pharmacy, delivery, arrival, and total price for one exact SKU. Supply medicationId, form, strength, and quantity together for a new comparison, or omit all four to recompare the current selection.',
+      'Compare fictional pharmacy, delivery and total prices, not public benchmarks. Supply all four exact SKU fields from get_medication_details, or omit all four for the current selection. Never infer dosing or substitutions.',
     category: 'pricing',
     inputSchema: objectSchema(
       {
         ...exactMedicationProperties,
         maxDeliveryDays: {
           type: 'integer',
-          description: 'Optional maximum estimated delivery days. Use 0 to require pickup today.',
+          description: 'Maximum delivery days; 0 requires pickup today.',
           minimum: 0,
           maximum: 30,
         },
         offset: {
           type: 'integer',
-          description: 'Zero-based ranked-option offset. Defaults to 0.',
+          description: 'Rank offset, default 0.',
           minimum: 0,
           maximum: 100,
           default: 0,
         },
         maxResults: {
           type: 'integer',
-          description: 'Maximum ranked options to return. Defaults to 5 and never changes the visible comparison.',
+          description: 'Page size, default 5. Does not limit the visible comparison.',
           minimum: 1,
           maximum: 8,
           default: 5,
@@ -202,7 +208,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
       },
       [],
     ),
-    annotations: idempotentStateChange,
+    annotations: { ...idempotentStateChange, untrustedContentHint: true },
     exampleInput: {
       medicationId: 'med-atorvastatin',
       form: 'tablet',
@@ -215,7 +221,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'select_medication_option',
     title: 'Select a fulfillment option',
     description:
-      'Select one exact offer and its delivery method in the shared ClearDose selection state. Use IDs returned by compare_fulfillment_options.',
+      'Select an offer and delivery from compare_fulfillment_options. Changes selection, not the cart.',
     category: 'pricing',
     inputSchema: objectSchema(
       { ...exactSelectionProperties },
@@ -231,39 +237,39 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'create_prescription_request_card',
     title: 'Prepare a prescription request card',
     description:
-      'Prepare and display a local request card for one offerId and deliveryOptionId from compare_fulfillment_options. The tool derives the exact SKU and never issues or transmits a prescription.',
+      'Display a demo request card for exact offer and delivery IDs from compare_fulfillment_options. Never issues or transmits a prescription.',
     category: 'prescription',
     inputSchema: objectSchema(
       {
         ...exactSelectionProperties,
         patientName: {
           type: 'string',
-          description: 'Optional demo patient name.',
+          description: 'Demo patient name.',
           minLength: 1,
           maxLength: 100,
         },
         dateOfBirth: {
           type: 'string',
-          description: 'Optional demo date of birth in YYYY-MM-DD format.',
+          description: 'Demo birth date, YYYY-MM-DD.',
           format: 'date',
           maxLength: 10,
         },
         prescriberName: {
           type: 'string',
-          description: 'Optional demo prescriber name.',
+          description: 'Demo prescriber name.',
           minLength: 1,
           maxLength: 100,
         },
         practice: {
           type: 'string',
-          description: 'Optional demo practice name.',
+          description: 'Demo practice name.',
           minLength: 1,
           maxLength: 120,
         },
       },
       ['offerId', 'deliveryOptionId'],
     ),
-    annotations: stateChanging,
+    annotations: { ...stateChanging, untrustedContentHint: true },
     exampleInput: {
       offerId: 'offer-atorvastatin-20-90-cleardose',
       deliveryOptionId: 'standard',
@@ -275,7 +281,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'add_to_cart',
     title: 'Add medication to cart',
     description:
-      'Add one offerId and deliveryOptionId from compare_fulfillment_options to the local demo cart. Use this after the user chooses an option. The visible cart opens and updates.',
+      'After the user chooses, add offer and delivery IDs from compare_fulfillment_options to the demo cart and open it. Does not check out.',
     category: 'commerce',
     inputSchema: objectSchema(
       { ...exactSelectionProperties },
@@ -291,62 +297,62 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'view_cart',
     title: 'View cart',
     description:
-      'Read the local demo cart, delivery alternatives, totals, and checkout readiness. Use this before changing delivery, removing an item, or creating a demo order.',
+      'Read demo cart items, delivery, totals and checkout readiness before editing the cart or preparing checkout.',
     category: 'commerce',
     inputSchema: objectSchema({
       offset: {
         type: 'integer',
-        description: 'Zero-based cart item offset. Defaults to 0.',
+        description: 'Item offset, default 0.',
         minimum: 0,
         maximum: 100,
         default: 0,
       },
       limit: {
         type: 'integer',
-        description: 'Maximum cart items to return. Defaults to 3.',
+        description: 'Items per page, default 3.',
         minimum: 1,
         maximum: 5,
         default: 3,
       },
     }),
-    annotations: readOnly,
+    annotations: { ...readOnly, untrustedContentHint: true },
     exampleInput: {},
   },
   {
     name: 'compare_cart_savings',
     title: 'Compare cart savings',
     description:
-      'Compare each current cart line with the lowest delivered total for the same exact SKU. Use after adding one or more medications. Returns current demo-price savings and exact replacement IDs without changing the cart.',
+      'Compare each exact cart SKU with its lowest delivered demo price. Returns savings and replacement IDs. No cart changes or medication substitutions.',
     category: 'pricing',
     inputSchema: objectSchema({
       offset: {
         type: 'integer',
-        description: 'Zero-based cart-line offset. Defaults to 0.',
+        description: 'Line offset, default 0.',
         minimum: 0,
         maximum: 100,
         default: 0,
       },
       limit: {
         type: 'integer',
-        description: 'Maximum savings rows to return. Defaults to 5.',
+        description: 'Savings rows per page, default 5.',
         minimum: 1,
         maximum: 5,
         default: 5,
       },
     }),
-    annotations: readOnly,
+    annotations: { ...readOnly, untrustedContentHint: true },
     exampleInput: {},
   },
   {
     name: 'remove_cart_item',
     title: 'Remove cart item',
     description:
-      'Remove one local demo cart item by a cartItemId returned by add_to_cart or view_cart. Use this to correct an unwanted or mistaken addition. The visible cart and totals update.',
+      'Remove a demo cart item using cartItemId from view_cart or add_to_cart. Updates cart and totals.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
         cartItemId: idSchema(
-          'Cart item ID returned by add_to_cart or view_cart.',
+          'Cart item ID from view_cart.',
           '^cart-[A-Za-z0-9-]+$',
         ),
       },
@@ -359,12 +365,12 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'set_delivery_option',
     title: 'Set cart delivery option',
     description:
-      'Change the delivery method for one cart item and immediately recalculate its total and the shared cart grand total.',
+      'Change cart delivery using an available method from view_cart. Recalculates item and cart totals.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
         cartItemId: idSchema(
-          'Cart item ID returned by add_to_cart or view_cart.',
+          'Cart item ID from view_cart.',
           '^cart-[A-Za-z0-9-]+$',
         ),
         deliveryOptionId: deliveryOptionIdSchema,
@@ -381,7 +387,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'checkout_demo_order',
     title: 'Place a demo order',
     description:
-      'Create a simulated local order from the current cart after the user asks to finish demo checkout. The confirmation route opens. No payment, prescription, or pharmacy request is transmitted.',
+      'Only after the user asks to finish demo checkout, create a local simulated order and show confirmation. Never transmits payment, prescriptions or pharmacy requests.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
@@ -401,7 +407,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
             },
             line2: {
               type: 'string',
-              description: 'Optional demo apartment or unit.',
+              description: 'Demo apartment or unit.',
               minLength: 1,
               maxLength: 120,
             },
@@ -430,7 +436,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
         ),
         prescriptionStatus: {
           type: 'string',
-          description: 'How the demo prescription requirement will be handled.',
+          description: 'How the demo prescription requirement is handled.',
           enum: ['provider-will-send', 'request-prepared'],
         },
       },
@@ -452,24 +458,24 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'get_order_status',
     title: 'Get demo order status',
     description:
-      'Read a sanitized local demo order status. Supply an orderId from checkout_demo_order, or omit it to inspect the current order. No recipient name or address is returned.',
+      'Read demo order status. Omit orderId for the current order. Never returns recipient name or address.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
         orderId: idSchema(
-          'Demo order ID returned by checkout_demo_order.',
+          'Demo order ID from checkout_demo_order.',
           '^CD-[0-9]{4}-[0-9]{4}$',
         ),
         itemOffset: {
           type: 'integer',
-          description: 'Zero-based order item offset. Defaults to 0.',
+          description: 'Item offset, default 0.',
           minimum: 0,
           maximum: 100,
           default: 0,
         },
         itemLimit: {
           type: 'integer',
-          description: 'Maximum order items to return. Defaults to 5.',
+          description: 'Items per page, default 5.',
           minimum: 1,
           maximum: 5,
           default: 5,
@@ -477,7 +483,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
       },
       [],
     ),
-    annotations: readOnly,
+    annotations: { ...readOnly, untrustedContentHint: true },
     exampleInput: {},
   },
 ]
@@ -532,13 +538,6 @@ const assertPattern = (value: string, key: string, pattern: RegExp, format: stri
   return value
 }
 
-const assertOneOf = <T extends string>(value: string, key: string, allowed: readonly T[]): T => {
-  if (!allowed.includes(value as T)) {
-    throw new Error(`${key} must be one of: ${allowed.join(', ')}.`)
-  }
-  return value as T
-}
-
 const assertIntegerRange = (
   value: number | undefined,
   key: string,
@@ -567,20 +566,23 @@ const cartItemId = (value: string): string =>
 const parseSearchInput = (value: unknown): SearchMedicationInput => {
   const input = asObject(value)
   assertOnlyKeys(input, ['query', 'form', 'strength', 'offset', 'limit'])
-  const form = optionalString(input, 'form', 40)
+  const form = optionalString(input, 'form', 80)
   return {
     query: requiredString(input, 'query', 120),
-    form: form ? assertOneOf(form, 'form', ['tablet', 'capsule']) : undefined,
-    strength: optionalString(input, 'strength', 40),
+    form,
+    strength: optionalString(input, 'strength', 120),
     offset: assertIntegerRange(optionalInteger(input, 'offset'), 'offset', 0, 100) ?? 0,
     limit: assertIntegerRange(optionalInteger(input, 'limit'), 'limit', 1, 10) ?? 5,
   }
 }
 
-const parseMedicationIdInput = (value: unknown): { medicationId: string } => {
+const parseMedicationIdInput = (value: unknown): { medicationId: string; offset: number; limit: number } => {
   const input = asObject(value)
-  assertOnlyKeys(input, ['medicationId'])
-  return { medicationId: medicationId(requiredString(input, 'medicationId')) }
+  assertOnlyKeys(input, ['medicationId', 'offset', 'limit'])
+  return { medicationId: medicationId(requiredString(input, 'medicationId')),
+    offset: assertIntegerRange(optionalInteger(input, 'offset'), 'offset', 0, 10_000) ?? 0,
+    limit: assertIntegerRange(optionalInteger(input, 'limit'), 'limit', 1, 10) ?? 5,
+  }
 }
 
 const parseCompareInput = (value: unknown): CompareOptionsInput => {
@@ -594,16 +596,13 @@ const parseCompareInput = (value: unknown): CompareOptionsInput => {
     'offset',
     'maxResults',
   ])
-  const parsedForm = optionalString(input, 'form', 40)
+  const parsedForm = optionalString(input, 'form', 80)
   const parsedMedicationId = optionalString(input, 'medicationId')
-  const quantity = optionalInteger(input, 'quantity')
-  if (quantity !== undefined && ![30, 60, 90].includes(quantity)) {
-    throw new Error('quantity must be one of: 30, 60, 90.')
-  }
+  const quantity = assertIntegerRange(optionalInteger(input, 'quantity'), 'quantity', 1, 1_000)
   return {
     medicationId: parsedMedicationId ? medicationId(parsedMedicationId) : undefined,
-    form: parsedForm ? assertOneOf(parsedForm, 'form', ['tablet', 'capsule']) : undefined,
-    strength: optionalString(input, 'strength', 40),
+    form: parsedForm,
+    strength: optionalString(input, 'strength', 120),
     quantity,
     maxDeliveryDays: assertIntegerRange(
       optionalInteger(input, 'maxDeliveryDays'),
@@ -849,6 +848,16 @@ const compactToolOutput = (toolName: string, args: unknown, value: unknown): Jso
     }
   }
 
+  if (toolName === 'get_medication_details') {
+    const configurations = jsonArray(output.shopConfigurations)
+    const offset = typeof input.offset === 'number' ? input.offset : 0
+    const limit = typeof input.limit === 'number' ? input.limit : 5
+    if (offset > configurations.length) throw new Error('offset exceeds available demo configurations. Start at offset 0.')
+    const resultPage = page(configurations, offset, limit)
+    return { ...output, shopConfigurations: resultPage.items, shopConfigurationCount: configurations.length,
+      offset, returned: resultPage.returned, nextOffset: resultPage.nextOffset, truncated: resultPage.truncated }
+  }
+
   if (toolName === 'compare_fulfillment_options') {
     const options = jsonArray(output.options)
     const offset = typeof input.offset === 'number' ? input.offset : 0
@@ -867,6 +876,7 @@ const compactToolOutput = (toolName: string, args: unknown, value: unknown): Jso
       selectedOptionId: output.selectedOptionId ?? null,
       selectedOptionIsLowest: output.selectedOptionIsLowest ?? false,
       pricingScenario: output.pricingScenario ?? null,
+      pricingNotice: output.pricingNotice ?? 'All pharmacy prices and fulfillment options are fictional demo offers, not public benchmarks.',
       route: output.route ?? '/compare',
       nextAction: output.nextAction ?? null,
     }
@@ -946,6 +956,29 @@ const enforceOutputBudget = (toolName: string, value: JsonValue): JsonValue => {
   if (serialized.length <= webMcpContractBudgets.output) return value
 
   const output = jsonObject(value)
+  if (toolName === 'get_medication_details') {
+    // Keep an exact purchasable demo configuration and its provenance, rather
+    // than replacing a successful read with a generic oversized-result message.
+    const configurations = jsonArray(output.shopConfigurations)
+    while (configurations.length > 1 && JSON.stringify(output).length > webMcpContractBudgets.output) configurations.pop()
+    const offset = typeof output.offset === 'number' ? output.offset : 0
+    const total = typeof output.shopConfigurationCount === 'number' ? output.shopConfigurationCount : configurations.length
+    output.returned = configurations.length
+    output.nextOffset = offset + configurations.length < total ? offset + configurations.length : null
+    output.truncated = output.nextOffset !== null
+    if (JSON.stringify(output).length <= webMcpContractBudgets.output) return output
+    const compact = Object.fromEntries(['medicationId', 'genericName', 'prescriptionRequired', 'availableSkuCount', 'dataStatus',
+      'shopConfigurations', 'shopConfigurationCount', 'offset', 'returned', 'nextOffset', 'pricingNotice'].map(key => [key, output[key] ?? null]).concat([
+      ['nextAction', 'Follow nextOffset for demo configurations. Use compare_medications for complete paged public identity, product, clinical and source facts.'],
+    ]))
+    // Do not shorten an exact configuration: the agent must use it unchanged.
+    // The complete name remains available through the paged identity section.
+    if (JSON.stringify(compact).length > webMcpContractBudgets.output) delete compact.genericName
+    if (JSON.stringify(compact).length > webMcpContractBudgets.output) {
+      throw new Error('One demo configuration exceeds the tool response limit. Inspect this medication in the page; its public facts remain available through compare_medications.')
+    }
+    return compact
+  }
   for (const key of ['results', 'options', 'items']) {
     const entries = jsonArray(output[key])
     while (entries.length > 1 && JSON.stringify(output).length > webMcpContractBudgets.output) {
