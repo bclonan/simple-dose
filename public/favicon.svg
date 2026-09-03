@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36" fill="none">
+  <title>ClearDose</title>
+  <path d="M11 0h14a11 11 0 0 1 11 11v14a11 11 0 0 1-11 11H4a4 4 0 0 1-4-4V11A11 11 0 0 1 11 0Z" fill="#0d7067"/>
+  <svg x="5" y="5" width="26" height="26" viewBox="0 0 32 32" fill="none">
+    <path d="M9.25 6.75h13.5a4.5 4.5 0 0 1 4.5 4.5v9.5a4.5 4.5 0 0 1-4.5 4.5H9.25a4.5 4.5 0 0 1-4.5-4.5v-9.5a4.5 4.5 0 0 1 4.5-4.5Z" stroke="#fff" stroke-width="1.7"/>
+    <path d="M16 10.75v10.5M10.75 16h10.5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+  </svg>
+</svg>

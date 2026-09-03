@@ -2,17 +2,12 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useAgentActivityStore } from '../stores/agentActivity.store'
 import ToolLogEntry from './ToolLogEntry.vue'
+import type { ClearDoseToolDescriptor } from '../webmcp/types'
 
 type Filter = 'all' | 'read' | 'write' | 'success' | 'error'
 
-const readTools = new Set([
-  'search_medications',
-  'get_medication_details',
-  'compare_fulfillment_options',
-  'compare_cart_savings',
-  'view_cart',
-  'get_order_status',
-])
+const props = defineProps<{ tools: readonly ClearDoseToolDescriptor[] }>()
+const readTools = computed(() => new Set(props.tools.filter(tool => tool.annotations.readOnlyHint).map(tool => tool.name)))
 
 const activity = useAgentActivityStore()
 const filter = ref<Filter>('all')
@@ -22,7 +17,7 @@ const filteredEntries = computed(() =>
   activity.entries.filter((entry) => {
     if (filter.value === 'all') return true
     if (filter.value === 'success' || filter.value === 'error') return entry.status === filter.value
-    return filter.value === 'read' ? readTools.has(entry.toolName) : !readTools.has(entry.toolName)
+    return filter.value === 'read' ? readTools.value.has(entry.toolName) : !readTools.value.has(entry.toolName)
   }),
 )
 

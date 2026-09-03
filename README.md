@@ -8,6 +8,12 @@ ClearDose combines public medication reference data with a fictional prescriptio
 
 Production: [cleardose-webmcp-demo.netlify.app](https://cleardose-webmcp-demo.netlify.app)
 
+Project pages: [WebMCP tools and examples](https://cleardose-webmcp-demo.netlify.app/webmcp) · [Hackathon overview](https://cleardose-webmcp-demo.netlify.app/hackathon) · [Public repository](https://github.com/bclonan/simple-dose)
+
+![ClearDose project preview](public/og-image.png)
+
+The repository URL is public. Publishing this working-tree release to that repository remains a separate step, tracked by `projectReadiness.sourceReleasePublished` in `src/content/project.ts`. The public YouTube demo is still pending. `projectLinks.youtubeUrl` is intentionally empty, and the hackathon page displays `[YOUTUBE_URL]` as a placeholder rather than a completed submission item.
+
 An agent follows the same application services through twelve static browser tools, two dynamic medication tools, and five Drug Explorer tools. Public drug requests go through `cleardose-data-plugin`; workflow state and caches remain browser-local. There is no application backend, account system, payment processor, or app-side model API. The connected browser agent supplies the LLM and reads current catalog choices through compact WebMCP schemas and paged results.
 
 ## Challenge concept
@@ -68,7 +74,7 @@ RxNorm identity lookup, openFDA product and label data, and NADAC benchmarks are
 
 The store retains up to 100 active public identities alongside the 12 original seed records. Explorer selections remain in that active limit. A separate archive preserves identities referenced by saved carts, orders, or requests. Existing IDs remain intact. New `med-public-*` records receive stable pseudo-random demo offers from `src/domain/demo-public-fulfillment.ts`. Their saved configuration and prices survive enrichment and reload. Generated form/strength pairings, quantities, inventory and prices are explicitly fictional. Missing clinical fields and prescription status stay unknown. Categories use supported catalog mappings or source classes, with Other medications as the fallback.
 
-NADAC queries cover up to four exact package NDCs per drug in parallel under one timeout, and keep the latest available row for each checked NDC. Coverage can be partial. A benchmark is a pharmacy acquisition-cost reference, not retail cash pricing, patient copay, or pharmacy inventory. The quote's NDC and quantity remain visible and do not automatically match the selected demo SKU. The reusable plugin supports a local Medicare index, but this app keeps it disabled because no genuine preprocessed index is configured. The bundled example is not production Medicare data.
+NADAC queries cover up to 100 exact package NDCs per drug in four batches of 25, with at most two requests running at once under an overall deadline. They keep the latest available row for each checked NDC. Coverage can be partial. A benchmark is a pharmacy acquisition-cost reference, not retail cash pricing, patient copay, or pharmacy inventory. The quote's NDC and quantity remain visible and do not automatically match the selected demo SKU. The reusable plugin supports a local Medicare index, but this app keeps it disabled because no genuine preprocessed index is configured. The bundled example is not production Medicare data.
 
 Public source records use the plugin's IndexedDB cache, with a memory fallback when persistent storage fails. Default freshness is one day for search and product records, 30 days for RxNorm identity, and seven days for label and NADAC records. Expired records can be returned with an explicit stale-cache warning if their provider fails. Concurrent identical requests are deduplicated. Optional source failures return partial normalized records and provider notices rather than blanking the detail page.
 
@@ -108,7 +114,9 @@ Complete simulated checkout
 Track simulated order
 ```
 
-The main routes are `/`, `/medications`, `/medications/:slug`, `/compare`, `/prescription-card`, `/checkout`, `/orders/:id`, and `/webmcp`.
+The main routes are `/`, `/medications`, `/medications/:slug`, `/drugs/explore`, `/compare`, `/prescription-card`, `/checkout`, `/orders/:id`, `/webmcp`, and `/hackathon`.
+
+Drug Explorer creates a side-by-side report for up to four medications. Topic rows retain per-fact availability, source dates, and expandable original text. Its neutral highlights describe different source details, not a medication ranking. Downloaded HTML keeps the complete loaded source text; printed reports use labeled excerpts. Download and print require a visible user action.
 
 ## WebMCP tools
 
@@ -130,6 +138,11 @@ ClearDose retains twelve static workflow tools and five Explorer tools with stab
 | `get_order_status` | Read only, idempotent | Returns a sanitized, paged status for an explicit order or the current local order. |
 | `find_related_medications` | Read only, dynamic | Matches one current medication against page or loaded-catalog candidates by ingredient, class, category, or form, with an explicit reason for each match. |
 | `compare_medications` | Read only, dynamic | Reads full normalized sections for one medication or compares up to four current IDs, with paginated field rows. |
+| `cleardose_select_drugs` | State change | Replaces, adds, or removes up to four drugs from the visible Explorer selection. Does not change the cart or prescriptions. |
+| `cleardose_show_drug_fact` | State change | Adds or replaces selected report topics, optionally replacing the medication selection in the same revision-checked edit. |
+| `cleardose_update_fact_card` | State change, idempotent | Changes one existing report row to a supported fact type while keeping the shared medication selection. |
+| `cleardose_remove_fact_card` | State change, idempotent | Removes one current report row. Selected drugs and public medication records remain unchanged. |
+| `cleardose_get_explorer_state` | Read only, idempotent | Pages through selected drugs, fact rows and availability, or current catalog IDs. Continuation pages require both returned revision tokens. |
 
 Chrome's current Imperative API receives `readOnlyHint` and `untrustedContentHint`. Public-data tools and commerce outputs containing source-derived medication labels mark that content as untrusted. The Agent Lab also records local effect metadata for destructive and idempotent behavior. Consequential effects stay explicit in descriptions and the interface. `remove_cart_item` deletes one cart line. `checkout_demo_order` creates a local order and consumes the cart.
 
@@ -172,11 +185,13 @@ Search state, selection, scenario, the latest prescription request, multi-item c
 Use Node.js 20.19 or newer and pnpm 11.8.
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
 Open the local URL printed by Vite.
+
+Public browser providers need no API key. `.env.example` documents the optional deterministic data-mode setting. No client-side LLM key is required because the connected browser agent supplies the model. Never put a secret in a `VITE_` variable; Vite exposes those values to the browser. Optional server-side environment examples are not required for this static application.
 
 To run the production build locally:
 
@@ -227,6 +242,16 @@ When WebMCP is unavailable, the rest of the pharmacy demo still works. Agent Lab
 ## Add a useful tool
 
 Start with a user goal the application already supports. Define the required state, one action or read operation, UI feedback, and recovery. Check for overlap first. Use shared actions or repository methods, narrow typed fields, runtime validation, bounded output, and honest effect annotations. Keep registration static unless availability or valid IDs depend on current context. Data-dependent schemas need stale-revision, refresh, cancellation, and duplicate-registration tests. Add direct, ambiguous, ordering, journey, and failure coverage where relevant. The full checklist is in [docs/WEBMCP_STRATEGY.md](docs/WEBMCP_STRATEGY.md).
+
+### Keep the documentation synchronized
+
+`/webmcp` builds its tool documentation from the canonical definitions through `src/webmcp/documentation.ts`. It is not a second tool registry. Tool definitions live in `src/webmcp/definitions.ts`, `src/webmcp/explorer.ts`, and `src/webmcp/dynamic.ts`. Add or change the schema at its owning definition, retain runtime validation, then update any curated documentation examples. `src/content/webmcp-workflows.ts` holds feature-oriented prompts and chained workflows. Documentation tests check tool coverage and example arguments against the current schemas.
+
+The contributor guide on `/hackathon` explains the shared action, repository, and provider boundaries. [The documentation-page decision](docs/decisions/2026-09-03-documentation-pages.md) records the scope. Contributions should preserve UI and WebMCP parity, source provenance, local saved state, and confirmation boundaries. Run the focused tests for the changed module and the full verification gate before proposing a release. Do not publish patient data, API secrets, or unreviewed generated artifacts.
+
+### Demo recording
+
+The narrated 2:50 recording plan is on `/hackathon` and in [docs/demo-video-script.md](docs/demo-video-script.md). It specifies screen actions, narration, tool calls, and expected visible results. Recording and publishing an actual public YouTube video with audio remain pending. Set the verified URL in `src/content/project.ts`; the page will replace the placeholder with the supported YouTube embed.
 
 ## Demo prompts
 
@@ -293,15 +318,28 @@ npm install -g netlify-cli
 netlify login
 ```
 
-Link the project once, then deploy the tested build:
+Link the existing site once, create a preview from the tested build, and smoke-test it before publishing:
 
 ```bash
-netlify init
+netlify link --id 1672a90c-47ec-43bb-b64a-ddb7e4ab2feb
 pnpm build
-netlify deploy --prod
+netlify deploy --dir=dist --no-build
+netlify deploy --prod --dir=dist --no-build
 ```
 
-After deployment, open `/`, `/medications`, `/compare`, `/prescription-card`, `/checkout`, and `/webmcp`. Refresh a nested route directly to confirm the SPA rewrite. The verified production site is [cleardose-webmcp-demo.netlify.app](https://cleardose-webmcp-demo.netlify.app).
+After deployment, open `/`, `/medications`, `/drugs/explore`, `/compare`, `/prescription-card`, `/checkout`, `/webmcp`, and `/hackathon`. Refresh a nested route directly to confirm the SPA rewrite. Check the native tool registry and verify that icons, `/og-image.png`, and `/LICENSE.txt` return their actual formats rather than the SPA HTML. The production site is [cleardose-webmcp-demo.netlify.app](https://cleardose-webmcp-demo.netlify.app).
+
+## Metadata and brand assets
+
+`index.html` supplies the default canonical, Open Graph, and Twitter/X metadata. `src/utils/page-metadata.ts` updates route titles and descriptions without putting selected medications, order IDs, or query values into sharing tags. Because this is a static SPA, crawlers that do not run JavaScript receive the default ClearDose sharing card on every route.
+
+The favicon and social image reuse the prescription-card/plus mark from `src/components/AppHeader.vue` and the existing teal/navy palette. `public/favicon.ico` contains real 16, 32, and 48 pixel ICO entries. The Apple touch icon is 180 pixels square, the social image is 1200 by 630, and the manifest references 192 and 512 pixel PNGs. The manifest does not add offline support or a service worker.
+
+Committed assets are ready to build without an image dependency. To regenerate them with an already-installed `sharp` module, run `node scripts/generate-brand-assets.mjs /absolute/path/to/sharp`. The SVG inputs stay in `public`; this optional generator does not change the application's dependency list. Focused metadata tests verify binary signatures, dimensions, icon links, route-tag behavior, and license parity.
+
+## License
+
+The project code and original project assets use the [MIT License](LICENSE). The site serves an identical copy at [`/LICENSE.txt`](public/LICENSE.txt). Third-party medication sources retain their own terms and attribution; this license does not relicense external data or turn the demo into a clinical service.
 
 ## Safety and disclaimer
 

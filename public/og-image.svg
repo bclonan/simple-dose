@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f7fafc"/>
+  <path d="M0 0h1200v12H0z" fill="#0d7067"/>
+  <rect x="895" y="66" width="235" height="492" rx="36" fill="#eaf8f5"/>
+  <path d="M958 100h59a45 45 0 0 1 45 45v59a45 45 0 0 1-45 45h-86a16 16 0 0 1-16-16v-88a45 45 0 0 1 43-45Z" fill="#0d7067" opacity=".09"/>
+  <g transform="translate(64 62)">
+    <svg width="64" height="64" viewBox="0 0 36 36" fill="none">
+      <path d="M11 0h14a11 11 0 0 1 11 11v14a11 11 0 0 1-11 11H4a4 4 0 0 1-4-4V11A11 11 0 0 1 11 0Z" fill="#0d7067"/>
+      <svg x="5" y="5" width="26" height="26" viewBox="0 0 32 32" fill="none">
+        <path d="M9.25 6.75h13.5a4.5 4.5 0 0 1 4.5 4.5v9.5a4.5 4.5 0 0 1-4.5 4.5H9.25a4.5 4.5 0 0 1-4.5-4.5v-9.5a4.5 4.5 0 0 1 4.5-4.5Z" stroke="#fff" stroke-width="1.7"/>
+        <path d="M16 10.75v10.5M10.75 16h10.5" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+      </svg>
+    </svg>
+    <text x="84" y="45" fill="#102a43" font-family="Segoe UI, Arial, sans-serif" font-size="43" font-weight="700" letter-spacing="-1.5">ClearDose</text>
+  </g>
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="64" y="227" fill="#0d7067" font-size="17" font-weight="700" letter-spacing="2.2">TRANSPARENT PRESCRIPTIONS. AGENT-READY.</text>
+    <text x="60" y="308" fill="#102a43" font-size="65" font-weight="700" letter-spacing="-2.8">Compare with context.</text>
+    <text x="64" y="368" fill="#486581" font-size="25">Public medication references. Fictional pharmacy offers.</text>
+    <text x="64" y="410" fill="#486581" font-size="25">One shared interface for people and browser agents.</text>
+    <g fill="#102a43" font-size="17" font-weight="600">
+      <rect x="64" y="454" width="158" height="44" rx="8" fill="#eaf8f5" stroke="#cceee7"/>
+      <text x="85" y="482">Drug Explorer</text>
+      <rect x="237" y="454" width="217" height="44" rx="8" fill="#eef6fb" stroke="#d9e2ec"/>
+      <text x="257" y="482">Exact-SKU comparison</text>
+      <rect x="469" y="454" width="175" height="44" rx="8" fill="#eef6fb" stroke="#d9e2ec"/>
+      <text x="491" y="482">WebMCP tools</text>
+    </g>
+    <text x="64" y="564" fill="#627d98" font-size="17">cleardose-webmcp-demo.netlify.app</text>
+    <text x="923" y="478" fill="#075b55" font-size="18" font-weight="600">Source-labeled.</text>
+    <text x="923" y="509" fill="#075b55" font-size="18" font-weight="600">Shared state.</text>
+  </g>
+</svg>

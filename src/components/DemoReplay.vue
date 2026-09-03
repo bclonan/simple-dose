@@ -24,7 +24,7 @@ defineEmits<{ reset: [] }>()
       <span class="replay-state" :class="`replay-state--${state}`">{{ state }}</span>
     </header>
     <ol>
-      <li v-for="step in steps" :key="step.name" :class="`replay-step--${step.status}`">
+      <li v-for="(step, index) in steps" :key="`${index}-${step.name}`" :class="`replay-step--${step.status}`">
         <span aria-hidden="true">{{ step.status === 'complete' ? '✓' : step.status === 'running' ? '→' : step.status === 'error' ? '!' : '○' }}</span>
         <div><strong>{{ step.label }}</strong><code>{{ step.name }}</code></div>
       </li>

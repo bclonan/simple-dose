@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import DemoPromptCard from '../components/DemoPromptCard.vue'
 import DemoReplay, { type ReplayStep } from '../components/DemoReplay.vue'
 import DemoScenarioSwitch from '../components/DemoScenarioSwitch.vue'
 import ToolCard from '../components/ToolCard.vue'
 import ToolLog from '../components/ToolLog.vue'
 import WebMCPStatus from '../components/WebMCPStatus.vue'
+import ToolInspector from '../components/docs/ToolInspector.vue'
+import AgentComparison from '../components/docs/AgentComparison.vue'
+import WorkflowGuide from '../components/docs/WorkflowGuide.vue'
+import CopyButton from '../components/docs/CopyButton.vue'
+import { createToolDocumentation, type ToolDocumentation } from '../webmcp/documentation'
 import { executeWithActivity, useClearDoseActions } from '../services/cleardose.actions'
 import { useAgentActivityStore } from '../stores/agentActivity.store'
 import { useCartStore } from '../stores/cart.store'
 import { useCatalogStore } from '../stores/catalog.store'
-import { useOrderStore } from '../stores/order.store'
 import { usePricingStore } from '../stores/pricing.store'
 import { useSelectionStore } from '../stores/selection.store'
 import { useWebMcpStore } from '../stores/webmcp.store'
@@ -25,8 +29,6 @@ import { useExplorerToolDependencies } from '../webmcp/explorer-context'
 import { createExplorerTools } from '../webmcp/explorer'
 import type {
   ClearDoseToolCategory,
-  ClearDoseToolDescriptor,
-  JsonValue,
 } from '../webmcp/types'
 
 const actions = useClearDoseActions()
@@ -36,10 +38,14 @@ const selection = useSelectionStore()
 const pricing = usePricingStore()
 const cart = useCartStore()
 const catalog = useCatalogStore()
-const orders = useOrderStore()
 const medicationDependencies = useMedicationToolDependencies()
 const explorerDependencies = useExplorerToolDependencies()
 const allTools = computed(() => [...clearDoseToolCatalog, ...createDynamicMedicationTools(medicationDependencies, 'demo'), ...createExplorerTools(explorerDependencies, 'demo')])
+const documentation = computed(() => createToolDocumentation(allTools.value))
+const previewDialog = ref<HTMLDialogElement | null>(null)
+const previewTool = ref<ToolDocumentation | null>(null)
+const pendingReplay = ref<string | null>(null)
+const exampleStatus = ref('')
 const copyStatus = ref('')
 const runningTool = ref<string | null>(null)
 const activeReplay = ref<string | null>(null)
@@ -131,107 +137,46 @@ const categories: { id: ClearDoseToolCategory; label: string; description: strin
 const groupedTools = computed(() =>
   categories.map((category) => ({
     ...category,
-    tools: allTools.value.filter((tool) => tool.category === category.id),
+    tools: documentation.value.filter((tool) => tool.category === category.id),
   })),
 )
 
 const fallbackDefinitions = computed(() => [...createClearDoseToolDefinitions(actions, 'demo'), ...createDynamicMedicationTools(medicationDependencies, 'demo'), ...createExplorerTools(explorerDependencies, 'demo')])
 
-const lowestFlagshipOption = async () => {
-  const comparison = await actions.compareFulfillmentOptions(flagship)
-  const best = comparison.options.find((option) => option.optionId === comparison.lowestTotalOptionId)
-  if (!best) throw new Error('No eligible fulfillment option was found.')
-  return best
-}
-
-const ensureCartItem = async () => {
-  const existing = cart.detailedItems[0]
-  if (existing) return existing
-  const best = await lowestFlagshipOption()
-  actions.addToCart({ offerId: best.offerId, deliveryOptionId: best.deliveryOptionId })
-  const added = cart.detailedItems[0]
-  if (!added) throw new Error('The demo cart could not be prepared.')
-  return added
-}
-
-const ensureDemoOrder = async (): Promise<void> => {
-  if (orders.currentOrder) return
-  await ensureCartItem()
-  await actions.checkoutDemoOrder({
-    fullName: 'Demo User',
-    address: {
-      line1: '100 Demo Street',
-      city: 'Baltimore',
-      state: 'MD',
-      postalCode: '21201',
-    },
-    prescriptionStatus: 'provider-will-send',
-  })
-}
-
-const exampleInputFor = async (
-  tool: ClearDoseToolDescriptor,
-): Promise<Record<string, JsonValue>> => {
-  if (['select_medication_option', 'create_prescription_request_card', 'add_to_cart'].includes(tool.name)) {
-    const best = await lowestFlagshipOption()
-    return { offerId: best.offerId, deliveryOptionId: best.deliveryOptionId }
-  }
-  if (tool.name === 'view_cart') return {}
-  if (tool.name === 'compare_cart_savings') {
-    await ensureCartItem()
-    return {}
-  }
-  if (tool.name === 'remove_cart_item') {
-    const line = await ensureCartItem()
-    return { cartItemId: line.item.id }
-  }
-  if (tool.name === 'set_delivery_option') {
-    const line = await ensureCartItem()
-    const delivery = line.offer.deliveryOptions.find((option) => option.id === 'express')
-      ?? line.offer.deliveryOptions[0]
-    if (!delivery) throw new Error('No delivery option is available for the demo cart item.')
-    return { cartItemId: line.item.id, deliveryOptionId: delivery.id }
-  }
-  if (tool.name === 'checkout_demo_order') {
-    await ensureCartItem()
-  }
-  if (tool.name === 'get_order_status') {
-    await ensureDemoOrder()
-    return {}
-  }
-  return tool.exampleInput
-}
-
 const copyPrompt = async (prompt: string): Promise<void> => {
   try {
     await navigator.clipboard.writeText(prompt)
+    copyStatus.value = 'Prompt copied.'
   } catch {
-    const textarea = document.createElement('textarea')
-    textarea.value = prompt
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.append(textarea)
-    textarea.select()
-    document.execCommand('copy')
-    textarea.remove()
+    copyStatus.value = 'Copy unavailable. Select and copy the prompt text.'
   }
-  copyStatus.value = 'Prompt copied.'
-  window.setTimeout(() => (copyStatus.value = ''), 1800)
 }
 
-const runExample = async (tool: ClearDoseToolDescriptor): Promise<void> => {
+const closePreview = (): void => { previewDialog.value?.close(); previewTool.value = null; pendingReplay.value = null }
+const runExample = async (tool: ToolDocumentation): Promise<void> => {
   if (runningTool.value) return
+  if (!tool.safeToRun) {
+    previewTool.value = tool
+    pendingReplay.value = null
+    await nextTick()
+    previewDialog.value?.showModal()
+    return
+  }
   runningTool.value = tool.name
   try {
-    const exampleInput = await exampleInputFor(tool)
+    const exampleInput = tool.exampleInput
     const context = getModelContext()
     if (webmcp.canExecuteNatively(tool.name) && context?.getTools && context.executeTool) {
       await executeTool(tool.name, exampleInput)
+      exampleStatus.value = `${tool.name} completed through native WebMCP. See the saved result in the inspector.`
     } else {
       const definition = fallbackDefinitions.value.find((candidate) => candidate.name === tool.name)
       if (!definition) throw new Error('Tool definition was not found.')
       await definition.execute(exampleInput)
+      exampleStatus.value = `${tool.name} completed through the local fallback, not native WebMCP. See the saved result in the inspector.`
     }
+  } catch (error) {
+    exampleStatus.value = error instanceof Error ? error.message : 'The example failed. Read current state before retrying.'
   } finally {
     runningTool.value = null
   }
@@ -284,6 +229,18 @@ const setReplaySteps = (names: Array<[string, string]>): void => {
   replaySteps.value = names.map(([name, label]) => ({ name, label, status: 'pending' }))
 }
 
+const requestReplay = async (id: string): Promise<void> => {
+  if (id === 'drug-explorer' || activeReplay.value) return
+  previewTool.value = null
+  pendingReplay.value = id
+  await nextTick()
+  previewDialog.value?.showModal()
+}
+const confirmReplay = async (): Promise<void> => {
+  const id = pendingReplay.value
+  closePreview()
+  if (id) await runReplay(id)
+}
 const runReplay = async (id: string): Promise<void> => {
   if (id === 'drug-explorer') return
   if (activeReplay.value) return
@@ -436,20 +393,25 @@ const resetReplay = (): void => {
         <div>
           <p class="eyebrow">ClearDose Agent Lab</p>
           <h1>See exactly what an agent can do inside ClearDose.</h1>
-          <p>Each call runs the same local actions as the pharmacy interface. Watch the search, selection, request card, cart, and order state change.</p>
+          <p>WebMCP lets a browser agent discover typed ClearDose actions instead of guessing what a button does. The interface and tools use the same application actions and shared state.</p>
+          <nav class="docs-jump-links" aria-label="WebMCP page sections"><a href="#tool-inspector">Live inspector</a><a href="#prompt-library">Prompts</a><a href="#chained-workflows">Workflows</a><a href="#registered-tools-title">Tool catalog</a><RouterLink to="/hackathon">Project overview</RouterLink></nav>
         </div>
         <div class="agent-lab-health">
           <WebMCPStatus />
-          <div class="health-row"><span class="status-dot status-dot--ready" aria-hidden="true"></span><strong>Demo database loaded</strong><span>12 medications · 312 offers</span></div>
+          <div class="health-row"><span class="status-dot status-dot--ready" aria-hidden="true"></span><strong>Current catalog</strong><span>{{ catalog.medications.length }} medications · {{ catalog.dataMode }} mode</span></div>
           <div class="health-row"><span class="status-dot status-dot--ready" aria-hidden="true"></span><strong>Pricing scenario</strong><span>{{ pricing.scenarioLabel }}</span></div>
         </div>
       </div>
     </section>
 
     <div class="container agent-lab-content">
+      <section class="docs-boundary"><h2>One page state, two ways to work</h2><p>People search, select medications, arrange report facts, review source details and use the mock cart. Agents can call the same actions with validated arguments. A tool result describes the state the person can see.</p><p>The person chooses medications and exact shop configurations. Confirm cart edits, request drafts and checkout before an agent acts. ClearDose does not make clinical decisions, transmit prescriptions or charge payments. The application does not call an LLM; the connected browser agent supplies it.</p><p>Documentation examples that edit state, load medical information or touch commerce open a preview. Only two current-state reads can run here. Demo replays require a separate review.</p></section>
+      <ToolInspector :tools="documentation" />
+      <AgentComparison />
+      <WorkflowGuide />
       <section class="prompt-section" aria-labelledby="demo-prompts-title">
         <div class="section-heading section-heading--split">
-          <div><p class="section-kicker">90-second paths</p><h2 id="demo-prompts-title">Try a demo prompt</h2></div>
+          <div><p class="section-kicker">Optional fixture walkthroughs</p><h2 id="demo-prompts-title">Try a demo prompt</h2><p>Replays use shared local actions and fictional fixtures. Review the state changes before starting.</p></div>
           <span class="copy-status" aria-live="polite">{{ copyStatus }}</span>
         </div>
         <div class="prompt-grid">
@@ -460,7 +422,7 @@ const resetReplay = (): void => {
             :running="activeReplay === prompt.id"
             :copy-only="prompt.id === 'drug-explorer'"
             @copy="copyPrompt"
-            @replay="runReplay"
+            @replay="requestReplay"
           />
         </div>
       </section>
@@ -512,7 +474,8 @@ const resetReplay = (): void => {
           <div class="section-heading">
             <p class="section-kicker">Registered tools</p>
             <h2 id="registered-tools-title">{{ allTools.length }} focused capabilities</h2>
-            <p>The schemas are visible here, and each example really runs. Read tools inspect local state. State and write tools update the same data shown in the interface.</p>
+            <p>Generated from the canonical definitions, including current dynamic catalog rules. A definition can be documented even when this browser does not support native registration. Preview consequential examples; safe reads explicitly report native or fallback execution.</p>
+            <p role="status">{{ exampleStatus }}</p>
           </div>
 
           <section v-for="group in groupedTools" :key="group.id" class="tool-group" :aria-labelledby="`tool-group-${group.id}`">
@@ -529,8 +492,28 @@ const resetReplay = (): void => {
           </section>
         </section>
 
-        <ToolLog />
+        <ToolLog :tools="allTools" />
       </div>
     </div>
+    <dialog ref="previewDialog" class="docs-preview" aria-labelledby="example-preview-title" @close="previewTool = null; pendingReplay = null">
+      <template v-if="previewTool"><p class="section-kicker">Nothing has run</p><h2 id="example-preview-title">Review example</h2><h3>{{ previewTool.title }}</h3><p><code>{{ previewTool.name }}</code> · {{ previewTool.classification }}</p><p>This is a preview only. It does not load missing prerequisites, create a cart item, or place an order. Use current IDs and review the intended action in the application before asking an agent to run it.</p><ul><li v-for="effect in previewTool.stateAffected" :key="effect">{{ effect }}</li></ul><pre>{{ JSON.stringify(previewTool.exampleInput, null, 2) }}</pre><CopyButton :text="previewTool.prompt" /><p><RouterLink to="/drugs/explore" @click="closePreview">Open Drug Explorer</RouterLink> · <RouterLink to="/medications" @click="closePreview">Open medications</RouterLink></p><button class="button button--secondary" @click="closePreview">Close preview</button></template>
+      <template v-else-if="pendingReplay"><p class="section-kicker">Local demo actions</p><h2 id="example-preview-title">Review demo replay</h2><h3>{{ prompts.find(prompt => prompt.id === pendingReplay)?.title }}</h3><p>This replay switches to the fictional demo catalog and may navigate away from this page. It can change your search and comparison, selected offer, pricing scenario, prescription request draft, or add demo cart items. Existing cart items are not cleared. It does not submit a checkout order.</p><p>Use an empty demo session if you do not want these fixture actions mixed with your current work. The activity log records each action; it is not an automatic undo.</p><div class="docs-preview__actions"><button class="button button--primary" @click="confirmReplay">Start demo replay</button><button class="button button--secondary" @click="closePreview">Cancel</button></div></template>
+    </dialog>
   </main>
 </template>
+
+<style scoped>
+.agent-lab-content { display: flex; flex-direction: column; gap: 2rem; }
+.docs-jump-links { display: flex; flex-wrap: wrap; gap: .75rem 1.1rem; margin-top: 1.5rem; }
+.docs-jump-links a { font-weight: 650; text-decoration: underline; text-underline-offset: .2rem; }
+.docs-boundary { max-width: 75ch; }
+.agent-lab-grid { display: block; }
+.tools-explorer, .tool-group { min-width: 0; }
+.tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.docs-preview { width: min(620px, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; border: 1px solid #b8cbc9; border-radius: 20px; padding: clamp(1rem, 4vw, 2rem); color: #102a43; }
+.docs-preview::backdrop { background: #0b2239aa; }
+.docs-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; background: #f3f7fa; }
+.docs-preview__actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+@media(max-width: 720px) { .tool-grid { grid-template-columns: 1fr; } }
+@media print { .docs-jump-links, .prompt-section, .docs-preview { display: none; } .agent-lab-content { gap: 1rem; } .tool-grid { display: block; } :deep(details::details-content) { content-visibility: visible; } :deep(pre) { max-height: none; overflow: visible; } }
+</style>

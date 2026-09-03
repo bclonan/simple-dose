@@ -88,6 +88,7 @@ test('the floating WebMCP panel replays a reviewed journey and keeps its context
     .getByTestId('prompt-find-compare')
     .getByRole('button', { name: 'Replay demo' })
     .click()
+  await page.getByRole('dialog', { name: 'Review demo replay' }).getByRole('button', { name: 'Start demo replay' }).click()
   await expect(page.getByTestId('demo-replay').getByText('complete', { exact: true })).toBeVisible({
     timeout: 10_000,
   })
@@ -133,6 +134,22 @@ test('the floating WebMCP panel replays a reviewed journey and keeps its context
 
 test('checkout calls are redacted in the log and cannot be replayed', async ({ page }) => {
   const runtimeErrors = captureRuntimeErrors(page)
+  await page.addInitScript(() => {
+    type TestTool = { name: string; execute: (input: unknown) => Promise<unknown> }
+    const tools = new Map<string, TestTool>()
+    Object.defineProperty(document, 'modelContext', { configurable: true, value: {
+      registerTool(tool: TestTool, options: { signal: AbortSignal }) {
+        tools.set(tool.name, tool)
+        options.signal.addEventListener('abort', () => { if (tools.get(tool.name) === tool) tools.delete(tool.name) }, { once: true })
+      },
+      getTools: async () => [...tools.values()].map(({ execute: _execute, ...tool }) => tool),
+      executeTool: async (tool: { name: string }, input: string) => {
+        const current = tools.get(tool.name)
+        if (!current) throw new Error('Tool unavailable')
+        return JSON.stringify(await current.execute(JSON.parse(input)))
+      },
+    } })
+  })
 
   await addSelectedOffer(
     page,
@@ -141,11 +158,17 @@ test('checkout calls are redacted in the log and cannot be replayed', async ({ p
     { strength: '10 mg', quantity: 30 },
   )
   await page.getByTestId('cart-drawer').getByRole('dialog').getByRole('button', { name: 'Close cart' }).click()
-  await page.goto('/webmcp')
-
-  const checkoutTool = page.getByTestId('tool-card-checkout_demo_order')
-  await checkoutTool.getByRole('button', { name: 'Run example' }).click()
-  await expect(checkoutTool.getByRole('button', { name: 'Run example' })).toBeEnabled()
+  // Invoke the registered checkout handler with explicit fictional test input.
+  // Documentation shortcuts intentionally no longer execute this consequential action.
+  await page.evaluate(async () => {
+    const context = (document as unknown as { modelContext: { executeTool(tool: { name: string }, input: string): Promise<unknown> } }).modelContext
+    await context.executeTool({ name: 'checkout_demo_order' }, JSON.stringify({
+      fullName: 'Demo User',
+      address: { line1: '100 Demo Street', city: 'Baltimore', state: 'MD', postalCode: '21201' },
+      prescriptionStatus: 'provider-will-send',
+    }))
+  })
+  await expect(page).toHaveURL(/\/orders\/CD-\d{4}-\d{4}$/)
 
   await page.getByTestId('webmcp-badge').click()
   const drawer = page.getByTestId('webmcp-drawer')

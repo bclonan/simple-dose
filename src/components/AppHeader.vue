@@ -27,6 +27,7 @@ const openCart = (): void => {
         <RouterLink to="/compare">Compare</RouterLink>
         <RouterLink to="/prescription-card">Prescription Card</RouterLink>
         <RouterLink to="/webmcp">Agent Lab</RouterLink>
+        <RouterLink to="/hackathon">Hackathon</RouterLink>
       </nav>
 
       <button

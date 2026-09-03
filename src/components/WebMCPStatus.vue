@@ -4,13 +4,14 @@ import { useWebMcpStore } from '../stores/webmcp.store'
 import { clearDoseToolNames } from '../webmcp/definitions'
 import { createDynamicMedicationTools } from '../webmcp/dynamic'
 import { useMedicationToolDependencies } from '../webmcp/medication-context'
+import { explorerToolNames } from '../webmcp/explorer'
 
 const webmcp = useWebMcpStore()
 const dependencies = useMedicationToolDependencies()
 const label = computed(() => {
   if (webmcp.status === 'ready') return `${webmcp.registeredToolCount} tools registered`
   if (webmcp.status === 'ready-unverified') return `${webmcp.registeredToolCount} tools registered, discovery unavailable`
-  if (webmcp.status === 'degraded') return `${webmcp.registeredToolCount} of ${clearDoseToolNames.length + createDynamicMedicationTools(dependencies).length} tools verified`
+  if (webmcp.status === 'degraded') return `${webmcp.registeredToolCount} of ${clearDoseToolNames.length + createDynamicMedicationTools(dependencies).length + explorerToolNames.length} tools verified`
   if (webmcp.status === 'registering') return 'Registering tools'
   if (webmcp.status === 'error') return 'Tool registration failed'
   if (webmcp.status === 'unsupported') return 'WebMCP unavailable in this browser'

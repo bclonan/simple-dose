@@ -6,6 +6,7 @@ import MedicationsView from '../views/MedicationsView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import OrderView from '../views/OrderView.vue'
 import PrescriptionCardView from '../views/PrescriptionCardView.vue'
+import { updatePageMetadata } from '../utils/page-metadata'
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +21,9 @@ export const router = createRouter({
     { path: '/checkout', name: 'checkout', component: CheckoutView },
     { path: '/orders/:id', name: 'order', component: OrderView },
     { path: '/webmcp', name: 'webmcp', component: () => import('../views/WebMcpView.vue') },
+    { path: '/hackathon', name: 'hackathon', component: () => import('../views/HackathonView.vue') },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
   ],
 })
+
+router.afterEach(to => updatePageMetadata(to.path))

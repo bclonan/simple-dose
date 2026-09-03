@@ -103,6 +103,7 @@ test('Agent Lab copies a prompt, replays real actions, and clears its log', asyn
     .toContain('Find atorvastatin 20 mg tablets, quantity 90.')
 
   await promptCard.getByRole('button', { name: 'Replay demo' }).click()
+  await page.getByRole('dialog', { name: 'Review demo replay' }).getByRole('button', { name: 'Start demo replay' }).click()
   const replay = page.getByTestId('demo-replay')
   await expect(replay).toBeVisible()
   await expect(replay.getByText('complete', { exact: true })).toBeVisible({ timeout: 10_000 })
