@@ -12,6 +12,7 @@ interface SelectionState {
   skuId: string | null
   offerId: string | null
   deliveryOptionId: string | null
+  maxDeliveryDays: number | null
 }
 
 const emptySelection: SelectionState = {
@@ -22,11 +23,14 @@ const emptySelection: SelectionState = {
   skuId: null,
   offerId: null,
   deliveryOptionId: null,
+  maxDeliveryDays: null,
 }
 
 export const useSelectionStore = defineStore('selection', {
-  state: (): SelectionState =>
-    readStorage<SelectionState>(storageKeys.selection, { ...emptySelection }),
+  state: (): SelectionState => ({
+    ...emptySelection,
+    ...readStorage<SelectionState>(storageKeys.selection, { ...emptySelection }),
+  }),
   getters: {
     completeSelection(state): MedicationSelection | null {
       if (!state.medicationId || !state.skuId || !state.offerId || !state.deliveryOptionId) {
@@ -82,6 +86,7 @@ export const useSelectionStore = defineStore('selection', {
       if (skuChanged) {
         this.offerId = null
         this.deliveryOptionId = null
+        this.maxDeliveryDays = null
       }
       this.persist()
     },
@@ -94,6 +99,7 @@ export const useSelectionStore = defineStore('selection', {
       const sku = catalog.skuById(offer.skuId)
       if (!sku) throw new Error('The offer references an unavailable medication configuration.')
 
+      if (this.skuId !== sku.id) this.maxDeliveryDays = null
       this.medicationId = sku.medicationId
       this.form = sku.form
       this.strength = sku.strength
@@ -103,6 +109,13 @@ export const useSelectionStore = defineStore('selection', {
       this.deliveryOptionId = delivery.id
       this.persist()
       return this.completeSelection as MedicationSelection
+    },
+    setDeliveryLimit(maximum: number | null): void {
+      if (maximum !== null && (!Number.isInteger(maximum) || maximum < 0 || maximum > 30)) {
+        throw new Error('Maximum delivery days must be a whole number from 0 to 30, or any delivery time.')
+      }
+      this.maxDeliveryDays = maximum
+      this.persist()
     },
     reset(): void {
       Object.assign(this, emptySelection)
@@ -117,6 +130,7 @@ export const useSelectionStore = defineStore('selection', {
         skuId: this.skuId,
         offerId: this.offerId,
         deliveryOptionId: this.deliveryOptionId,
+        maxDeliveryDays: this.maxDeliveryDays,
       } satisfies SelectionState)
     },
   },

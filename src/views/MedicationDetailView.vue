@@ -27,6 +27,7 @@ const lookupLoading = ref(false)
 const lookupError = ref('')
 const detailFact = ref<DrugFactType | null>('uses')
 const configurationMessage = ref('')
+const actionError = ref('')
 let lookupVersion = 0
 
 const medication = computed(() => catalog.medicationBySlug(String(route.params.slug)))
@@ -78,7 +79,10 @@ const changeDetailFact = async (fact: DrugFactType) => {
   if (medication.value) await catalog.loadMedication(medication.value.id, sku.value?.quantity ?? 30, factLoadOptions([fact]))
 }
 
-watch(() => [medication.value?.id, catalog.dataMode, sku.value?.quantity, hasDemoConfigurations.value], async () => {
+// Only entering a medication or changing its availability initializes the form.
+// A tool can select another medication before its navigation finishes. Quantity
+// changes must not let this departing page overwrite that shared selection.
+watch([() => medication.value?.id, () => catalog.dataMode, () => hasDemoConfigurations.value], () => {
   const current = medication.value
   if (!current) return
   if (commerceEnabled.value && (selection.medicationId !== current.id || !sku.value)) {
@@ -89,6 +93,10 @@ watch(() => [medication.value?.id, catalog.dataMode, sku.value?.quantity, hasDem
       if (first) selection.setConfiguration({ medicationId: first.medicationId, form: first.form, strength: first.strength, quantity: first.quantity })
     }
   }
+}, { immediate: true })
+
+watch([() => medication.value?.id, () => catalog.dataMode, () => sku.value?.quantity], async () => {
+  if (!medication.value) return
   await reloadPublicData()
 }, { immediate: true })
 
@@ -113,29 +121,38 @@ const updateConfiguration = (key: 'form' | 'strength' | 'quantity', value: strin
   }
 }
 
-const select = (option: PriceComparison): void => {
-  void inlineActions.selectMedicationOption({
-    offerId: option.offerId,
-    deliveryOptionId: option.deliveryOptionId,
-  })
+const select = async (option: PriceComparison): Promise<void> => {
+  actionError.value = ''
+  try {
+    await inlineActions.selectMedicationOption({ offerId: option.offerId, deliveryOptionId: option.deliveryOptionId })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'This fulfillment option could not be selected. Choose a current option and try again.'
+  }
 }
 
 const chosenOption = (): PriceComparison | undefined =>
   comparisons.value.find((option) => option.optionId === selectedOptionId.value) ?? lowest.value
 
-const prepareRequest = (): void => {
+const prepareRequest = async (): Promise<void> => {
+  actionError.value = ''
   const option = chosenOption()
-  if (!option) return
-  actions.createPrescriptionRequestCard({
-    offerId: option.offerId,
-    deliveryOptionId: option.deliveryOptionId,
-  })
+  if (!option) { actionError.value = 'Choose an available fulfillment option before preparing a request.'; return }
+  try {
+    await actions.createPrescriptionRequestCard({ offerId: option.offerId, deliveryOptionId: option.deliveryOptionId })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'The demo request could not be prepared. Your cart is unchanged.'
+  }
 }
 
 const addToCart = (): void => {
+  actionError.value = ''
   const option = chosenOption()
-  if (!option) return
-  actions.addToCart({ offerId: option.offerId, deliveryOptionId: option.deliveryOptionId })
+  if (!option) { actionError.value = 'Choose an available fulfillment option before adding to your cart.'; return }
+  try {
+    actions.addToCart({ offerId: option.offerId, deliveryOptionId: option.deliveryOptionId })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'This medication could not be added. Choose a current fulfillment option and try again.'
+  }
 }
 </script>
 
@@ -229,6 +246,7 @@ const addToCart = (): void => {
       <p>Public medication information and benchmarks do not establish cash prices or pharmacy inventory. Demo cart options appear only when a simulated configuration is available in the current mode.</p>
     </section>
 
+    <p v-if="actionError" class="error-banner" role="alert">{{ actionError }}</p>
     <div v-if="lowest" class="sticky-actions">
       <button class="button button--secondary" type="button" @click="router.push('/compare')">Compare all options</button>
       <button class="button button--secondary" type="button" @click="prepareRequest">Prepare prescription request</button>

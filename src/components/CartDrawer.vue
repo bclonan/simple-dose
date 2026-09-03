@@ -9,7 +9,7 @@ const actions = useClearDoseActions()
 const closeButton = ref<HTMLButtonElement | null>(null)
 let restoreFocus: HTMLElement | null = null
 
-const savings = computed(() => cart.itemCount > 0 ? actions.compareCartSavings() : null)
+const savings = computed(() => cart.readyForCheckout ? actions.compareCartSavings() : null)
 const savingsFor = (cartItemId: string) =>
   savings.value?.items.find((item) => item.cartItemId === cartItemId)
 
@@ -57,6 +57,14 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
           <p class="drawer-feedback">Demo prices and fulfillment only. No medication can be purchased here.</p>
 
           <div v-if="cart.itemCount" class="cart-lines">
+            <section v-if="cart.checkoutIssues.length" class="error-banner" role="alert">
+              <h3>Cart items need attention</h3>
+              <p>{{ cart.checkoutIssueMessage }}</p>
+              <div v-for="issue in cart.checkoutIssues" :key="issue.cartItemId">
+                <p>{{ issue.message }}</p>
+                <button class="button button--text" type="button" @click="actions.removeCartItem({ cartItemId: issue.cartItemId })">Remove unavailable item</button>
+              </div>
+            </section>
             <article v-for="line in cart.detailedItems" :key="line.item.id" class="cart-line">
               <div class="cart-line__title">
                 <div>
@@ -81,7 +89,7 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
               <button class="button button--text button--small" type="button" @click="actions.removeCartItem({ cartItemId: line.item.id })">Remove</button>
             </article>
 
-            <dl class="cart-totals">
+            <dl v-if="cart.readyForCheckout" class="cart-totals">
               <div><dt>Medication</dt><dd>{{ formatCurrency(cart.medicationSubtotal) }}</dd></div>
               <div><dt>Delivery</dt><dd>{{ formatCurrency(cart.deliveryTotal) }}</dd></div>
               <div class="cart-totals__grand"><dt>Total</dt><dd>{{ formatCurrency(cart.grandTotal) }}</dd></div>
@@ -105,7 +113,8 @@ const changeDelivery = (itemId: string, deliveryId: string): void => {
 
             <div class="cart-actions">
               <RouterLink class="button button--secondary button--full" to="/medications" @click="cart.closeDrawer()">Add another medication</RouterLink>
-              <RouterLink class="button button--full" to="/checkout" @click="cart.closeDrawer()">Go to checkout</RouterLink>
+              <RouterLink v-if="cart.readyForCheckout" class="button button--full" to="/checkout" @click="cart.closeDrawer()">Go to checkout</RouterLink>
+              <button v-else class="button button--full" type="button" disabled>Resolve unavailable items to check out</button>
             </div>
           </div>
 

@@ -48,7 +48,7 @@ describe('native declaration size and preserved contracts', () => {
     for (const cards of [0, 12, 14]) {
       for (const idLength of [12, 24, 75, 128]) {
         const tools = declarations(catalogSize, cards, idLength)
-        expect(tools).toHaveLength(19)
+        expect(tools).toHaveLength(20)
         expect(nativeDeclarationBudget).toBe(18_000)
         expect(nativeDeclarationBytes(tools)).toBeLessThanOrEqual(nativeDeclarationBudget)
         expect(() => assertNativeDeclarationBudget(tools)).not.toThrow()
@@ -58,6 +58,12 @@ describe('native declaration size and preserved contracts', () => {
 
   it.each([[3, 96], [2, 76], [3, 49], [3, 50], [4, 36], [8, 16], [12, 10]])('bounds near-threshold inline IDs for %i records of length %i', (catalogSize, idLength) => {
     expect(nativeDeclarationBytes(declarations(catalogSize, 14, idLength))).toBeLessThanOrEqual(nativeDeclarationBudget)
+  })
+
+  it('keeps declaration headroom after adding checkout form preparation', () => {
+    const sizes = [[3, 96], [2, 76], [3, 49], [3, 50], [4, 36], [8, 16], [12, 10], [112, 128]]
+      .map(([catalogSize, idLength]) => nativeDeclarationBytes(declarations(catalogSize!, 14, idLength!)))
+    expect(Math.max(...sizes)).toBeLessThanOrEqual(nativeDeclarationBudget - 200)
   })
 
   it('removes display-only metadata without changing constraints, execution, descriptions or supported security hints', () => {

@@ -33,6 +33,7 @@ const expectedNames = [
   'compare_cart_savings',
   'remove_cart_item',
   'set_delivery_option',
+  'prepare_demo_checkout',
   'checkout_demo_order',
   'get_order_status',
 ]
@@ -144,9 +145,9 @@ describe('ClearDose WebMCP registration', () => {
     setActivePinia(createPinia())
   })
 
-  it('defines twelve focused tools with strict schemas and accurate annotations', () => {
+  it('defines the static tools with strict schemas and accurate annotations', () => {
     expect(clearDoseToolNames).toEqual(expectedNames)
-    expect(clearDoseToolCatalog).toHaveLength(12)
+    expect(clearDoseToolCatalog).toHaveLength(expectedNames.length)
 
     for (const tool of clearDoseToolCatalog) {
       expect(tool.inputSchema.type).toBe('object')
@@ -218,7 +219,7 @@ describe('ClearDose WebMCP registration', () => {
     const status = useWebMcpStore()
 
     expect([...fake.definitions.keys()]).toEqual(expectedNames)
-    expect(fake.signals).toHaveLength(12)
+    expect(fake.signals).toHaveLength(expectedNames.length)
     expect(new Set(fake.signals).size).toBe(1)
     expect(fake.signals.every((signal) => !signal.aborted)).toBe(true)
     expect(
@@ -229,7 +230,7 @@ describe('ClearDose WebMCP registration', () => {
       ),
     ).toBe(true)
     expect(status.status).toBe('ready')
-    expect(status.registeredToolCount).toBe(12)
+    expect(status.registeredToolCount).toBe(expectedNames.length)
     expect(registration.registeredToolNames).toEqual([...expectedNames].sort())
 
     registration.dispose()
@@ -252,11 +253,11 @@ describe('ClearDose WebMCP registration', () => {
 
     const registration = await registerClearDoseTools({ documentRef: { modelContext: context } })
 
-    expect(definitions.size).toBe(12)
+    expect(definitions.size).toBe(expectedNames.length)
     expect(useWebMcpStore()).toMatchObject({
       supported: true,
       status: 'ready-unverified',
-      registeredToolCount: 12,
+      registeredToolCount: expectedNames.length,
     })
     registration.dispose()
   })
@@ -372,7 +373,7 @@ describe('ClearDose WebMCP registration', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(useWebMcpStore().registeredToolCount).toBe(11)
+    expect(useWebMcpStore().registeredToolCount).toBe(expectedNames.length - 1)
     expect(useWebMcpStore()).toMatchObject({
       status: 'degraded',
       registrationError: 'WebMCP registry is incomplete. Missing: view_cart.',

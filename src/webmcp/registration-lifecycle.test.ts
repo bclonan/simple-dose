@@ -43,7 +43,7 @@ const fixture = () => {
 describe('bounded native registration lifecycle', () => {
   beforeEach(() => setActivePinia(createPinia()))
 
-  it('keeps all12 static tools and unchanged Explorer handles through120 page changes without repeated no-op discovery', async () => {
+  it('keeps all static tools and unchanged Explorer handles through 120 page changes without repeated no-op discovery', async () => {
     const f = fixture()
     const base = await registerClearDoseTools({ documentRef: { modelContext: f.context } })
     const registration = await registerDynamicMedicationTools({ context: f.context, dependencies: f.dependencies,
@@ -57,14 +57,14 @@ describe('bounded native registration lifecycle', () => {
       const discoveries = vi.mocked(f.context.getTools!).mock.calls.length
       await registration.refresh()
       expect(f.context.getTools).toHaveBeenCalledTimes(discoveries)
-      expect(f.tools.size).toBe(19)
+      expect(f.tools.size).toBe(20)
       expect(f.tools.get('cleardose_get_explorer_state')).toBe(workspaceReader)
       expect(f.tools.get('cleardose_update_fact_card')).toBe(cardEditor)
       for (const [name, handle] of staticHandles) expect(f.tools.get(name)).toBe(handle)
     }
-    expect(f.context.registerTool).toHaveBeenCalledTimes(19 + 120 * 2)
+    expect(f.context.registerTool).toHaveBeenCalledTimes(20 + 120 * 2)
     registration.dispose()
-    expect(f.tools.size).toBe(12)
+    expect(f.tools.size).toBe(clearDoseToolCatalog.length)
     base.dispose()
     expect(f.tools.size).toBe(0)
   })
@@ -147,7 +147,7 @@ describe('bounded native registration lifecycle', () => {
       expect(state.workspaceRevision).toBe(f.workspace().revision)
       expect(state.rows[0]?.id).toBe(`fact-${index + 2}`)
       for (const [name, handle] of handles) expect(f.tools.get(name)).toBe(handle)
-      expect(f.context.registerTool).toHaveBeenCalledTimes(19)
+      expect(f.context.registerTool).toHaveBeenCalledTimes(20)
     }
     expect(f.context.getTools).toHaveBeenCalledTimes(discoveries)
     await expect(show.execute({ workspaceRevision: 'workspace-1', facts: ['uses'] })).rejects.toThrow('Drug Explorer changed')

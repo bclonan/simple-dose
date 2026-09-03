@@ -103,8 +103,8 @@ const webMcpUseCases = [
   },
   {
     title: 'Complete a visible workflow',
-    when: 'Use tools when the same action already exists in the interface and the human can see the resulting request, cart, or order.',
-    chain: 'create_prescription_request_card → add_to_cart → checkout_demo_order',
+    when: 'Use tools to prepare the same request, cart and checkout form the person sees. Stop at the filled form so the person can review it and use Place demo order.',
+    chain: 'create_prescription_request_card → add_to_cart → prepare_demo_checkout → human review and Place demo order',
   },
   {
     title: 'Recover from a bad step',

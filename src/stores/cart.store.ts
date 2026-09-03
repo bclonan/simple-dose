@@ -26,6 +26,37 @@ export interface CartLine {
   total: number
 }
 
+export interface CartCheckoutIssue {
+  cartItemId: string
+  reason: 'sku-unavailable' | 'medication-unavailable' | 'offer-unavailable' | 'pharmacy-unavailable' | 'delivery-unavailable'
+  message: string
+}
+
+type CartItemResolution =
+  | { line: Omit<CartLine, 'pricing' | 'total'>; issue?: never }
+  | { line?: never; issue: CartCheckoutIssue }
+
+const resolveCartItem = (
+  item: CartItem,
+  catalog: ReturnType<typeof useCatalogStore>,
+): CartItemResolution => {
+  const unavailable = (reason: CartCheckoutIssue['reason'], message: string): CartItemResolution => ({
+    issue: { cartItemId: item.id, reason, message },
+  })
+  const sku = catalog.skuById(item.skuId)
+  if (!sku) return unavailable('sku-unavailable', 'This saved medication configuration could not be restored.')
+  const medication = catalog.medicationById(sku.medicationId)
+  if (!medication) return unavailable('medication-unavailable', 'This saved medication record could not be restored.')
+  const offer = catalog.offers.find(candidate => candidate.id === item.offerId)
+  if (!offer?.available) return unavailable('offer-unavailable', 'This saved demo pharmacy offer is unavailable.')
+  if (offer.skuId !== item.skuId) return unavailable('offer-unavailable', 'This saved offer no longer matches its medication configuration.')
+  const pharmacy = catalog.pharmacies.find(candidate => candidate.id === offer.pharmacyId)
+  if (!pharmacy) return unavailable('pharmacy-unavailable', 'This saved demo pharmacy could not be restored.')
+  const delivery = offer.deliveryOptions.find(candidate => candidate.id === item.deliveryOptionId)
+  if (!delivery) return unavailable('delivery-unavailable', 'This saved delivery option is unavailable.')
+  return { line: { item, medication, sku, offer, pharmacy, delivery } }
+}
+
 interface CartState extends Cart {
   drawerOpen: boolean
   lastAddedItemId: string | null
@@ -74,32 +105,32 @@ export const useCartStore = defineStore('cart', {
   }),
   getters: {
     itemCount: (state): number => state.items.length,
+    checkoutIssues(state): CartCheckoutIssue[] {
+      const catalog = useCatalogStore()
+      return state.items.flatMap(item => resolveCartItem(item, catalog).issue ?? [])
+    },
+    readyForCheckout(): boolean {
+      return this.itemCount > 0 && this.checkoutIssues.length === 0
+    },
+    checkoutIssueMessage(): string {
+      if (!this.itemCount) return 'Your cart is empty.'
+      const count = this.checkoutIssues.length
+      if (!count) return ''
+      return `${count} saved cart ${count === 1 ? 'item needs' : 'items need'} review before checkout. Your items have been kept. Restore an available demo option or remove the affected item.`
+    },
     detailedItems(state): CartLine[] {
       const catalog = useCatalogStore()
       const pricingStore = usePricingStore()
 
       return state.items.flatMap((item) => {
-        const sku = catalog.skuById(item.skuId)
-        const medication = sku ? catalog.medicationById(sku.medicationId) : undefined
-        const offer = catalog.offers.find((candidate) => candidate.id === item.offerId)
-        const pharmacy = offer
-          ? catalog.pharmacies.find((candidate) => candidate.id === offer.pharmacyId)
-          : undefined
-        const delivery = offer?.deliveryOptions.find(
-          (candidate) => candidate.id === item.deliveryOptionId,
-        )
-        if (!sku || !medication || !offer || !pharmacy || !delivery) return []
-        const pricing = pricingStore.pricingForOffer(offer)
+        const resolved = resolveCartItem(item, catalog)
+        if (resolved.issue) return []
+        const pricing = pricingStore.pricingForOffer(resolved.line.offer)
         return [
           {
-            item,
-            medication,
-            sku,
-            offer,
-            pharmacy,
-            delivery,
+            ...resolved.line,
             pricing,
-            total: calculateDeliveredTotal(pricing, delivery),
+            total: calculateDeliveredTotal(pricing, resolved.line.delivery),
           },
         ]
       })

@@ -11,6 +11,8 @@ import type {
 } from '../types/demo-db'
 import { useAgentActivityStore } from '../stores/agentActivity.store'
 import { useCartStore } from '../stores/cart.store'
+import { useCheckoutStore } from '../stores/checkout.store'
+import { validateDemoCheckout } from '../domain/checkout'
 import { useCatalogStore } from '../stores/catalog.store'
 import { useOrderStore } from '../stores/order.store'
 import { usePrescriptionStore } from '../stores/prescription.store'
@@ -74,6 +76,12 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
   const prescriptions = usePrescriptionStore()
   const cart = useCartStore()
   const orders = useOrderStore()
+  const checkout = useCheckoutStore()
+  const revealRoute = async (path: string): Promise<void> => {
+    if (!options.navigate) return
+    cart.closeDrawer()
+    await options.navigate(path)
+  }
 
   const optionByIds = (offerId: string, deliveryOptionId: string): PriceComparison => {
     const offer = catalog.offers.find((candidate) => candidate.id === offerId)
@@ -132,7 +140,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
           ? 'Call get_medication_details with a returned medicationId.'
           : 'Try search_medications again with a broader generic name, brand, category, form, or strength.',
     }
-    await options.navigate?.('/medications')
+    await revealRoute('/medications')
     return output
   }
 
@@ -219,7 +227,6 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       )
     }
 
-    selection.setConfiguration(exact)
     const comparisons = pricing.comparisonsForSku(sku, input.maxDeliveryDays)
     if (comparisons.length === 0) {
       throw new Error(
@@ -228,6 +235,8 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
           : 'No fulfillment options match that delivery window. Retry compare_fulfillment_options with a larger maxDeliveryDays or omit maxDeliveryDays.',
       )
     }
+    selection.setConfiguration(exact)
+    selection.setDeliveryLimit(input.maxDeliveryDays ?? null)
     const lowest = findLowestTotalComparison(comparisons)
     const fastest = comparisons.find((option) => option.isFastest)
     const output = {
@@ -271,7 +280,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       route: '/compare',
       nextAction: 'Call select_medication_option with an offerId and deliveryOptionId from these results.',
     }
-    await options.navigate?.('/compare')
+    await revealRoute('/compare')
     return output
   }
 
@@ -283,7 +292,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       total: option.total,
       route: '/compare',
     }
-    await options.navigate?.('/compare')
+    await revealRoute('/compare')
     return output
   }
 
@@ -308,7 +317,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     const pharmacy = catalog.pharmacies.find(
       (candidate) => candidate.id === request.pharmacyId,
     )
-    await options.navigate?.('/prescription-card')
+    await revealRoute('/prescription-card')
     return {
       requestId: request.id,
       medicationSummary: `${medication?.genericName ?? 'Medication'} ${selectedSku?.strength ?? ''} ${selectedSku?.form ?? ''}, quantity ${selectedSku?.quantity ?? ''}`.trim(),
@@ -347,9 +356,12 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
 
   const viewCart = () => {
     cart.openDrawer()
+    const lines = cart.detailedItems
+    const issues = cart.checkoutIssues
     return {
     itemCount: cart.itemCount,
-    items: cart.detailedItems.map((line) => ({
+    resolvedItemCount: lines.length,
+    items: lines.map((line) => ({
       cartItemId: line.item.id,
       medication: line.medication.genericName,
       form: line.sku.form,
@@ -369,21 +381,27 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       delivery: line.delivery.price,
       total: line.total,
     })),
-    selectedDelivery: cart.detailedItems.map((line) => line.delivery.label),
+    selectedDelivery: lines.map((line) => line.delivery.label),
     subtotal: cart.medicationSubtotal,
     deliveryTotal: cart.deliveryTotal,
     grandTotal: cart.grandTotal,
-    readyForCheckout: cart.itemCount > 0,
+    totalsComplete: issues.length === 0,
+    ...(issues.length ? { totalsNotice: 'Totals include only restored items, not the complete cart. Resolve the listed issues before checkout.' } : {}),
+    readyForCheckout: cart.readyForCheckout,
+    checkoutIssues: issues,
+    checkoutIssueCount: issues.length,
     checkoutRoute: '/checkout',
     checkoutRequirements: {
       requiredFields: ['fullName', 'address.line1', 'address.city', 'address.state', 'address.postalCode', 'prescriptionStatus'],
       prescriptionStatusValues: ['provider-will-send', 'request-prepared'],
-      hasPreparedRequest: Boolean(prescriptions.latestRequest),
+      hasPreparedRequest: preparedRequestCoversCart(),
     },
     nextAction:
-      cart.itemCount > 0
-        ? 'Call checkout_demo_order when the user wants to create the local demo order.'
-        : 'Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.',
+      cart.readyForCheckout
+        ? 'Call prepare_demo_checkout to fill the checkout form for review. This does not place an order.'
+        : issues.length
+          ? 'Review the listed cartItemIds. Restore their demo options or ask before remove_cart_item. Then call view_cart again for remaining issues. Do not check out yet.'
+          : 'Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.',
     }
   }
 
@@ -391,6 +409,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     if (cart.itemCount === 0) {
       throw new Error('The cart is empty. Call add_to_cart before compare_cart_savings.')
     }
+    if (!cart.readyForCheckout) throw new Error(cart.checkoutIssueMessage)
 
     const items = cart.detailedItems.map((line) => {
       const bestAvailable = findLowestTotalComparison(pricing.comparisonsForSku(line.sku))
@@ -506,31 +525,48 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     }
   }
 
-  const checkoutDemoOrder = async (input: CheckoutDemoOrderInput) => {
+  const preparedRequestCoversCart = (): boolean => {
+    const request = prescriptions.latestRequest
+    const items = cart.detailedItems.filter(line => line.sku.rxRequired)
+    return cart.readyForCheckout && Boolean(request) && items.length === 1 && items.every(line =>
+      line.item.offerId === request?.offerId && line.item.deliveryOptionId === request?.deliveryOptionId)
+  }
+
+  const validateCheckoutCart = (input: CheckoutDemoOrderInput): void => {
     if (cart.itemCount === 0) {
       throw new Error('The cart is empty. Call add_to_cart before checkout_demo_order.')
     }
+    if (!cart.readyForCheckout) throw new Error(cart.checkoutIssueMessage)
     if (input.prescriptionStatus === 'request-prepared') {
-      const request = prescriptions.latestRequest
-      const prescriptionItems = cart.items.filter(
-        (item) => catalog.skuById(item.skuId)?.rxRequired,
-      )
-      const matchesCart = request && prescriptionItems.length === 1
-        ? prescriptionItems.every(
-            (item) =>
-              item.offerId === request.offerId &&
-              item.deliveryOptionId === request.deliveryOptionId,
-          )
-        : false
-      if (!matchesCart) {
+      if (!preparedRequestCoversCart()) {
         throw new Error(
           'The prepared prescription request does not cover every prescription item in this cart. For a single prescription item, call create_prescription_request_card for its selected offer. For a multi-item cart, use provider-will-send.',
         )
       }
     }
-    const order = orders.createOrder(input)
+  }
+
+  const prepareDemoCheckout = async (input: CheckoutDemoOrderInput) => {
+    const validated = validateDemoCheckout(input)
+    validateCheckoutCart(validated)
+    checkout.prepare(validated)
+    cart.closeDrawer()
+    await revealRoute('/checkout')
+    return {
+      route: '/checkout', prepared: true, orderCreated: false,
+      itemCount: cart.itemCount, total: cart.grandTotal,
+      filledFields: ['fullName', 'address', 'prescriptionStatus'],
+      nextAction: 'Review the visible checkout form and totals. Use Place demo order only when ready. No order has been created.',
+    }
+  }
+
+  const checkoutDemoOrder = async (input: CheckoutDemoOrderInput) => {
+    const validated = validateDemoCheckout(input)
+    validateCheckoutCart(validated)
+    const order = orders.createOrder(validated)
+    checkout.reset()
     const route = `/orders/${order.id}`
-    await options.navigate?.(route)
+    await revealRoute(route)
     return {
       orderId: order.id,
       route,
@@ -570,7 +606,7 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
       }),
       notice: 'Local demo status only. No pharmacy or prescriber system was contacted.',
     }
-    await options.navigate?.(`/orders/${order.id}`)
+    await revealRoute(`/orders/${order.id}`)
     return output
   }
 
@@ -585,6 +621,8 @@ export const useClearDoseActions = (options: ClearDoseActionsOptions = {}) => {
     compareCartSavings,
     removeCartItem,
     setDeliveryOption,
+    preparedRequestCoversCart,
+    prepareDemoCheckout,
     checkoutDemoOrder,
     getOrderStatus,
   }

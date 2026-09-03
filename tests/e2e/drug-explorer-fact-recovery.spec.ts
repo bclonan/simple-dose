@@ -141,7 +141,7 @@ const drugSection = (factCard: Locator, drugId: string) => factCard.locator(`[da
 async function startWorkspace(page: Page): Promise<MutationResult> {
   await installRegistry(page)
   await page.goto('/drugs/explore')
-  await expect.poll(() => page.evaluate(() => (window as unknown as FixtureWindow).factRecoveryWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as FixtureWindow).factRecoveryWebMcp.tools().length)).toBe(20)
   const schema = await page.evaluate(() => (window as unknown as FixtureWindow).factRecoveryWebMcp.tools().find(tool => tool.name === 'cleardose_select_drugs')!.inputSchema)
   expect(schema.properties?.workspaceRevision).toMatchObject({ type: 'string' })
   const initial = await callTool<StateResult>(page, 'cleardose_get_explorer_state', { section: 'workspace' })

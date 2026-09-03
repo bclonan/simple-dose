@@ -134,17 +134,17 @@ const objectSchema = (properties: Record<string, JsonSchema>, required: string[]
 
 const factSchema = (): JsonSchema => ({
   type: 'string', enum: [...drugFactTypes],
-  description: 'Public fact type. Label warnings and interactions are not personalized checks.',
+  description: 'Public fact, not a personalized safety check.',
 })
 
 const drugSchema = (): JsonSchema => ({
   type: 'string', minLength: 1, maxLength: 128,
-  description: 'ID or generic/brand name. Read IDs with cleardose_get_explorer_state. Out-of-mode selected IDs are removal-only.',
+  description: 'ID or generic/brand name. State reader lists IDs. Out-of-mode IDs are removal-only.',
 })
 
 const cardSchema = (): JsonSchema => ({
   type: 'string', minLength: 1, maxLength: 128, pattern: idPattern.source,
-  description: 'Current card ID from cleardose_get_explorer_state.',
+  description: 'Current card ID from the state reader.',
 })
 
 const asInput = (value: unknown, allowed: string[]): Record<string, unknown> => {
@@ -288,7 +288,7 @@ export const createExplorerTools = (
   const snapshot = normalizeSnapshot(workspaceSnapshot)
   const workspaceRevision: JsonSchema = {
     type: 'string', minLength: 1, maxLength: 96,
-    description: 'Current token from cleardose_get_explorer_state or the last edit.',
+    description: 'Token from cleardose_get_explorer_state or last edit.',
   }
   const changing = { readOnlyHint: false, untrustedContentHint: true, destructiveHint: true, idempotentHint: false, openWorldHint: true }
   const validateRevision = (input: Record<string, unknown>): ExplorerMutationContext => {
@@ -318,14 +318,14 @@ export const createExplorerTools = (
   }
   const drugs: JsonSchema = {
     type: 'array', minItems: 0, maxItems: 4, items: drugSchema(),
-    description: 'Distinct IDs or names. Remove uses selected IDs. Replace accepts an empty list to clear selection.',
+    description: 'Distinct IDs or names. Replace with [] clears selection.',
   }
   const firstDrug = snapshot.catalog.find(drug => snapshot.selectedDrugs.some(selected => selected.id === drug.id))?.id ?? snapshot.catalog[0]?.id ?? 'metformin'
   const firstCard = snapshot.cards[0]?.id ?? 'card-not-yet-created'
   return [{
     name: explorerToolNames[0], title: 'Select explorer drugs', category: 'discovery',
-    description: 'Replace, add, or remove up to four drugs in the visible Explorer. Generic or brand names resolve through the catalog. Fact cards follow selection. This changes the workspace, not prescriptions or cart items.',
-    inputSchema: objectSchema({ workspaceRevision, drugs, mode: { type: 'string', enum: ['replace', 'add', 'remove'], default: 'replace', description: 'Replace with drugs: [] clears selection. Remove requires selected drug IDs.' } }, ['workspaceRevision', 'drugs']),
+    description: 'Edit up to four Explorer drugs by ID or generic/brand name. Fact cards follow selection. No prescription or cart edits.',
+    inputSchema: objectSchema({ workspaceRevision, drugs, mode: { type: 'string', enum: ['replace', 'add', 'remove'], default: 'replace', description: 'Replace clears first. Remove needs selected IDs.' } }, ['workspaceRevision', 'drugs']),
     annotations: changing,
     exampleInput: { workspaceRevision: snapshot.revision, drugs: [firstDrug], mode: 'replace' },
     execute: (raw, options) => run(explorerToolNames[0], raw, options, async () => {
@@ -341,11 +341,11 @@ export const createExplorerTools = (
     }),
   }, {
     name: explorerToolNames[1], title: 'Show requested drug facts', category: 'discovery',
-    description: 'Show requested Explorer fact cards. Replace shows only these facts; add keeps existing cards. Optional drugs replace selection in the same edit. Missing public facts stay unavailable. This performs no clinical interaction check.',
+    description: 'Show Explorer facts. Replace hides other rows; add keeps them. Optional drugs replace selection. Missing facts stay unavailable. No clinical interaction check.',
     inputSchema: objectSchema({ workspaceRevision,
-      facts: { type: 'array', minItems: 1, maxItems: 14, items: factSchema(), description: 'Exactly the fact cards requested. Use replace to hide all other facts.' },
-      mode: { type: 'string', enum: ['replace', 'add'], default: 'add', description: 'Replace shows only the requested facts. Add keeps existing cards and reuses duplicates.' },
-      drugs: { ...drugs, minItems: 1, description: 'Optional replacement selection. Omit to keep current drugs.' },
+      facts: { type: 'array', minItems: 1, maxItems: 14, items: factSchema(), description: 'Requested fact rows.' },
+      mode: { type: 'string', enum: ['replace', 'add'], default: 'add', description: 'Replace rows or add, reusing duplicates.' },
+      drugs: { ...drugs, minItems: 1, description: 'Replacement selection. Omit to keep drugs.' },
     }, ['workspaceRevision', 'facts']),
     annotations: changing,
     exampleInput: { workspaceRevision: snapshot.revision, facts: ['side-effects', 'pricing'], mode: 'replace', drugs: [firstDrug] },
@@ -361,7 +361,7 @@ export const createExplorerTools = (
     }),
   }, {
     name: explorerToolNames[2], title: 'Change an explorer fact card', category: 'discovery',
-    description: 'Change one current Explorer card to another supported fact, keeping the shared drug selection. This edits the visible workspace, not medication records.',
+    description: 'Change one visible Explorer card to another fact. Keep drug selection and medication records.',
     inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema(), factType: factSchema() }, ['workspaceRevision', 'cardId', 'factType']),
     annotations: { ...changing, idempotentHint: true },
     exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard, factType: 'ingredients' },
@@ -374,7 +374,7 @@ export const createExplorerTools = (
     }),
   }, {
     name: explorerToolNames[3], title: 'Remove an explorer fact card', category: 'discovery',
-    description: 'Remove one current Explorer fact card. Selected drugs and medication records remain unchanged. Read current card IDs with cleardose_get_explorer_state.',
+    description: 'Remove one visible fact card. Keep drugs and records. Get IDs via cleardose_get_explorer_state.',
     inputSchema: objectSchema({ workspaceRevision, cardId: cardSchema() }, ['workspaceRevision', 'cardId']),
     annotations: { ...changing, idempotentHint: true, openWorldHint: false },
     exampleInput: { workspaceRevision: snapshot.revision, cardId: firstCard },
@@ -386,13 +386,13 @@ export const createExplorerTools = (
     }),
   }, {
     name: explorerToolNames[4], title: 'Read the drug explorer workspace', category: 'discovery',
-    description: 'Read selected drug IDs, fact cards, or loaded catalog IDs without changing the page. Follow nextOffset with both returned revision tokens. Use compare_medications for complete public facts.',
+    description: 'Read selection, cards or catalog IDs without page changes. Page with nextOffset and both revision tokens. Full facts: compare_medications.',
     inputSchema: objectSchema({
-      section: { type: 'string', enum: [...stateSections], default: 'workspace', description: 'Workspace combines selection and cards. Catalog lists current drug IDs and names.' },
-      offset: { type: 'integer', minimum: 0, maximum: 112, default: 0, description: 'Zero-based offset. Follow nextOffset for all rows.' },
-      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Maximum rows per page. The output budget may return fewer.' },
-      workspaceRevision: { type: 'string', minLength: 1, maxLength: 96, description: 'Required after offset zero. Use the first page token to pin the workspace.' },
-      stateRevision: { type: 'string', minLength: 1, maxLength: 64, description: 'Required after offset zero. Detects workspace and catalog changes.' },
+      section: { type: 'string', enum: [...stateSections], default: 'workspace', description: 'Workspace: drugs and cards. Catalog: IDs and names.' },
+      offset: { type: 'integer', minimum: 0, maximum: 112, default: 0, description: 'Start at 0, then follow nextOffset.' },
+      limit: { type: 'integer', minimum: 1, maximum: 10, default: 5, description: 'Row limit; budget may return fewer.' },
+      workspaceRevision: { type: 'string', minLength: 1, maxLength: 96, description: 'First-page token, required after offset 0.' },
+      stateRevision: { type: 'string', minLength: 1, maxLength: 64, description: 'First-page state token, required after offset 0.' },
     }, []),
     annotations: { readOnlyHint: true, untrustedContentHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     exampleInput: { section: 'workspace' },

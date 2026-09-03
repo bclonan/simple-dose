@@ -17,6 +17,7 @@
     "compare_cart_savings",
     "remove_cart_item",
     "set_delivery_option",
+    "prepare_demo_checkout",
     "checkout_demo_order",
     "get_order_status"
   ],
@@ -61,6 +62,22 @@
           }
         }
       ]
+    },
+    {
+      "id": "direct-prepare-checkout-review",
+      "category": "direct",
+      "messages": [{
+        "role": "user",
+        "content": "Fill the ClearDose demo checkout form with Demo User, 100 Demo Street, Baltimore, MD 21201. Do not place the order."
+      }],
+      "expectedCall": [{
+        "functionName": "prepare_demo_checkout",
+        "arguments": {
+          "fullName": "Demo User",
+          "address": { "line1": "100 Demo Street", "city": "Baltimore", "state": "MD", "postalCode": "21201" },
+          "prescriptionStatus": "provider-will-send"
+        }
+      }]
     },
     {
       "id": "direct-view-cart",

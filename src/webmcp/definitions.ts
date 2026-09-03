@@ -116,12 +116,24 @@ export const webMcpNameBudgetExceptions: Record<string, string> = {
     'Kept for compatibility with the original public challenge contract.',
 }
 
+const checkoutInputSchema = objectSchema({
+  fullName: { type: 'string', description: 'Demo recipient name.', minLength: 1, maxLength: 100 },
+  address: objectSchema({
+    line1: { type: 'string', description: 'Demo street address.', minLength: 1, maxLength: 120 },
+    line2: { type: 'string', description: 'Demo apartment or unit.', minLength: 1, maxLength: 120 },
+    city: { type: 'string', description: 'Demo city.', minLength: 1, maxLength: 80 },
+    state: { type: 'string', description: 'Two-letter US state code.', pattern: '^[A-Za-z]{2}$', minLength: 2, maxLength: 2 },
+    postalCode: { type: 'string', description: 'Five-digit or ZIP+4 demo postal code.', pattern: '^[0-9]{5}(?:-[0-9]{4})?$', minLength: 5, maxLength: 10 },
+  }, ['line1', 'city', 'state', 'postalCode']),
+  prescriptionStatus: { type: 'string', description: 'Demo prescription handling.', enum: ['provider-will-send', 'request-prepared'] },
+}, ['fullName', 'address', 'prescriptionStatus'])
+
 export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
   {
     name: 'search_medications',
     title: 'Search medications',
     description:
-      'Search public sources and the loaded catalog by drug name, brand or catalog category. Updates visible results. Use returned IDs for details or comparison.',
+      'Search public and loaded drugs by name, brand or category. Update visible results; return IDs for details or comparison.',
     category: 'discovery',
     inputSchema: objectSchema(
       {
@@ -167,7 +179,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'get_medication_details',
     title: 'Get medication details',
     description:
-      'Read source status and exact mock-cart shopConfigurations. Configurations and prices are fictional, not dosing advice. Use compare_medications for full public facts.',
+      'Read source status and exact fictional shopConfigurations, not dosing advice. Full public facts: compare_medications.',
     category: 'discovery',
     inputSchema: objectSchema({ medicationId: medicationIdSchema,
       offset: { type: 'integer', minimum: 0, maximum: 10_000, default: 0, description: 'Configuration offset, default 0. Follow nextOffset for all.' },
@@ -180,7 +192,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'compare_fulfillment_options',
     title: 'Compare exact fulfillment options',
     description:
-      'Compare fictional pharmacy, delivery and total prices, not public benchmarks. Supply all four exact SKU fields from get_medication_details, or omit all four for the current selection. Never infer dosing or substitutions.',
+      'Compare fictional pharmacy/delivery totals, not public benchmarks. Supply all four exact SKU fields from get_medication_details or omit for current selection. Never infer dosing or substitutions.',
     category: 'pricing',
     inputSchema: objectSchema(
       {
@@ -221,7 +233,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'select_medication_option',
     title: 'Select a fulfillment option',
     description:
-      'Select an offer and delivery from compare_fulfillment_options. Changes selection, not the cart.',
+      'Select compare_fulfillment_options offer/delivery IDs. Change selection, not cart.',
     category: 'pricing',
     inputSchema: objectSchema(
       { ...exactSelectionProperties },
@@ -237,7 +249,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'create_prescription_request_card',
     title: 'Prepare a prescription request card',
     description:
-      'Display a demo request card for exact offer and delivery IDs from compare_fulfillment_options. Never issues or transmits a prescription.',
+      'Show a demo request card for exact compared offer/delivery IDs. Never issues or transmits a prescription.',
     category: 'prescription',
     inputSchema: objectSchema(
       {
@@ -281,7 +293,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'add_to_cart',
     title: 'Add medication to cart',
     description:
-      'After the user chooses, add offer and delivery IDs from compare_fulfillment_options to the demo cart and open it. Does not check out.',
+      'After the user chooses compared offer/delivery IDs, add to the demo cart and open it. Does not check out.',
     category: 'commerce',
     inputSchema: objectSchema(
       { ...exactSelectionProperties },
@@ -297,7 +309,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'view_cart',
     title: 'View cart',
     description:
-      'Read demo cart items, delivery, totals and checkout readiness before editing the cart or preparing checkout.',
+      'Read demo cart items, delivery, totals and checkout readiness before edits.',
     category: 'commerce',
     inputSchema: objectSchema({
       offset: {
@@ -322,7 +334,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'compare_cart_savings',
     title: 'Compare cart savings',
     description:
-      'Compare each exact cart SKU with its lowest delivered demo price. Returns savings and replacement IDs. No cart changes or medication substitutions.',
+      'Compare exact cart SKUs with lowest delivered demo prices. Return savings/replacement IDs. No cart edits or medication substitutions.',
     category: 'pricing',
     inputSchema: objectSchema({
       offset: {
@@ -347,7 +359,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'remove_cart_item',
     title: 'Remove cart item',
     description:
-      'Remove a demo cart item using cartItemId from view_cart or add_to_cart. Updates cart and totals.',
+      'Remove cartItemId from view_cart or add_to_cart; update cart totals.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
@@ -365,7 +377,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'set_delivery_option',
     title: 'Set cart delivery option',
     description:
-      'Change cart delivery using an available method from view_cart. Recalculates item and cart totals.',
+      'Set an available view_cart delivery method; recalculate item and cart totals.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
@@ -384,64 +396,21 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     },
   },
   {
+    name: 'prepare_demo_checkout',
+    title: 'Fill checkout for review',
+    description: 'Fill /checkout with supplied demo recipient fields for human review. The person may edit before Place demo order. Does not create an order.',
+    category: 'commerce',
+    inputSchema: checkoutInputSchema,
+    annotations: idempotentStateChange,
+    exampleInput: { fullName: 'Demo User', address: { line1: '100 Demo Street', city: 'Baltimore', state: 'MD', postalCode: '21201' }, prescriptionStatus: 'provider-will-send' },
+  },
+  {
     name: 'checkout_demo_order',
     title: 'Place a demo order',
     description:
-      'Only after the user asks to finish demo checkout, create a local simulated order and show confirmation. Never transmits payment, prescriptions or pharmacy requests.',
+      'Only after the user asks, create a local demo order and show confirmation. Never transmits payment, prescriptions or pharmacy requests.',
     category: 'commerce',
-    inputSchema: objectSchema(
-      {
-        fullName: {
-          type: 'string',
-          description: 'Demo recipient name.',
-          minLength: 1,
-          maxLength: 100,
-        },
-        address: objectSchema(
-          {
-            line1: {
-              type: 'string',
-              description: 'Demo street address.',
-              minLength: 1,
-              maxLength: 120,
-            },
-            line2: {
-              type: 'string',
-              description: 'Demo apartment or unit.',
-              minLength: 1,
-              maxLength: 120,
-            },
-            city: {
-              type: 'string',
-              description: 'Demo city.',
-              minLength: 1,
-              maxLength: 80,
-            },
-            state: {
-              type: 'string',
-              description: 'Two-letter US state code.',
-              pattern: '^[A-Za-z]{2}$',
-              minLength: 2,
-              maxLength: 2,
-            },
-            postalCode: {
-              type: 'string',
-              description: 'Five-digit or ZIP+4 demo postal code.',
-              pattern: '^[0-9]{5}(?:-[0-9]{4})?$',
-              minLength: 5,
-              maxLength: 10,
-            },
-          },
-          ['line1', 'city', 'state', 'postalCode'],
-        ),
-        prescriptionStatus: {
-          type: 'string',
-          description: 'How the demo prescription requirement is handled.',
-          enum: ['provider-will-send', 'request-prepared'],
-        },
-      },
-      ['fullName', 'address', 'prescriptionStatus'],
-    ),
+    inputSchema: checkoutInputSchema,
     annotations: destructiveNonIdempotentStateChange,
     exampleInput: {
       fullName: 'Demo User',
@@ -458,7 +427,7 @@ export const clearDoseToolCatalog: ClearDoseToolDescriptor[] = [
     name: 'get_order_status',
     title: 'Get demo order status',
     description:
-      'Read demo order status. Omit orderId for the current order. Never returns recipient name or address.',
+      'Read demo order status; omit orderId for current. Never returns recipient name or address.',
     category: 'commerce',
     inputSchema: objectSchema(
       {
@@ -884,11 +853,14 @@ const compactToolOutput = (toolName: string, args: unknown, value: unknown): Jso
 
   if (toolName === 'view_cart') {
     const items = jsonArray(output.items)
+    const issues = jsonArray(output.checkoutIssues)
     const offset = typeof input.offset === 'number' ? input.offset : 0
     const limit = typeof input.limit === 'number' ? input.limit : 3
+    if (offset > items.length) throw new Error('offset exceeds the resolved cart items. Restart view_cart at offset 0 and review any checkoutIssues.')
     const resultPage = page(items.map(compactCartItem), offset, limit)
     return {
       itemCount: output.itemCount ?? items.length,
+      resolvedItemCount: items.length,
       offset,
       returned: resultPage.returned,
       truncated: resultPage.truncated,
@@ -897,7 +869,12 @@ const compactToolOutput = (toolName: string, args: unknown, value: unknown): Jso
       subtotal: output.subtotal ?? 0,
       deliveryTotal: output.deliveryTotal ?? 0,
       grandTotal: output.grandTotal ?? 0,
+      totalsComplete: issues.length === 0,
+      ...(issues.length ? { totalsNotice: output.totalsNotice ?? 'Totals exclude unresolved items. Resolve checkoutIssues before checkout.' } : {}),
       readyForCheckout: output.readyForCheckout ?? false,
+      checkoutIssues: issues.slice(0, 3),
+      checkoutIssueCount: issues.length,
+      hasMoreIssues: issues.length > 3,
       checkoutRoute: output.checkoutRoute ?? '/checkout',
       checkoutRequirements: output.checkoutRequirements ?? null,
       nextAction: output.nextAction ?? null,
@@ -956,6 +933,51 @@ const enforceOutputBudget = (toolName: string, value: JsonValue): JsonValue => {
   if (serialized.length <= webMcpContractBudgets.output) return value
 
   const output = jsonObject(value)
+  if (toolName === 'view_cart') {
+    const items = jsonArray(output.items)
+    const issues = jsonArray(output.checkoutIssues)
+    const offset = typeof output.offset === 'number' ? output.offset : 0
+    const resolvedCount = typeof output.resolvedItemCount === 'number' ? output.resolvedItemCount : items.length
+    const issueCount = typeof output.checkoutIssueCount === 'number' ? output.checkoutIssueCount : issues.length
+    const syncPagination = () => {
+      output.returned = items.length
+      output.nextOffset = offset + items.length < resolvedCount ? offset + items.length : null
+      output.truncated = output.nextOffset !== null
+      output.hasMoreIssues = issues.length < issueCount
+    }
+    const tooLarge = () => JSON.stringify(output).length > webMcpContractBudgets.output
+    while (items.length > 1 && tooLarge()) { items.pop(); syncPagination() }
+    while (issues.length > 1 && tooLarge()) { issues.pop(); syncPagination() }
+    if (tooLarge()) {
+      // Tool schemas list the required recipient fields. Keep recovery IDs and
+      // truthful totals ahead of repeating those requirements in a long cart.
+      output.checkoutRequirements = {
+        hasPreparedRequest: jsonObject(output.checkoutRequirements ?? null).hasPreparedRequest ?? false,
+        fieldsFrom: 'prepare_demo_checkout inputSchema',
+      }
+    }
+    if (tooLarge()) {
+      // Long public names must not turn a successful read into an unusable
+      // generic message. Keep every ID needed for cart delivery or removal.
+      output.items = items.map(entry => {
+        const item = jsonObject(entry)
+        return {
+          cartItemId: item.cartItemId ?? null,
+          quantity: item.quantity ?? null,
+          total: item.total ?? null,
+          deliveryOptions: jsonArray(item.deliveryOptions).map(value => {
+            const delivery = jsonObject(value)
+            return { deliveryOptionId: delivery.deliveryOptionId ?? null, price: delivery.price ?? null, itemTotal: delivery.itemTotal ?? null }
+          }),
+        }
+      })
+      output.displayDetailsTruncated = true
+      output.displayDetailsNotice = 'Full medication and delivery labels remain visible in the cart.'
+    }
+    syncPagination()
+    if (tooLarge()) throw new Error('Cart recovery details exceed the response limit. Open the visible cart to review or remove affected items. No items were changed.')
+    return output
+  }
   if (toolName === 'get_medication_details') {
     // Keep an exact purchasable demo configuration and its provenance, rather
     // than replacing a successful read with a generic oversized-result message.
@@ -1105,6 +1127,12 @@ export const createClearDoseToolDefinitions = (
           return execute(descriptor.name, source, input, options, () => {
             const args = parseSetDeliveryInput(input)
             return { args, output: actions.setDeliveryOption(args) }
+          })
+        }
+        case 'prepare_demo_checkout': {
+          return execute(descriptor.name, source, input, options, () => {
+            const args = parseCheckoutInput(input)
+            return { args, output: actions.prepareDemoCheckout(args) }
           })
         }
         case 'checkout_demo_order': {

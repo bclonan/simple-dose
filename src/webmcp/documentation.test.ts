@@ -24,10 +24,10 @@ const fixture = (empty = false) => {
 }
 
 describe('canonical tool documentation', () => {
-  it('documents all 19 supplied definitions and validates every current example', () => {
+  it('documents every supplied definition and validates every current example', () => {
     const tools = fixture().tools()
     const documentation = createToolDocumentation(tools)
-    expect(documentation).toHaveLength(19)
+    expect(documentation).toHaveLength(tools.length)
     expect(documentation.map(tool => tool.name)).toEqual(tools.map(tool => tool.name))
     for (const item of documentation) {
       expect(item.validationErrors, item.name).toEqual([])
@@ -41,9 +41,10 @@ describe('canonical tool documentation', () => {
     }
   })
 
-  it('documents the 17 supplied definitions when the contextual catalog is empty', () => {
-    const documentation = createToolDocumentation(fixture(true).tools())
-    expect(documentation).toHaveLength(17)
+  it('documents the supplied definitions when the contextual catalog is empty', () => {
+    const tools = fixture(true).tools()
+    const documentation = createToolDocumentation(tools)
+    expect(documentation).toHaveLength(tools.length)
     expect(documentation.some(tool => tool.name === 'compare_medications')).toBe(false)
     expect(documentation.every(tool => tool.validationErrors.length === 0)).toBe(true)
     const edit = documentation.find(tool => tool.name === 'cleardose_update_fact_card')!
@@ -97,6 +98,23 @@ describe('canonical tool documentation', () => {
     expect(doc!.sourceModule).toBe('Application-provided canonical tool descriptor')
     expect(doc!.exampleResult).toMatchObject({ documentationOnly: true })
     expect(createToolDocumentation([])).toEqual([])
+  })
+
+  it('keeps checkout preparation preview-only and separates form filling from order creation', () => {
+    const definition = clearDoseToolCatalog.find(tool => tool.name === 'prepare_demo_checkout')!
+    expect(definition).toBeDefined()
+    const [doc] = createToolDocumentation([definition])
+    expect(doc).toMatchObject({ classification: 'mutating', safeToRun: false, validationErrors: [] })
+    expect(doc!.exampleResult).toMatchObject({ route: '/checkout', itemCount: 1, prepared: true, orderCreated: false })
+    expect(doc!.stateAffected).toContain('Does not create an order, clear the cart or persist recipient fields')
+    expect(doc!.prompt).toContain('stop for my review')
+    expect(doc!.prompt).toContain('Do not invent missing details or place an order')
+    const result = doc!.exampleResult as Record<string, unknown>
+    expect(result.filledFields).toEqual(['fullName', 'address', 'prescriptionStatus'])
+    expect(result).not.toHaveProperty('fullName')
+    expect(result).not.toHaveProperty('address')
+    expect(JSON.stringify(result)).not.toContain(String(definition.exampleInput.fullName))
+    expect(doc!.errors.some(error => error.recovery.includes('Ask the person for the missing details'))).toBe(true)
   })
 
   it('retains authored schema annotations but uses the existing compact native projection', () => {

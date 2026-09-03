@@ -92,7 +92,7 @@ test('Agent Lab copies a prompt, replays real actions, and clears its log', asyn
   await expect(
     page.getByRole('heading', { name: 'See exactly what an agent can do inside ClearDose.' }),
   ).toBeVisible()
-  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(19)
+  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(20)
   await expect(page.getByRole('heading', { name: 'When WebMCP earns a place' })).toBeVisible()
 
   const promptCard = page.getByTestId('prompt-find-compare')
@@ -152,7 +152,7 @@ test('the app remains usable when WebMCP is unavailable', async ({ page }) => {
   await page.goto('/webmcp')
   await expect(page.getByText('WebMCP unavailable in this browser', { exact: true })).toBeVisible()
   await expect(page.getByText('The ClearDose site remains fully functional.')).toBeVisible()
-  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(19)
+  await expect(page.locator('[data-testid^="tool-card-"]')).toHaveCount(20)
 
   await page.getByRole('link', { name: 'ClearDose home' }).click()
   await page

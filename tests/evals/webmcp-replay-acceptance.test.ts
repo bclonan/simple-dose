@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   groupWebMcpJourneys,
+  isWriteTool,
+  labelForTool,
   replayEntriesForJourney,
 } from '../../src/components/webmcpJourneys'
 import type { AgentActivity } from '../../src/types/demo-db'
@@ -94,6 +96,19 @@ describe('recent WebMCP journey acceptance', () => {
       replayable: false,
       replayBlockedReason: expect.stringMatching(/human-controlled|never replayed/i),
     })
+  })
+
+  it('blocks checkout preparation replay and counts it as a visible state change', () => {
+    const [journey] = groupWebMcpJourneys([
+      entry('activity-prepare', 'journey-a', 'prepare_demo_checkout', '2026-09-03T12:00:00.000Z', {
+        fullName: '[redacted]', address: '[redacted]', prescriptionStatus: 'provider-will-send',
+      }),
+    ])
+
+    expect(journey).toMatchObject({ replayable: false, writeCount: 1, hasRedactedContext: true,
+      replayBlockedReason: expect.stringContaining('never replayed') })
+    expect(isWriteTool('prepare_demo_checkout')).toBe(true)
+    expect(labelForTool('prepare_demo_checkout')).toBe('Checkout form preparation')
   })
 
   it('blocks an oversized journey instead of silently replaying only its first calls', () => {

@@ -1,0 +1,888 @@
+{
+  "origin": "https://cleardose-webmcp-demo.netlify.app",
+  "deployId": "6a99a1daccbb3911363f9036",
+  "module": "/assets/index--FnKjYYq.js",
+  "dataMode": "live",
+  "recordedAt": "2026-09-03T16:40:38.266Z",
+  "steps": [
+    {
+      "tool": "cleardose_get_explorer_state",
+      "input": {},
+      "output": {
+        "cardCount": 0,
+        "data": {
+          "availability": "not-requested",
+          "available": 0,
+          "loading": 0,
+          "partial": 0,
+          "providerFailed": 0,
+          "requested": 0,
+          "unavailable": 0,
+          "warningCount": 0
+        },
+        "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+        "nextOffset": null,
+        "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+        "offset": 0,
+        "returned": 0,
+        "route": "/medications",
+        "rows": [],
+        "section": "workspace",
+        "selectedDrugCount": 0,
+        "stateRevision": "explorer-state-1",
+        "total": 0,
+        "workspacePath": "/drugs/explore",
+        "workspaceRevision": "explorer-85f75c95-0-live-0"
+      }
+    },
+    {
+      "tool": "search_medications",
+      "input": {
+        "query": "atorvastatin",
+        "limit": 1
+      },
+      "output": {
+        "count": 2,
+        "nextAction": "Call get_medication_details with a returned medicationId.",
+        "nextOffset": 1,
+        "offset": 0,
+        "query": "atorvastatin",
+        "results": [
+          {
+            "brandNames": [
+              "Atorvastatin Calcium",
+              "ATORVASTATIN CALCIUM",
+              "Lipitor"
+            ],
+            "category": "cholesterol",
+            "forms": [
+              "TABLET, FILM COATED",
+              "TABLET"
+            ],
+            "genericName": "Atorvastatin Calcium",
+            "medicationId": "med-public-atorvastatin-calcium",
+            "rxRequired": null,
+            "slug": "public-atorvastatin-calcium",
+            "source": "openfda-ndc",
+            "strengths": [
+              "10 mg/1",
+              "20 mg/1",
+              "40 mg/1",
+              "80 mg/1"
+            ]
+          }
+        ],
+        "returned": 1,
+        "route": "/medications",
+        "truncated": true
+      }
+    },
+    {
+      "tool": "cleardose_show_drug_fact",
+      "input": {
+        "workspaceRevision": "explorer-85f75c95-0-live-0",
+        "drugs": [
+          "Metformin",
+          "Jardiance"
+        ],
+        "facts": [
+          "side-effects",
+          "pricing"
+        ],
+        "mode": "replace"
+      },
+      "output": {
+        "cardCount": 2,
+        "data": {
+          "availability": "available",
+          "available": 4,
+          "loading": 0,
+          "partial": 0,
+          "providerFailed": 0,
+          "requested": 4,
+          "unavailable": 0,
+          "warningCount": 4
+        },
+        "factResults": [
+          {
+            "availability": "available",
+            "drugId": "med-metformin",
+            "factType": "side-effects",
+            "id": "fact-1",
+            "kind": "fact-data",
+            "source": "openfda-label",
+            "warningCount": 1,
+            "warnings": [
+              {
+                "code": "partial",
+                "source": "openfda-label"
+              }
+            ]
+          },
+          {
+            "availability": "available",
+            "drugId": "med-public-empagliflozin",
+            "factType": "side-effects",
+            "id": "fact-1",
+            "kind": "fact-data",
+            "source": "openfda-label",
+            "warningCount": 0,
+            "warnings": []
+          },
+          {
+            "availability": "available",
+            "drugId": "med-metformin",
+            "factType": "pricing",
+            "id": "fact-2",
+            "kind": "fact-data",
+            "source": "public-pricing",
+            "warningCount": 2,
+            "warnings": [
+              {
+                "code": "partial",
+                "source": "nadac"
+              },
+              {
+                "code": "partial",
+                "source": "nadac"
+              }
+            ]
+          }
+        ],
+        "factResultsTotal": 4,
+        "factResultsTruncated": true,
+        "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+        "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+        "route": "/drugs/explore",
+        "selectedDrugIds": [
+          "med-metformin",
+          "med-public-empagliflozin"
+        ],
+        "status": "updated",
+        "workspacePath": "/drugs/explore",
+        "workspaceRevision": "explorer-85f75c95-1-live-0"
+      }
+    },
+    {
+      "step": "return_through_navigation",
+      "tool": "cleardose_get_explorer_state",
+      "input": {},
+      "output": {
+        "cardCount": 2,
+        "data": {
+          "availability": "available",
+          "available": 4,
+          "loading": 0,
+          "partial": 0,
+          "providerFailed": 0,
+          "requested": 4,
+          "unavailable": 0,
+          "warningCount": 4
+        },
+        "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+        "nextOffset": 5,
+        "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+        "offset": 0,
+        "returned": 5,
+        "route": "/drugs/explore",
+        "rows": [
+          {
+            "id": "med-metformin",
+            "kind": "selected-drug",
+            "label": "Metformin"
+          },
+          {
+            "id": "med-public-empagliflozin",
+            "kind": "selected-drug",
+            "label": "Empagliflozin"
+          },
+          {
+            "drugIds": [
+              "med-metformin",
+              "med-public-empagliflozin"
+            ],
+            "factType": "side-effects",
+            "id": "fact-1",
+            "kind": "fact-card"
+          },
+          {
+            "drugIds": [
+              "med-metformin",
+              "med-public-empagliflozin"
+            ],
+            "factType": "pricing",
+            "id": "fact-2",
+            "kind": "fact-card"
+          },
+          {
+            "availability": "available",
+            "drugId": "med-metformin",
+            "factType": "side-effects",
+            "id": "fact-1",
+            "kind": "fact-data",
+            "source": "openfda-label",
+            "warningCount": 1,
+            "warnings": [
+              {
+                "code": "partial",
+                "source": "openfda-label"
+              }
+            ]
+          }
+        ],
+        "section": "workspace",
+        "selectedDrugCount": 2,
+        "stateRevision": "explorer-state-2",
+        "total": 8,
+        "workspacePath": "/drugs/explore",
+        "workspaceRevision": "explorer-85f75c95-1-live-0"
+      }
+    },
+    {
+      "tool": "cleardose_show_drug_fact",
+      "input": {
+        "workspaceRevision": "explorer-85f75c95-1-live-0",
+        "facts": [
+          "interactions"
+        ],
+        "mode": "replace"
+      },
+      "output": {
+        "cardCount": 1,
+        "data": {
+          "availability": "available",
+          "available": 2,
+          "loading": 0,
+          "partial": 0,
+          "providerFailed": 0,
+          "requested": 2,
+          "unavailable": 0,
+          "warningCount": 1
+        },
+        "factResults": [
+          {
+            "availability": "available",
+            "drugId": "med-metformin",
+            "factType": "interactions",
+            "id": "fact-3",
+            "kind": "fact-data",
+            "source": "openfda-label",
+            "warningCount": 1,
+            "warnings": [
+              {
+                "code": "partial",
+                "source": "openfda-label"
+              }
+            ]
+          },
+          {
+            "availability": "available",
+            "drugId": "med-public-empagliflozin",
+            "factType": "interactions",
+            "id": "fact-3",
+            "kind": "fact-data",
+            "source": "openfda-label",
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "factResultsTotal": 2,
+        "factResultsTruncated": false,
+        "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+        "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+        "route": "/drugs/explore",
+        "selectedDrugIds": [
+          "med-metformin",
+          "med-public-empagliflozin"
+        ],
+        "status": "updated",
+        "workspacePath": "/drugs/explore",
+        "workspaceRevision": "explorer-85f75c95-2-live-0"
+      }
+    },
+    {
+      "tool": "get_medication_details",
+      "input": {
+        "medicationId": "med-metformin",
+        "limit": 1
+      },
+      "output": {
+        "availableSkuCount": 6,
+        "brandNames": [
+          "Glucophage"
+        ],
+        "clinicalSections": [
+          "indications",
+          "contraindications",
+          "warnings",
+          "boxedWarnings",
+          "adverseReactions",
+          "drugInteractions",
+          "clinicalPharmacology",
+          "pregnancy",
+          "pediatricUse",
+          "geriatricUse",
+          "dosageAndAdministration"
+        ],
+        "dataStatus": "cache",
+        "forms": [
+          "tablet"
+        ],
+        "genericName": "Metformin",
+        "medicationId": "med-metformin",
+        "nextAction": "Use an exact shopConfigurations entry with compare_fulfillment_options for the mock cart. Use compare_medications for paged public facts. Benchmarks are not checkout offers.",
+        "nextOffset": 1,
+        "offset": 0,
+        "prescriptionRequired": true,
+        "pricingNotice": "Shop prices and quantities are fictional demo offers, not API prices or dosing advice.",
+        "quantities": [
+          30,
+          60,
+          90
+        ],
+        "returned": 1,
+        "shopConfigurationCount": 6,
+        "shopConfigurations": [
+          {
+            "form": "tablet",
+            "quantity": 30,
+            "strength": "500 mg",
+            "unit": "tablet"
+          }
+        ],
+        "sources": [
+          "rxnorm",
+          "openfda-ndc",
+          "openfda-label",
+          "nadac"
+        ],
+        "strengths": [
+          "500 mg",
+          "850 mg"
+        ],
+        "truncated": true
+      }
+    },
+    {
+      "tool": "get_medication_details",
+      "input": {
+        "medicationId": "med-public-empagliflozin",
+        "limit": 1
+      },
+      "output": {
+        "availableSkuCount": 3,
+        "brandNames": [
+          "Jardiance"
+        ],
+        "clinicalSections": [
+          "indications",
+          "contraindications",
+          "warnings",
+          "boxedWarnings",
+          "adverseReactions",
+          "drugInteractions",
+          "clinicalPharmacology",
+          "pregnancy",
+          "pediatricUse",
+          "geriatricUse",
+          "dosageAndAdministration"
+        ],
+        "dataStatus": "cache",
+        "forms": [
+          "TABLET, FILM COATED"
+        ],
+        "genericName": "Empagliflozin",
+        "medicationId": "med-public-empagliflozin",
+        "nextAction": "Use an exact shopConfigurations entry with compare_fulfillment_options for the mock cart. Use compare_medications for paged public facts. Benchmarks are not checkout offers.",
+        "nextOffset": 1,
+        "offset": 0,
+        "prescriptionRequired": null,
+        "pricingNotice": "Shop prices and quantities are fictional demo offers, not API prices or dosing advice.",
+        "quantities": [],
+        "returned": 1,
+        "shopConfigurationCount": 3,
+        "shopConfigurations": [
+          {
+            "form": "TABLET, FILM COATED",
+            "quantity": 30,
+            "strength": "10 mg/1",
+            "unit": "tablet"
+          }
+        ],
+        "sources": [
+          "rxnorm",
+          "openfda-ndc",
+          "openfda-label",
+          "nadac"
+        ],
+        "strengths": [
+          "25 mg/1"
+        ],
+        "truncated": true
+      }
+    },
+    {
+      "tool": "compare_fulfillment_options",
+      "input": {
+        "medicationId": "med-metformin",
+        "form": "tablet",
+        "strength": "500 mg",
+        "quantity": 30,
+        "maxDeliveryDays": 4,
+        "maxResults": 1
+      },
+      "output": {
+        "fastestOptionId": "offer-metformin-500-30-communityrx:pickup",
+        "lowestTotalOptionId": "offer-metformin-500-30-healthhub:standard",
+        "medication": {
+          "activeIngredient": "Metformin",
+          "form": "tablet",
+          "genericName": "Metformin",
+          "id": "med-metformin",
+          "quantity": 30,
+          "strength": "500 mg"
+        },
+        "nextAction": "Call select_medication_option with an offerId and deliveryOptionId from these results.",
+        "nextOffset": 1,
+        "offset": 0,
+        "options": [
+          {
+            "deliveryMethod": "Regional delivery",
+            "deliveryOptionId": "standard",
+            "deliveryPrice": 4.5,
+            "estimatedDays": [
+              2,
+              4
+            ],
+            "labels": [
+              "lowest-total"
+            ],
+            "medicationSubtotal": 8.95,
+            "offerId": "offer-metformin-500-30-healthhub",
+            "pharmacy": "HealthHub Pharmacy",
+            "total": 13.45
+          }
+        ],
+        "pricingNotice": "Fictional demo offers only. These are not API retail prices, pharmacy inventory, or dosing advice.",
+        "pricingScenario": "Current prices",
+        "returned": 1,
+        "route": "/compare",
+        "selectedOptionId": null,
+        "selectedOptionIsLowest": false,
+        "totalOptions": 4,
+        "truncated": true
+      }
+    },
+    {
+      "tool": "select_medication_option",
+      "input": {
+        "offerId": "offer-metformin-500-30-healthhub",
+        "deliveryOptionId": "standard"
+      },
+      "output": {
+        "route": "/compare",
+        "selectedOption": {
+          "deliveryLabel": "Regional delivery",
+          "deliveryOptionId": "standard",
+          "deliveryPrice": 4.5,
+          "deliveryType": "delivery",
+          "estimatedMaxDays": 4,
+          "estimatedMinDays": 2,
+          "isFastest": false,
+          "isLowestTotal": false,
+          "medicationId": "med-metformin",
+          "medicationSubtotal": 8.95,
+          "offerId": "offer-metformin-500-30-healthhub",
+          "optionId": "offer-metformin-500-30-healthhub:standard",
+          "pharmacyId": "pharmacy-healthhub",
+          "pharmacyName": "HealthHub Pharmacy",
+          "pharmacyShortName": "HealthHub",
+          "pricing": {
+            "fulfillmentFee": 3.25,
+            "markup": 1.25,
+            "medicationCost": 4.45,
+            "medicationSubtotal": 8.95
+          },
+          "skuId": "sku-metformin-tablet-500mg-30",
+          "total": 13.45
+        },
+        "total": 13.45
+      }
+    },
+    {
+      "step": "visible_ui_add_selected_option",
+      "ui": "Browser tab: 2, Title: \"Compare fictional pharmacy offers | ClearDose\", URL: \"https://cleardose-webmcp-demo.netlify.app/compare\".\n1 AXWebArea Compare fictional pharmacy offers | ClearDose, URL: cleardose-webmcp-demo.netlify.app/compare\n\t2 link Description: Skip to content, Value: cleardose-webmcp-demo.netlify.app/compare#main-content\n\t3 container app\n\t\t4 container\n\t\t\t5 link Description: ClearDose home, Value: cleardose-webmcp-demo.netlify.app/\n\t\t\t6 container Primary navigation\n\t\t\t\t7 link Description: Medications, Value: cleardose-webmcp-demo.netlify.app/medications\n\t\t\t\t8 link Description: Drug Explorer, Value: cleardose-webmcp-demo.netlify.app/drugs/explore\n\t\t\t\t9 link Description: Compare, Value: cleardose-webmcp-demo.netlify.app/compare\n\t\t\t\t10 link Description: Prescription Card, Value: cleardose-webmcp-demo.netlify.app/prescription-card\n\t\t\t\t11 link Description: Agent Lab, Value: cleardose-webmcp-demo.netlify.app/webmcp\n\t\t\t\t12 link Description: Hackathon, Value: cleardose-webmcp-demo.netlify.app/hackathon\n\t\t\t13 button Open cart, 1 item\n\t\t14 container main-content\n\t\t\t15 container\n\t\t\t\t16 text APPLES TO APPLES\n\t\t\t\t17 heading Compare the exact prescription, Value: 1\n\t\t\t\t\t18 text Compare the exact prescription\n\t\t\t\t19 text ClearDose only compares the same active ingredient, form, strength, and quantity. It never suggests a clinical substitution.\n\t\t\t20 container\n\t\t\t\t21 text ACTIVE INGREDIENT Metformin FORM tablet STRENGTH 500 mg QUANTITY 30 count\n\t\t\t22 container Pricing scenario\n\t\t\t\t23 text DEMO CONTROL\n\t\t\t\t24 heading Pricing scenario, Value: 2, ID: pricing-scenario-title\n\t\t\t\t\t25 text Pricing scenario\n\t\t\t\t26 text Seeded catalog prices\n\t\t\t\t27 container Pricing scenario\n\t\t\t\t\t28 checkbox Current prices, Value: 1\n\t\t\t\t\t29 checkbox Market update, Value: 0\n\t\t\t30 container\n\t\t\t\t31 text Maximum delivery days\n\t\t\t\t32 pop up button (collapsed, settable) Maximum delivery days, Value: Within 4 days, Secondary Actions: Expand\n\t\t\t\t\t33 menu\n\t\t\t\t\t\t34 Any delivery time\n\t\t\t\t\t\t35 Today\n\t\t\t\t\t\t36 Within 1 day\n\t\t\t\t\t\t37 Within 2 days\n\t\t\t\t\t\t38 Within 3 days\n\t\t\t\t\t\t39 (selected) Within 4 days\n\t\t\t\t\t\t40 Within 5 days\n\t\t\t\t\t\t41 Within 7 days\n\t\t\t\t\t\t42 Within 14 days\n\t\t\t\t\t\t43 Within 30 days\n\t\t\t44 table Exact medication fulfillment comparison\n\t\t\t\t45 text Exact medication fulfillment comparison\n\t\t\t\t46 row\n\t\t\t\t\t47 cell\n\t\t\t\t\t\t48 text PHARMACY\n\t\t\t\t\t49 cell\n\t\t\t\t\t\t50 text MEDICATION\n\t\t\t\t\t51 cell\n\t\t\t\t\t\t52 text FULFILLMENT\n\t\t\t\t\t53 cell\n\t\t\t\t\t\t54 text ARRIVAL\n\t\t\t\t\t55 cell\n\t\t\t\t\t\t56 text TOTAL\n\t\t\t\t\t57 cell\n\t\t\t\t\t\t58 text CHOOSE OPTION\n\t\t\t\t59 row\n\t\t\t\t\t60 cell\n\t\t\t\t\t\t61 text HealthHub Pharmacy LOWEST TOTAL\n\t\t\t\t\t62 cell\n\t\t\t\t\t\t63 text $8.95\n\t\t\t\t\t64 cell\n\t\t\t\t\t\t65 text Regional delivery\n\t\t\t\t\t\t66 text $4.50\n\t\t\t\t\t67 cell\n\t\t\t\t\t\t68 text 2-4 days\n\t\t\t\t\t69 cell\n\t\t\t\t\t\t70 text $13.45\n\t\t\t\t\t71 cell\n\t\t\t\t\t\t72 button Selected\n\t\t\t\t73 row\n\t\t\t\t\t74 cell\n\t\t\t\t\t\t75 text CommunityRx FASTEST\n\t\t\t\t\t76 cell\n\t\t\t\t\t\t77 text $13.60\n\t\t\t\t\t78 cell\n\t\t\t\t\t\t79 text Free local pickup\n\t\t\t\t\t\t80 text Free\n\t\t\t\t\t81 cell\n\t\t\t\t\t\t82 text Ready today\n\t\t\t\t\t83 cell\n\t\t\t\t\t\t84 text $13.60\n\t\t\t\t\t85 cell\n\t\t\t\t\t\t86 button Select\n\t\t\t\t87 row\n\t\t\t\t\t88 cell\n\t\t\t\t\t\t89 text ClearDose Direct\n\t\t\t\t\t90 cell\n\t\t\t\t\t\t91 text $8.00\n\t\t\t\t\t92 cell\n\t\t\t\t\t\t93 text Express delivery\n\t\t\t\t\t\t94 text $9.00\n\t\t\t\t\t95 cell\n\t\t\t\t\t\t96 text Tomorrow\n\t\t\t\t\t97 cell\n\t\t\t\t\t\t98 text $17.00\n\t\t\t\t\t99 cell\n\t\t\t\t\t\t100 button Select\n\t\t\t\t101 row\n\t\t\t\t\t102 cell\n\t\t\t\t\t\t103 text PartnerRx Express\n\t\t\t\t\t104 cell\n\t\t\t\t\t\t105 text $10.40\n\t\t\t\t\t106 cell\n\t\t\t\t\t\t107 text Express delivery\n\t\t\t\t\t\t108 text $8.00\n\t\t\t\t\t109 cell\n\t\t\t\t\t\t110 text Tomorrow\n\t\t\t\t\t111 cell\n\t\t\t\t\t\t112 text $18.40\n\t\t\t\t\t113 cell\n\t\t\t\t\t\t114 button Select\n\t\t\t115 link Description: Change configuration, Value: cleardose-webmcp-demo.netlify.app/medications/metformin\n\t\t\t116 link Description: Prepare prescription request, Value: cleardose-webmcp-demo.netlify.app/prescription-card\n\t\t\t117 button Add selected option to cart\n\t\t118 container\n\t\t\t119 text Public drug information. Fictional fulfillment.  Source-labeled public records are not medical advice. ClearDose does not dispense medication, process prescriptions, or provide real pharmacy cash prices.\n\t\t120 button (collapsed) Description: Open WebMCP activity, 20 tools available, 55 recent calls, Secondary Actions: Expand\n\t\t\t121 text WebMCP\n\t\t\t122 text 20 tools available\n\t\t\t123 text  · 55 logged\n\t124 container\n\t\t125 button Close cart\n\t\t126 container Cart (1)\n\t\t\t127 container\n\t\t\t\t128 text MOCK SHOPPING CART\n\t\t\t\t129 heading Cart (1), Value: 2, ID: cart-title\n\t\t\t\t\t130 text Cart  (1)\n\t\t\t\t131 button Close cart\n\t\t\t132 text Medication added to your cart.\n\t\t\t133 text Demo prices and fulfillment only. No medication can be purchased here.\n\t\t\t134 container\n\t\t\t\t135 heading Metformin, Value: 3\n\t\t\t\t\t136 text Metformin\n\t\t\t\t137 text 500 mg tablet · 30 count $13.45 HealthHub Pharmacy Save $0.45 with the lowest current delivered option. Fulfillment\n\t\t\t\t138 pop up button (collapsed, settable) Fulfillment, Value: Regional delivery · $4.50, Secondary Actions: Expand\n\t\t\t\t\t139 menu\n\t\t\t\t\t\t140 (selected) Regional delivery · $4.50\n\t\t\t\t141 button Remove\n\t\t\t142 definition list\n\t\t\t\t143 container Medication\n\t\t\t\t\t144 text Medication\n\t\t\t\t145 text $8.95\n\t\t\t\t146 container Delivery\n\t\t\t\t\t147 text Delivery\n\t\t\t\t148 text $4.50\n\t\t\t\t149 container Total\n\t\t\t\t\t150 text Total\n\t\t\t\t151 text $13.45\n\t\t\t152 container Cart savings check\n\t\t\t\t153 text CURRENT DEMO OFFERS\n\t\t\t\t154 heading Cart savings check, Value: 3, ID: cart-savings-title\n\t\t\t\t\t155 text Cart savings check\n\t\t\t\t156 text 1 line can save\n\t\t\t\t157 definition list\n\t\t\t\t\t158 container Current cart\n\t\t\t\t\t\t159 text Current cart\n\t\t\t\t\t160 text $13.45\n\t\t\t\t\t161 container Lowest available\n\t\t\t\t\t\t162 text Lowest available\n\t\t\t\t\t163 text $13.00\n\t\t\t\t\t164 container Potential savings\n\t\t\t\t\t\t165 text Potential savings\n\t\t\t\t\t166 text $0.45\n\t\t\t\t167 text Current demo offers for each exact medication SKU, including its selected delivery cost. These are not retail or insurance savings.\n\t\t\t168 link Description: Add another medication, Value: cleardose-webmcp-demo.netlify.app/medications\n\t\t\t169 link Description: Go to checkout, Value: cleardose-webmcp-demo.netlify.app/checkout\n\nThe focused UI element is 131 button Close cart"
+    },
+    {
+      "tool": "compare_fulfillment_options",
+      "input": {
+        "medicationId": "med-public-empagliflozin",
+        "form": "TABLET, FILM COATED",
+        "strength": "10 mg/1",
+        "quantity": 30,
+        "maxResults": 1
+      },
+      "output": {
+        "fastestOptionId": "offer-public-demo-o6gkxkv7pplk:pickup",
+        "lowestTotalOptionId": "offer-public-demo-o6gkxkv7pplk:pickup",
+        "medication": {
+          "activeIngredient": "Empagliflozin",
+          "form": "TABLET, FILM COATED",
+          "genericName": "Empagliflozin",
+          "id": "med-public-empagliflozin",
+          "quantity": 30,
+          "strength": "10 mg/1"
+        },
+        "nextAction": "Call select_medication_option with an offerId and deliveryOptionId from these results.",
+        "nextOffset": 1,
+        "offset": 0,
+        "options": [
+          {
+            "deliveryMethod": "Free local pickup",
+            "deliveryOptionId": "pickup",
+            "deliveryPrice": 0,
+            "estimatedDays": [
+              0,
+              0
+            ],
+            "labels": [
+              "lowest-total",
+              "fastest",
+              "pickup-available"
+            ],
+            "medicationSubtotal": 15.1,
+            "offerId": "offer-public-demo-o6gkxkv7pplk",
+            "pharmacy": "CommunityRx",
+            "total": 15.1
+          }
+        ],
+        "pricingNotice": "Fictional demo offers only. These are not API retail prices, pharmacy inventory, or dosing advice.",
+        "pricingScenario": "Current prices",
+        "returned": 1,
+        "route": "/compare",
+        "selectedOptionId": null,
+        "selectedOptionIsLowest": false,
+        "totalOptions": 5,
+        "truncated": true
+      }
+    },
+    {
+      "tool": "add_to_cart",
+      "input": {
+        "offerId": "offer-public-demo-o6gkxkv7pplk",
+        "deliveryOptionId": "pickup"
+      },
+      "output": {
+        "cartCount": 2,
+        "cartItem": {
+          "addedAt": "2026-09-03T16:39:15.270Z",
+          "deliveryOptionId": "pickup",
+          "id": "cart-2df5f4f4-5a36-40af-bf43-2bdca2cfef20",
+          "offerId": "offer-public-demo-o6gkxkv7pplk",
+          "skuId": "sku-public-demo-1cgv1tk1pps9k"
+        },
+        "cartItemId": "cart-2df5f4f4-5a36-40af-bf43-2bdca2cfef20",
+        "delivery": 4.5,
+        "message": "Medication added to your cart.",
+        "outcome": "added",
+        "selectedOptionTotal": 15.1,
+        "subtotal": 24.05,
+        "total": 28.55
+      }
+    },
+    {
+      "tool": "view_cart",
+      "input": {},
+      "output": {
+        "checkoutIssueCount": 0,
+        "checkoutIssues": [],
+        "checkoutRequirements": {
+          "hasPreparedRequest": false,
+          "prescriptionStatusValues": [
+            "provider-will-send",
+            "request-prepared"
+          ],
+          "requiredFields": [
+            "fullName",
+            "address.line1",
+            "address.city",
+            "address.state",
+            "address.postalCode",
+            "prescriptionStatus"
+          ]
+        },
+        "checkoutRoute": "/checkout",
+        "deliveryTotal": 4.5,
+        "grandTotal": 28.55,
+        "hasMoreIssues": false,
+        "itemCount": 2,
+        "items": [
+          {
+            "cartItemId": "cart-fa35d8a8-ec71-40e6-971d-16f7a5d47da9",
+            "deliveryOptions": [
+              {
+                "deliveryOptionId": "standard",
+                "estimatedDays": [
+                  2,
+                  4
+                ],
+                "itemTotal": 13.45,
+                "label": "Regional delivery",
+                "price": 4.5
+              }
+            ],
+            "form": "tablet",
+            "medication": "Metformin",
+            "pharmacy": "HealthHub Pharmacy",
+            "quantity": 30,
+            "selectedDelivery": "Regional delivery",
+            "strength": "500 mg",
+            "total": 13.45
+          },
+          {
+            "cartItemId": "cart-2df5f4f4-5a36-40af-bf43-2bdca2cfef20",
+            "deliveryOptions": [
+              {
+                "deliveryOptionId": "pickup",
+                "estimatedDays": [
+                  0,
+                  0
+                ],
+                "itemTotal": 15.1,
+                "label": "Free local pickup",
+                "price": 0
+              }
+            ],
+            "form": "TABLET, FILM COATED",
+            "medication": "Empagliflozin",
+            "pharmacy": "CommunityRx",
+            "quantity": 30,
+            "selectedDelivery": "Free local pickup",
+            "strength": "10 mg/1",
+            "total": 15.1
+          }
+        ],
+        "nextAction": "Call prepare_demo_checkout to fill the checkout form for review. This does not place an order.",
+        "nextOffset": null,
+        "offset": 0,
+        "readyForCheckout": true,
+        "resolvedItemCount": 2,
+        "returned": 2,
+        "subtotal": 24.05,
+        "totalsComplete": true,
+        "truncated": false
+      }
+    },
+    {
+      "tool": "compare_cart_savings",
+      "input": {},
+      "output": {
+        "basis": "Current demo offers for each exact medication SKU, including its selected delivery cost. These are not retail or insurance savings.",
+        "currentTotal": 28.55,
+        "effectiveAt": "2026-08-31T12:00:00-04:00",
+        "itemCount": 2,
+        "items": [
+          {
+            "bestAvailableTotal": 13,
+            "cartItemId": "cart-fa35d8a8-ec71-40e6-971d-16f7a5d47da9",
+            "comparisonAvailable": true,
+            "current": {
+              "deliveryOptionId": "standard",
+              "offerId": "offer-metformin-500-30-healthhub",
+              "pharmacy": "HealthHub Pharmacy"
+            },
+            "currentTotal": 13.45,
+            "isLowestAvailable": false,
+            "medication": "Metformin",
+            "potentialSavings": 0.45,
+            "recommendedAction": {
+              "addFirst": {
+                "deliveryOptionId": "standard",
+                "offerId": "offer-metformin-500-30-cleardose"
+              },
+              "removeAfterAddSucceeds": "cart-fa35d8a8-ec71-40e6-971d-16f7a5d47da9",
+              "type": "replace_offer"
+            },
+            "replacement": {
+              "deliveryOptionId": "standard",
+              "estimatedDays": [
+                3,
+                5
+              ],
+              "offerId": "offer-metformin-500-30-cleardose",
+              "pharmacy": "ClearDose Direct"
+            },
+            "sku": {
+              "form": "tablet",
+              "quantity": 30,
+              "strength": "500 mg"
+            }
+          }
+        ],
+        "itemsWithSavings": 1,
+        "nextAction": "Follow each item recommendedAction. For set_delivery_option, call set_delivery_option with its cartItemId and deliveryOptionId. For replace_offer, call add_to_cart with addFirst, confirm success, then call remove_cart_item with removeAfterAddSucceeds.",
+        "nextOffset": 1,
+        "offset": 0,
+        "optimizedTotal": 28.1,
+        "potentialSavings": 0.45,
+        "pricingScenario": "Current prices",
+        "returned": 1,
+        "truncated": true
+      }
+    },
+    {
+      "tool": "compare_cart_savings",
+      "input": {
+        "offset": 1
+      },
+      "output": {
+        "basis": "Current demo offers for each exact medication SKU, including its selected delivery cost. These are not retail or insurance savings.",
+        "currentTotal": 28.55,
+        "effectiveAt": "2026-08-31T12:00:00-04:00",
+        "itemCount": 2,
+        "items": [
+          {
+            "bestAvailableTotal": 15.1,
+            "cartItemId": "cart-2df5f4f4-5a36-40af-bf43-2bdca2cfef20",
+            "comparisonAvailable": true,
+            "current": {
+              "deliveryOptionId": "pickup",
+              "offerId": "offer-public-demo-o6gkxkv7pplk",
+              "pharmacy": "CommunityRx"
+            },
+            "currentTotal": 15.1,
+            "isLowestAvailable": true,
+            "medication": "Empagliflozin",
+            "potentialSavings": 0,
+            "recommendedAction": {
+              "type": "none"
+            },
+            "replacement": {
+              "deliveryOptionId": "pickup",
+              "estimatedDays": [
+                0,
+                0
+              ],
+              "offerId": "offer-public-demo-o6gkxkv7pplk",
+              "pharmacy": "CommunityRx"
+            },
+            "sku": {
+              "form": "TABLET, FILM COATED",
+              "quantity": 30,
+              "strength": "10 mg/1"
+            }
+          }
+        ],
+        "itemsWithSavings": 1,
+        "nextAction": "Follow each item recommendedAction. For set_delivery_option, call set_delivery_option with its cartItemId and deliveryOptionId. For replace_offer, call add_to_cart with addFirst, confirm success, then call remove_cart_item with removeAfterAddSucceeds.",
+        "nextOffset": null,
+        "offset": 1,
+        "optimizedTotal": 28.1,
+        "potentialSavings": 0.45,
+        "pricingScenario": "Current prices",
+        "returned": 1,
+        "truncated": false
+      }
+    },
+    {
+      "tool": "prepare_demo_checkout",
+      "input": {
+        "fullName": "ClearDose Smoke Test",
+        "address": {
+          "line1": "100 Demo Street",
+          "city": "Baltimore",
+          "state": "MD",
+          "postalCode": "21201"
+        },
+        "prescriptionStatus": "provider-will-send"
+      },
+      "output": {
+        "filledFields": [
+          "fullName",
+          "address",
+          "prescriptionStatus"
+        ],
+        "itemCount": 2,
+        "nextAction": "Review the visible checkout form and totals. Use Place demo order only when ready. No order has been created.",
+        "orderCreated": false,
+        "prepared": true,
+        "route": "/checkout",
+        "total": 28.55
+      },
+      "ui": {
+        "checkedPrescription": "provider-will-send",
+        "fields": [
+          {
+            "field": "name",
+            "value": "ClearDose Smoke Test"
+          },
+          {
+            "field": "address-line1",
+            "value": "100 Demo Street"
+          },
+          {
+            "field": "address-line2",
+            "value": ""
+          },
+          {
+            "field": "address-level2",
+            "value": "Baltimore"
+          },
+          {
+            "field": "address-level1",
+            "value": "MD"
+          },
+          {
+            "field": "postal-code",
+            "value": "21201"
+          }
+        ],
+        "notice": "Checkout form prepared for review. No order has been placed. You can edit every field below.",
+        "url": "https://cleardose-webmcp-demo.netlify.app/checkout"
+      }
+    },
+    {
+      "step": "visible_ui_review_and_checkout",
+      "fictionalInput": {
+        "editedFullName": "Reviewed Production Smoke Test"
+      },
+      "ui": "Browser tab: 2, Title: \"ClearDose | Transparent prescriptions. Agent-ready.\", URL: \"https://cleardose-webmcp-demo.netlify.app/orders/CD-2026-0001\".\n1 AXWebArea ClearDose | Transparent prescriptions. Agent-ready., URL: cleardose-webmcp-demo.netlify.app/orders/CD-2026-0001\n\t2 link Description: Skip to content, Value: cleardose-webmcp-demo.netlify.app/orders/CD-2026-0001#main-content\n\t3 container app\n\t\t4 container\n\t\t\t5 link Description: ClearDose home, Value: cleardose-webmcp-demo.netlify.app/\n\t\t\t6 container Primary navigation\n\t\t\t\t7 link Description: Medications, Value: cleardose-webmcp-demo.netlify.app/medications\n\t\t\t\t8 link Description: Drug Explorer, Value: cleardose-webmcp-demo.netlify.app/drugs/explore\n\t\t\t\t9 link Description: Compare, Value: cleardose-webmcp-demo.netlify.app/compare\n\t\t\t\t10 link Description: Prescription Card, Value: cleardose-webmcp-demo.netlify.app/prescription-card\n\t\t\t\t11 link Description: Agent Lab, Value: cleardose-webmcp-demo.netlify.app/webmcp\n\t\t\t\t12 link Description: Hackathon, Value: cleardose-webmcp-demo.netlify.app/hackathon\n\t\t\t13 button Open cart, 0 items\n\t\t124 container main-content\n\t\t\t125 container\n\t\t\t\t126 text DEMO ORDER CREATED\n\t\t\t\t127 heading Order CD-2026-0001, Value: 1\n\t\t\t\t\t128 text Order CD-2026-0001\n\t\t\t\t129 text No payment or prescription was sent. This confirmation exists only in your browser.\n\t\t\t130 container\n\t\t\t\t131 heading Order status, Value: 2\n\t\t\t\t\t132 text Order status\n\t\t\t\t133 content list Order status\n\t\t\t\t\t134 text Demo order created\n\t\t\t\t\t135 text Prescription awaiting provider\n\t\t\t\t\t136 text Pharmacy review\n\t\t\t\t\t137 text Prepared\n\t\t\t\t\t138 text Shipped\n\t\t\t139 container\n\t\t\t\t140 heading Order details, Value: 2\n\t\t\t\t\t141 text Order details\n\t\t\t\t142 definition list\n\t\t\t\t\t143 container Medication\n\t\t\t\t\t\t144 text Medication\n\t\t\t\t\t145 text Metformin · 500 mg tablet · 30 count\n\t\t\t\t\t146 container Selected pharmacy\n\t\t\t\t\t\t147 text Selected pharmacy\n\t\t\t\t\t148 text HealthHub Pharmacy\n\t\t\t\t\t149 container Delivery\n\t\t\t\t\t\t150 text Delivery\n\t\t\t\t\t151 text Regional delivery\n\t\t\t\t\t152 container Medication\n\t\t\t\t\t\t153 text Medication\n\t\t\t\t\t154 text Empagliflozin · 10 mg/1 TABLET, FILM COATED · 30 count\n\t\t\t\t\t155 container Selected pharmacy\n\t\t\t\t\t\t156 text Selected pharmacy\n\t\t\t\t\t157 text CommunityRx\n\t\t\t\t\t158 container Delivery\n\t\t\t\t\t\t159 text Delivery\n\t\t\t\t\t160 text Free local pickup\n\t\t\t\t\t161 container Order total\n\t\t\t\t\t\t162 text Order total\n\t\t\t\t\t163 text $28.55\n\t\t\t\t\t164 container Created\n\t\t\t\t\t\t165 text Created\n\t\t\t\t\t166 text Sep 3, 2026, 12:40 PM\n\t\t\t167 link Description: Start another order, Value: cleardose-webmcp-demo.netlify.app/medications\n\t\t\t168 button Reset demo\n\t\t118 container\n\t\t\t119 text Public drug information. Fictional fulfillment.  Source-labeled public records are not medical advice. ClearDose does not dispense medication, process prescriptions, or provide real pharmacy cash prices.\n\t\t120 button (collapsed) Description: Open WebMCP activity, 20 tools available, 61 recent calls, Secondary Actions: Expand\n\t\t\t121 text WebMCP\n\t\t\t122 text 20 tools available\n\t\t\t123 text  · 61 logged\n\nThe focused UI element is 1 AXWebArea ClearDose | Transparent prescriptions. Agent-ready., URL: cleardose-webmcp-demo.netlify.app/orders/CD-2026-0001"
+    },
+    {
+      "tool": "get_order_status",
+      "input": {},
+      "output": {
+        "createdAt": "2026-09-03T16:40:13.309Z",
+        "itemCount": 2,
+        "itemOffset": 0,
+        "items": [
+          {
+            "deliveryOptionId": "standard",
+            "form": "tablet",
+            "medication": "Metformin",
+            "offerId": "offer-metformin-500-30-healthhub",
+            "quantity": 30,
+            "strength": "500 mg"
+          },
+          {
+            "deliveryOptionId": "pickup",
+            "form": "TABLET, FILM COATED",
+            "medication": "Empagliflozin",
+            "offerId": "offer-public-demo-o6gkxkv7pplk",
+            "quantity": 30,
+            "strength": "10 mg/1"
+          }
+        ],
+        "nextItemOffset": null,
+        "notice": "Local demo status only. No pharmacy or prescriber system was contacted.",
+        "orderId": "CD-2026-0001",
+        "prescriptionStatus": "provider-will-send",
+        "returned": 2,
+        "status": "demo-order-created",
+        "total": 28.55,
+        "truncated": false
+      }
+    }
+  ],
+  "consoleWarningsAndErrors": []
+}

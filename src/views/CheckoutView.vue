@@ -1,36 +1,32 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CheckoutSummary from '../components/CheckoutSummary.vue'
 import { useClearDoseActions } from '../services/cleardose.actions'
 import { useCartStore } from '../stores/cart.store'
-import { usePrescriptionStore } from '../stores/prescription.store'
-import type { PrescriptionStatus } from '../types/demo-db'
+import { useCheckoutStore } from '../stores/checkout.store'
 
 const router = useRouter()
 const cart = useCartStore()
-const prescriptions = usePrescriptionStore()
+const draft = useCheckoutStore()
 const actions = useClearDoseActions({ navigate: (path) => router.push(path) })
 const errorMessage = ref('')
 const submitting = ref(false)
 
-const form = reactive({
-  fullName: '',
-  line1: '',
-  line2: '',
-  city: '',
-  state: '',
-  postalCode: '',
-  prescriptionStatus: 'provider-will-send' as PrescriptionStatus,
-})
-
-const hasRequest = computed(() => Boolean(prescriptions.latestRequest))
+const form = draft.form
+const hasRequest = computed(() => actions.preparedRequestCoversCart())
+watch(form, () => { errorMessage.value = '' })
 
 const changeDelivery = (itemId: string, deliveryId: string): void => {
-  actions.setDeliveryOption(
-    { cartItemId: itemId, deliveryOptionId: deliveryId },
-    { revealCart: false },
-  )
+  errorMessage.value = ''
+  try {
+    actions.setDeliveryOption(
+      { cartItemId: itemId, deliveryOptionId: deliveryId },
+      { revealCart: false },
+    )
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Delivery could not be changed.'
+  }
 }
 
 const checkout = async (): Promise<void> => {
@@ -63,6 +59,15 @@ const checkout = async (): Promise<void> => {
       <h1>Complete demo checkout</h1>
       <p>Nothing leaves this browser. No prescription, payment, or address is transmitted.</p>
     </header>
+    <p v-if="draft.prepared" class="notice checkout-prepared" role="status">Checkout form prepared for review. No order has been placed. You can edit every field below.</p>
+    <section v-if="cart.checkoutIssues.length" class="error-banner" role="alert">
+      <h2>Some cart items need attention</h2>
+      <p>{{ cart.checkoutIssueMessage }}</p>
+      <div v-for="issue in cart.checkoutIssues" :key="issue.cartItemId">
+        <p>{{ issue.message }}</p>
+        <button class="button button--text" type="button" @click="cart.removeItem(issue.cartItemId)">Remove unavailable item</button>
+      </div>
+    </section>
 
     <div v-if="cart.itemCount" class="checkout-layout">
       <form class="checkout-form" novalidate @submit.prevent="checkout">
@@ -90,16 +95,18 @@ const checkout = async (): Promise<void> => {
             <span>Prescription request prepared</span>
             <RouterLink v-if="hasRequest" to="/prescription-card">View request</RouterLink>
           </label>
+          <p v-if="!hasRequest" class="safety-note">For multiple prescription items, use "My provider will send it". A prepared request must match the cart's exact offer and delivery.</p>
         </fieldset>
 
         <div v-if="errorMessage" class="error-banner" role="alert">{{ errorMessage }}</div>
         <p class="safety-note">Demo checkout. No payment or prescription is transmitted.</p>
-        <button class="button button--large button--full" type="submit" :disabled="submitting" data-testid="place-order">
+        <button class="button button--large button--full" type="submit" :disabled="submitting || !cart.readyForCheckout" data-testid="place-order">
           {{ submitting ? 'Creating demo order...' : 'Place demo order' }}
         </button>
       </form>
 
       <CheckoutSummary
+        v-if="cart.readyForCheckout"
         :lines="cart.detailedItems"
         :total="cart.grandTotal"
         @change-delivery="changeDelivery"
@@ -114,3 +121,9 @@ const checkout = async (): Promise<void> => {
 
   </main>
 </template>
+
+<style scoped>
+.checkout-prepared {
+  margin: 0 0 24px;
+}
+</style>

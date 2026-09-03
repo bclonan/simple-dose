@@ -43,10 +43,10 @@ const highlights = [
   {
     title: 'Prepare, review and confirm',
     goal: 'Keep consequential steps separate from discovery and comparison.',
-    human: 'Review a local request card, enter fictional details and explicitly confirm simulated checkout.',
-    tools: ['create_prescription_request_card', 'view_cart', 'checkout_demo_order', 'get_order_status'],
-    outcome: 'A request card is only a local summary. Confirmed demo checkout creates a local order and consumes the cart; no real order is sent.',
-    prompt: 'Show the selected fictional offer and prepare a local prescription request summary. Show the demo cart and checkout requirements. Stop for my review before creating any simulated order, and use fictional information only.',
+    human: 'Review a local request card and the filled checkout form, then use Place demo order to confirm simulated checkout.',
+    tools: ['create_prescription_request_card', 'view_cart', 'prepare_demo_checkout', 'get_order_status'],
+    outcome: 'The agent fills the visible checkout form without creating an order. Human confirmation creates a local demo order and consumes the cart; no real order is sent.',
+    prompt: 'Show the selected fictional offer and prepare a local prescription request summary. Read the demo cart, then use prepare_demo_checkout with the fictional details I provide. Stop for my review. I will use Place demo order myself. Read the existing order status only after confirmation.',
   },
 ]
 

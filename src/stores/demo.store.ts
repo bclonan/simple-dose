@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { clearClearDoseStorage } from '../utils/storage'
 import { useAgentActivityStore } from './agentActivity.store'
 import { useCartStore } from './cart.store'
+import { useCheckoutStore } from './checkout.store'
 import { useCatalogStore } from './catalog.store'
 import { useOrderStore } from './order.store'
 import { usePrescriptionStore } from './prescription.store'
@@ -18,6 +19,7 @@ export const useDemoStore = defineStore('demo', {
       usePricingStore().reset()
       usePrescriptionStore().reset()
       useCartStore().clear()
+      useCheckoutStore().reset()
       useOrderStore().reset()
       useAgentActivityStore().clear()
       this.resetCount += 1

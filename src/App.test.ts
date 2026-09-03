@@ -7,6 +7,9 @@ import App from './App.vue'
 import { useCatalogStore } from './stores/catalog.store'
 import { useDrugExplorerStore } from './stores/drugExplorer.store'
 import { useWebMcpStore } from './stores/webmcp.store'
+import { useCartStore } from './stores/cart.store'
+import { useAgentActivityStore } from './stores/agentActivity.store'
+import type { AgentActivity } from './types/demo-db'
 
 const { register, dispose } = vi.hoisted(() => ({ register: vi.fn(), dispose: vi.fn() }))
 vi.mock('./webmcp/register', () => ({ registerClearDoseTools: register }))
@@ -91,5 +94,26 @@ describe('native tools wait for the incoming Explorer workspace', () => {
     await flushPromises()
     expect(register).not.toHaveBeenCalled()
     expect(useWebMcpStore().registrationError).toBe('Initial route failed.')
+  })
+
+  it('rejects private checkout preparation replay before any earlier cart call runs', async () => {
+    const { wrapper, router } = start('/')
+    await router.isReady()
+    await flushPromises()
+    const entries: AgentActivity[] = ['add_to_cart', 'prepare_demo_checkout'].map((toolName, index) => ({
+      id: `activity-private-${index}`, journeyId: 'journey-private-checkout', journeyTitle: 'Checkout preparation',
+      timestamp: `2026-09-03T12:00:0${index}.000Z`, source: 'agent', type: 'tool', toolName, status: 'success',
+      input: index === 0
+        ? { offerId: 'offer-atorvastatin-20-90-cleardose', deliveryOptionId: 'standard' }
+        : { fullName: '[redacted]', address: '[redacted]', prescriptionStatus: 'provider-will-send' },
+    }))
+    const drawer = wrapper.findComponent({ name: 'WebMCPDrawer' })
+    drawer.vm.$emit('replay', entries)
+    await flushPromises()
+
+    expect(useCartStore().items).toEqual([])
+    expect(useAgentActivityStore().entries).toEqual([])
+    expect(drawer.props('replayState')).toBe('error')
+    expect(drawer.props('replayError')).toContain('private checkout call')
   })
 })

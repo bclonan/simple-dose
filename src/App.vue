@@ -22,11 +22,13 @@ import { useMedicationToolDependencies } from './webmcp/medication-context'
 import { prepareExplorerReplayInput, prepareReplayInput, validateReplayDataModes } from './webmcp/replay'
 import { getModelContext } from './webmcp/support'
 import { useExplorerRoute } from './composables/useExplorerRoute'
+import { useRouteLoadRecovery } from './composables/useRouteLoadRecovery'
 import { useExplorerToolDependencies } from './webmcp/explorer-context'
 import { createExplorerTools } from './webmcp/explorer'
 
 const webmcp = useWebMcpStore()
 const router = useRouter()
+const { failedRoute } = useRouteLoadRecovery(router)
 const activity = useAgentActivityStore()
 const catalog = useCatalogStore()
 const explorerRoute = useExplorerRoute()
@@ -50,7 +52,7 @@ const replayDefinitions = (snapshot: DynamicMedicationSnapshot) => new Map(
     definition,
   ]),
 )
-const neverReplayTools = new Set(['checkout_demo_order'])
+const neverReplayTools = new Set(['prepare_demo_checkout', 'checkout_demo_order'])
 
 const replayJourney = async (entries: AgentActivity[]): Promise<void> => {
   if (replayState.value === 'running' || entries.length === 0) return
@@ -70,7 +72,7 @@ const replayJourney = async (entries: AgentActivity[]): Promise<void> => {
     replayState.value = 'error'
     replayError.value = chronological.length > MAX_REPLAY_CALLS
       ? `Replay is limited to ${MAX_REPLAY_CALLS} reviewed calls per journey.`
-      : 'This journey contains an unfinished, failed, or checkout call and cannot be replayed.'
+      : 'This journey contains an unfinished, failed, or private checkout call and cannot be replayed.'
     return
   }
 
@@ -156,6 +158,14 @@ onBeforeUnmount(() => {
 <template>
   <div class="app-frame">
     <AppHeader />
+    <section v-if="failedRoute" class="page-shell route-recovery" role="alert" aria-labelledby="route-recovery-title" data-testid="route-load-recovery">
+      <div class="error-banner">
+        <h2 id="route-recovery-title">This page could not load</h2>
+        <p>A page file could not load. This can happen after an update or a connection failure. Nothing has been reset.</p>
+        <p id="route-reload-notice">Reloading keeps your saved cart. Unsaved checkout fields will clear.</p>
+        <a class="button button--secondary" :href="failedRoute" aria-describedby="route-reload-notice">Reload page</a>
+      </div>
+    </section>
     <RouterView />
     <AppDisclaimer />
     <CartDrawer />
@@ -178,3 +188,11 @@ onBeforeUnmount(() => {
     />
   </div>
 </template>
+
+<style scoped>
+.route-recovery { padding-top: 1rem; padding-bottom: 0; }
+.route-recovery .error-banner { font-size: .95rem; line-height: 1.5; }
+.route-recovery h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+.route-recovery p { margin: .5rem 0; }
+.route-recovery a { margin-top: .5rem; }
+</style>

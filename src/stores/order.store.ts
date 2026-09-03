@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { DemoAddress, DemoOrder, PrescriptionStatus } from '../types/demo-db'
+import { validateDemoCheckout, type DemoCheckoutInput } from '../domain/checkout'
+import type { DemoOrder } from '../types/demo-db'
 import { createDisplayId } from '../utils/ids'
 import { readStorage, storageKeys, writeStorage } from '../utils/storage'
 import { useCartStore } from './cart.store'
@@ -9,13 +10,7 @@ interface OrderState {
   currentOrderId: string | null
 }
 
-export interface CheckoutInput {
-  fullName: string
-  address: DemoAddress
-  prescriptionStatus: PrescriptionStatus
-}
-
-const validPostalCode = /^[0-9]{5}(?:-[0-9]{4})?$/
+export type CheckoutInput = DemoCheckoutInput
 
 export const useOrderStore = defineStore('orders', {
   state: (): OrderState =>
@@ -30,28 +25,17 @@ export const useOrderStore = defineStore('orders', {
   actions: {
     createOrder(input: CheckoutInput): DemoOrder {
       const cart = useCartStore()
-      if (cart.items.length === 0) throw new Error('Your cart is empty.')
-      if (!input.fullName.trim()) throw new Error('Enter a full name.')
-      if (
-        !input.address.line1.trim() ||
-        !input.address.city.trim() ||
-        !input.address.state.trim() ||
-        !validPostalCode.test(input.address.postalCode.trim())
-      ) {
-        throw new Error('Enter a complete demo delivery address and a valid ZIP code.')
-      }
-      if (!['provider-will-send', 'request-prepared'].includes(input.prescriptionStatus)) {
-        throw new Error('Select a valid prescription status.')
-      }
+      if (!cart.readyForCheckout) throw new Error(cart.checkoutIssueMessage)
+      const validated = validateDemoCheckout(input)
 
       const order: DemoOrder = {
         id: createDisplayId('CD', this.orders.length + 1),
         createdAt: new Date().toISOString(),
         status: 'demo-order-created',
         items: cart.items.map((item) => ({ ...item })),
-        fullName: input.fullName.trim(),
-        address: { ...input.address },
-        prescriptionStatus: input.prescriptionStatus,
+        fullName: validated.fullName,
+        address: { ...validated.address },
+        prescriptionStatus: validated.prescriptionStatus,
         total: cart.grandTotal,
       }
       this.orders.push(order)

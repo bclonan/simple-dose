@@ -31,6 +31,7 @@ const writeTools = new Set([
   'add_to_cart',
   'remove_cart_item',
   'set_delivery_option',
+  'prepare_demo_checkout',
   'checkout_demo_order',
 ])
 
@@ -54,6 +55,7 @@ const toolLabels: Record<string, string> = {
   view_cart: 'Cart review',
   remove_cart_item: 'Cart correction',
   set_delivery_option: 'Delivery update',
+  prepare_demo_checkout: 'Checkout form preparation',
   checkout_demo_order: 'Demo checkout',
   get_order_status: 'Order status',
 }
@@ -91,6 +93,7 @@ const journeyTitle = (entries: AgentActivity[]): string => {
   if (recordedTitle) return recordedTitle
   const names = new Set(entries.map((entry) => entry.toolName))
   if (names.has('checkout_demo_order')) return 'Demo checkout journey'
+  if (names.has('prepare_demo_checkout')) return 'Checkout form preparation'
   if (names.has('create_prescription_request_card')) return 'Prescription request journey'
   if (names.has('add_to_cart') || names.has('remove_cart_item')) return 'Cart planning journey'
   if (names.has('compare_fulfillment_options')) return 'Medication cost comparison'
@@ -104,8 +107,8 @@ const blockedReason = (entries: AgentActivity[]): string | null => {
   if (entries.length > MAX_REPLAY_CALLS) {
     return `This journey has more than ${MAX_REPLAY_CALLS} calls. Replay it as smaller reviewed journeys.`
   }
-  if (entries.some((entry) => entry.toolName === 'checkout_demo_order')) {
-    return 'Checkout stays human-controlled. Identity and address context is never replayed from this log.'
+  if (entries.some((entry) => ['prepare_demo_checkout', 'checkout_demo_order'].includes(entry.toolName))) {
+    return 'Checkout stays human-controlled. Form preparation, identity and address context are never replayed from this log.'
   }
   if (entries.some((entry) => entry.status === 'started')) {
     return 'Wait for every call to finish before replaying this journey.'

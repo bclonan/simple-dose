@@ -228,7 +228,7 @@ test('startup public records support a two-medication mock cart through WebMCP a
   const totalBefore = await page.getByTestId('cart-current-total').innerText()
   providers.fail = true
   await page.reload()
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(20)
   const restored = await page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.call('view_cart', { limit: 1 })) as { itemCount: number; grandTotal: number }
   expect(restored).toMatchObject({ itemCount: 2, grandTotal: result.cart.grandTotal })
   await expect(page.getByTestId('cart-drawer').locator('.cart-line')).toHaveCount(2)
@@ -243,7 +243,7 @@ test('one native registration survives repeated reads while only changed dynamic
   await installNativeRegistryShim(page)
   await page.goto('/medications')
   await expect(page.getByTestId('catalog-bootstrap-status')).toContainText('records ready')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(20)
   const run = await page.evaluate(async () => {
     const bridge = (window as unknown as TestWindow).clearDoseTestWebMcp
     const registrationBefore = bridge.registrations()
@@ -255,7 +255,7 @@ test('one native registration survives repeated reads while only changed dynamic
         // Let the same watcher used by native registration process each route/catalog change.
         await new Promise<void>(resolve => setTimeout(resolve, 0))
       }
-      if (bridge.tools().length !== 19) throw new Error('A registered tool was lost')
+      if (bridge.tools().length !== 20) throw new Error('A registered tool was lost')
     }
     return { registrationBefore, registrationAfter: bridge.registrations(), duplicates: bridge.duplicates }
   })
@@ -300,7 +300,7 @@ test('native registry updates dynamic catalog schemas and rejects stale calls wh
   await mockPublicProviders(page)
   await installNativeRegistryShim(page)
   await page.goto('/')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).clearDoseTestWebMcp.tools().length)).toBe(20)
   const oldRevision = await page.evaluate(() => {
     const bridge = (window as unknown as TestWindow).clearDoseTestWebMcp
     bridge.hold('find_related_medications')

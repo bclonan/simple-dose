@@ -8,7 +8,7 @@ import CopyButton from './CopyButton.vue'
     <div class="goal-grid"><details v-for="item in featurePrompts" :key="item.goal" class="goal-card"><summary>{{ item.goal }} <span>{{ item.level }}</span></summary><p>{{ item.prompt }}</p><p class="goal-support">{{ item.support }}</p><CopyButton :text="item.prompt" /></details></div>
   </section>
   <section id="chained-workflows" class="workflow-section" aria-labelledby="workflow-heading">
-    <p class="section-kicker">Pass results forward</p><h2 id="workflow-heading">Five chained workflows</h2><p>Each chain names real tools. Data references below explain the flow; they are not executable expressions or complete tool arguments.</p>
+    <p class="section-kicker">Pass results forward</p><h2 id="workflow-heading">{{ documentedWorkflows.length }} chained workflows</h2><p>Each chain names real tools. Data references below explain the flow; they are not executable expressions or complete tool arguments.</p>
     <details v-for="workflow in documentedWorkflows" :key="workflow.name" class="workflow-card"><summary>{{ workflow.name }}</summary><p>{{ workflow.goal }}</p>
       <ol class="workflow-stepper"><li v-for="(step, index) in workflow.steps" :key="index"><a :href="`#tool-${step.tool}`"><code>{{ step.tool }}</code></a><p>{{ step.outcome }}</p><small>Uses: {{ step.uses.join('; ') || 'No previous result required' }}</small></li></ol>
       <p><strong>Approval boundary.</strong> {{ workflow.approval }}</p><p><strong>If a step fails.</strong> {{ workflow.failure }}</p>

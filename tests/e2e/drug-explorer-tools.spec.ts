@@ -157,7 +157,7 @@ test('registered tools resolve a new public drug and configure exactly the reque
   const source = await providers(page)
   await nativeRegistry(page)
   await page.goto('/')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(20)
   // Startup may already load Jardiance. Read a complete current catalog instead
   // of relying on a fixed seed count or repeating all IDs in each tool schema.
   await expect(async () => {
@@ -214,7 +214,7 @@ test('registered tools resolve a new public drug and configure exactly the reque
   await expect(page.getByTestId('explorer-cards')).toHaveAttribute('aria-busy', 'false')
   await expect(page.getByTestId('drug-info-card')).toHaveCount(1)
   await expect(factCard(page, 'interactions')).toContainText('Empagliflozin')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(20)
   const reloaded = await readState(page)
   expect(reloaded.rows.filter(row => row.kind === 'fact-card').map(row => row.factType)).toEqual(['interactions'])
   expect(source.requests.some(url => url.toLowerCase().includes('empagliflozin'))).toBe(true)
@@ -226,7 +226,7 @@ test('registered card edits, removal, human changes, and resolution failures sha
   const source = await providers(page)
   await nativeRegistry(page)
   await page.goto('/drugs/explore')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(20)
   const configured = await mutation(page, 'cleardose_show_drug_fact', { drugs: ['Metformin', 'Jardiance'], facts: ['warnings', 'uses'], mode: 'replace' })
   expect(configured).toMatchObject({ status: 'updated', selectedDrugIds: ['med-metformin', 'med-public-empagliflozin'], cardCount: 2 })
   await expect(page.getByTestId('drug-info-card')).toHaveCount(2)
@@ -268,7 +268,7 @@ test('a successful explorer journey survives reload and replays only after visib
   await providers(page)
   await nativeRegistry(page)
   await page.goto('/')
-  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(19)
+  await expect.poll(() => page.evaluate(() => (window as unknown as TestWindow).explorerTestWebMcp.tools().length)).toBe(20)
   await mutation(page, 'cleardose_select_drugs', { drugs: ['Metformin', 'Jardiance'], mode: 'replace' })
   await mutation(page, 'cleardose_show_drug_fact', { facts: ['side-effects', 'pricing'], mode: 'replace' })
   await expect(page.getByTestId('drug-info-card')).toHaveCount(2)

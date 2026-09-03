@@ -64,6 +64,18 @@ export const documentedWorkflows: DocumentedWorkflow[] = [
     prompt: 'Help add atorvastatin and metformin to my demo cart. For each, ask me to choose a listed shop configuration and confirm the offer before adding. Then compare current item-level savings without replacing anything or checking out. If a step fails, tell me which item succeeded.',
   },
   {
+    name: 'Fill checkout for human review',
+    goal: 'Prepare a visible checkout form without creating an order, then let the person review and place it.',
+    steps: [
+      { tool: 'view_cart', uses: [], outcome: 'Read current items, fictional totals and checkout requirements.' },
+      { tool: 'prepare_demo_checkout', uses: ['cart readiness from steps.0', 'recipient details and prescription status supplied by the person'], outcome: 'Fill the visible form and open /checkout. Stop here for human review. No order has been created.' },
+      { tool: 'get_order_status', uses: ['only after the person reviews the form, uses Place demo order and sees confirmation'], outcome: 'Read the existing local order status without returning recipient details. Skip this step if the person has not placed an order.' },
+    ],
+    approval: 'Form preparation is not order approval. The person reviews the exact items, total, address and prescription status, then uses Place demo order. The agent does not place the order in this workflow.',
+    failure: 'If cart readiness or recipient validation fails, explain what needs correction. Do not invent missing details or replace cart items. If no order exists after review, keep the form and cart unchanged.',
+    prompt: 'Read my demo cart and ask for any missing checkout details. Use prepare_demo_checkout to fill the visible form with the details I provide. Stop for my review without placing an order. I will use Place demo order myself. Only after I see confirmation, read the existing order status.',
+  },
+  {
     name: 'Change delivery without losing the cart',
     goal: 'Inspect a cart line, change only its delivery, and check the new total.',
     steps: [
@@ -87,6 +99,6 @@ export const featurePrompts = [
   { goal: 'Compare', level: 'Showcase', prompt: 'Compare my selected medications using available catalog facts and public source details. Distinguish shared ingredients from clinical interchangeability. Make no medication recommendation.', support: 'compare_medications with the current dynamic catalog revision' },
   { goal: 'Refresh', level: 'Intermediate', prompt: 'Read my current workspace again after my manual edits. Use its new revision for the next requested change. Tell me which source data is cached or unavailable.', support: 'cleardose_get_explorer_state; source refresh is a human interface action, not a dedicated tool' },
   { goal: 'Export or share', level: 'Beginner', prompt: 'Read my comparison and help me check that the report contains the facts I requested. Then point me to the visible Download report or Copy link action. Do not export on my behalf.', support: 'Read with cleardose_get_explorer_state. The person uses the report download or link controls; no export tool exists.' },
-  { goal: 'Approve or confirm', level: 'Beginner', prompt: 'Show my demo cart, its fictional total and what checkout would do. Wait for my explicit confirmation before placing any demo order.', support: 'view_cart. No separate approval tool exists. checkout_demo_order requires a deliberate, separately authorized call.' },
+  { goal: 'Approve or confirm', level: 'Beginner', prompt: 'Show my demo cart and fictional total. Fill the checkout form with the recipient details I provide, then stop. I will review the form and use Place demo order myself.', support: 'view_cart → prepare_demo_checkout → visible human review and Place demo order. No separate approval tool exists. checkout_demo_order requires a deliberate, separately authorized call.' },
   { goal: 'Recover from failure', level: 'Intermediate', prompt: 'The previous report edit had a stale workspace revision. Read the current state, describe what changed, then ask whether to retry my intended edit. Do not repeat a cart or checkout action.', support: 'cleardose_get_explorer_state, followed only by the reviewed edit' },
 ] as const

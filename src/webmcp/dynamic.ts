@@ -105,7 +105,7 @@ const medicationSchema = (snapshot: DynamicMedicationSnapshot): JsonSchema => {
   const inline = ids.length <= 12 && JSON.stringify(ids).length <= 160
   return {
     type: 'string', minLength: 1, maxLength: 128,
-    description: 'Current ID from cleardose_get_explorer_state, section catalog.',
+    description: 'ID from cleardose_get_explorer_state section catalog.',
     ...(inline ? { enum: ids } : { pattern: '^[a-zA-Z0-9][a-zA-Z0-9-]{0,127}$', examples: ids.slice(0, 3) }),
   }
 }
@@ -113,20 +113,20 @@ const medicationSchema = (snapshot: DynamicMedicationSnapshot): JsonSchema => {
 const commonProperties = (snapshot: DynamicMedicationSnapshot): Record<string, JsonSchema> => ({
   contextRevision: {
     type: 'string', const: snapshot.revision,
-    description: 'Current context token. Refresh tools after catalog or page changes.',
+    description: 'Refresh tools after catalog or page changes.',
   },
   scope: {
     type: 'string', enum: snapshot.pageMedicationIds.length ? ['page', 'catalog'] : ['catalog'],
     default: 'catalog',
-    description: 'Page limits IDs to visible medications; catalog uses all loaded IDs.',
+    description: 'Page: visible IDs. Catalog: all loaded IDs.',
   },
   offset: {
     type: 'integer', minimum: 0, maximum: 1_000_000, default: 0,
-    description: 'Zero-based field offset. Follow nextOffset for all rows.',
+    description: 'Start at 0, then follow nextOffset for all rows.',
   },
   limit: {
     type: 'integer', minimum: 1, maximum: 10, default: 5,
-    description: 'Maximum rows. The output budget may return fewer.',
+    description: 'Row limit; budget may return fewer.',
   },
 })
 
@@ -295,12 +295,12 @@ export const createDynamicMedicationTools = (
   const tools: ClearDoseToolDefinition[] = [{
     name: 'find_related_medications',
     title: 'Find related catalog medications',
-    description: 'Find records sharing a catalog field with one medication. Results explain matches. Catalog similarity is not therapeutic interchangeability or advice about suitability.',
+    description: 'Find and explain shared catalog fields. Similarity is not therapeutic interchangeability or advice about suitability.',
     category: 'discovery',
     inputSchema: objectSchema({
       ...common,
       referenceMedicationId: medicationSchema(snapshot),
-      basis: { type: 'string', enum: similarityBases, default: 'category', description: 'Field to match. Ingredient and class require already-loaded public facts.' },
+      basis: { type: 'string', enum: similarityBases, default: 'category', description: 'Match field. Ingredient/class need loaded public facts.' },
     }, ['contextRevision', 'referenceMedicationId']),
     annotations,
     exampleInput: { contextRevision: snapshot.revision, referenceMedicationId: catalogIds[0]!, scope: 'catalog', basis: 'category' },
@@ -322,12 +322,12 @@ export const createDynamicMedicationTools = (
   tools.push({
     name: 'compare_medications',
     title: 'Compare medication data',
-    description: 'Read public sections for one medication or compare up to four. Follow nextOffset for every field. FDA interaction text is not a pairwise check. This makes no treatment or substitution decision.',
+    description: 'Read up to four drugs without page changes. For a visible report, call cleardose_show_drug_fact with drugs/facts. Follow nextOffset. FDA interactions are label text, not a pairwise check or treatment decision.',
     category: 'discovery',
     inputSchema: objectSchema({
       ...common,
-      medicationIds: { type: 'array', minItems: 1, maxItems: 4, items: medicationSchema(snapshot), description: 'Distinct current IDs. Page scope requires every ID to be visible.' },
-      section: { type: 'string', enum: comparisonSections, default: 'identity', description: 'Clinical includes all available FDA sections, paged without cutting long text.' },
+      medicationIds: { type: 'array', minItems: 1, maxItems: 4, items: medicationSchema(snapshot), description: 'Distinct IDs. Page scope needs visible IDs.' },
+      section: { type: 'string', enum: comparisonSections, default: 'identity', description: 'Clinical pages full available FDA text.' },
     }, ['contextRevision', 'medicationIds']),
     annotations,
     exampleInput: { contextRevision: snapshot.revision, medicationIds: catalogIds.slice(0, 2), scope: 'catalog', section: 'identity' },

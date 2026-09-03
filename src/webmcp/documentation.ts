@@ -147,7 +147,7 @@ const editorial: Record<string, EditorialDetails> = {
   view_cart: {
     prompt: 'Open my demo cart and read its current items, totals and checkout requirements. Do not add, remove or change anything.',
     stateAffected: ['Opens the cart drawer', 'Reads existing cart items and totals without editing them'],
-    exampleResult: { itemCount: 0, offset: 0, returned: 0, truncated: false, nextOffset: null, items: [], subtotal: 0, deliveryTotal: 0, grandTotal: 0, readyForCheckout: false, checkoutRoute: '/checkout', checkoutRequirements: { requiredFields: ['fullName', 'address.line1', 'address.city', 'address.state', 'address.postalCode', 'prescriptionStatus'], prescriptionStatusValues: ['provider-will-send', 'request-prepared'], hasPreparedRequest: false }, nextAction: 'Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.' },
+    exampleResult: { itemCount: 0, resolvedItemCount: 0, offset: 0, returned: 0, truncated: false, nextOffset: null, items: [], subtotal: 0, deliveryTotal: 0, grandTotal: 0, totalsComplete: true, readyForCheckout: false, checkoutIssues: [], checkoutIssueCount: 0, hasMoreIssues: false, checkoutRoute: '/checkout', checkoutRequirements: { requiredFields: ['fullName', 'address.line1', 'address.city', 'address.state', 'address.postalCode', 'prescriptionStatus'], prescriptionStatusValues: ['provider-will-send', 'request-prepared'], hasPreparedRequest: false }, nextAction: 'Call add_to_cart with an offerId and deliveryOptionId from compare_fulfillment_options.' },
   },
   compare_cart_savings: {
     prompt: 'Compare every existing demo cart line with the lowest current delivered price for its exact SKU. Report fictional savings without editing the cart or substituting medications.',
@@ -168,8 +168,14 @@ const editorial: Record<string, EditorialDetails> = {
     errors: [unavailableId],
     exampleResult: { cartItemId: 'cart-example', deliveryOptionId: 'express', delivery: 'Express', itemTotal: 15, grandTotal: 15 },
   },
+  prepare_demo_checkout: {
+    prompt: 'Read my cart and its checkout requirements. Fill the visible checkout form with the demo recipient details I provide, then stop for my review. Do not invent missing details or place an order. I will use Place demo order after reviewing the form.',
+    stateAffected: ['Fills the shared checkout form for this browser session', 'Navigates to /checkout for visible review', 'Does not create an order, clear the cart or persist recipient fields'],
+    errors: [{ condition: 'The cart is empty or a prepared request does not cover its prescription items.', recovery: 'Read view_cart and resolve its checkout requirements with the user. Do not manufacture cart items or a prescription request.' }, { condition: 'Recipient details are missing or invalid.', recovery: 'Ask the person for the missing details. Do not invent a recipient, address or prescription status.' }],
+    exampleResult: { route: '/checkout', itemCount: 1, total: 12, prepared: true, orderCreated: false, filledFields: ['fullName', 'address', 'prescriptionStatus'], nextAction: 'Review the visible form and fictional total. Use Place demo order only after checking the details. No order has been created.' },
+  },
   checkout_demo_order: {
-    prompt: 'Review my cart and demo checkout details. Ask for my explicit approval before creating a local simulated order. Never transmit payment or a prescription.',
+    prompt: 'Use prepare_demo_checkout to fill the visible form with my supplied details and stop for review. I can use Place demo order myself. Call checkout_demo_order only if I separately and explicitly authorize you to create the local simulated order. Never transmit payment or a prescription.',
     approvalRequired: true,
     stateAffected: ['Creates and persists a local simulated order', 'Clears the local demo cart after order creation', 'Navigates to the order confirmation'],
     errors: [{ condition: 'The cart is empty or a prepared request does not cover its prescription items.', recovery: 'Read the cart and checkout requirements. Resolve them with the user before checkout. Never manufacture cart items or a prescription request.' }, { condition: 'Checkout returned an uncertain result.', recovery: 'Read get_order_status and inspect the local cart before retrying. Never automatically retry a consequential call.' }],

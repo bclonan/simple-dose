@@ -2,12 +2,14 @@ import { nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDrugExplorerStore } from '../stores/drugExplorer.store'
 import { useCatalogStore } from '../stores/catalog.store'
+import { useCartStore } from '../stores/cart.store'
 
 // One binding for the whole app, including changes made by an agent on another page.
 export const useExplorerRoute = () => {
   const router = useRouter()
   const explorer = useDrugExplorerStore()
   const catalog = useCatalogStore()
+  const cart = useCartStore()
   let hydrating = 0
   let pendingHydration: Promise<void> | undefined
   let lastWritten = ''
@@ -33,9 +35,16 @@ export const useExplorerRoute = () => {
     pendingHydration = pending
     return pending
   }
-  watch(() => router.currentRoute.value.fullPath, async () => {
+  watch(() => router.currentRoute.value.fullPath, async (_path, previousPath) => {
     const route = router.currentRoute.value
     if (route.path !== '/drugs/explore') return
+    // Navigation back to Explorer resumes its existing comparison. Explicit
+    // query parameters and fresh loads still take their state from the URL.
+    if (previousPath && !Object.hasOwn(route.query, 'drugs') && !Object.hasOwn(route.query, 'facts') &&
+      (explorer.selectedDrugIds.length || explorer.cards.length)) {
+      await syncToRoute()
+      return
+    }
     const routeKey = key(route.query)
     if (routeKey === lastWritten) { lastWritten = ''; return }
     await startHydration(route.query)
@@ -62,6 +71,7 @@ export const useExplorerRoute = () => {
     reveal: async () => {
       const query = explorer.routeQuery()
       lastWritten = key(query)
+      cart.closeDrawer()
       await router.push({ path: '/drugs/explore', query })
     },
   }

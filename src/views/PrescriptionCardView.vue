@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PrescriptionRequestCard from '../components/PrescriptionRequestCard.vue'
 import { useClearDoseActions } from '../services/cleardose.actions'
@@ -16,12 +16,23 @@ const pricing = usePricingStore()
 const prescriptions = usePrescriptionStore()
 const actions = useClearDoseActions({ navigate: (path) => router.push(path) })
 const copyStatus = ref('')
+const actionError = ref('')
 
 const optionalFields = reactive({
   patientName: prescriptions.latestRequest?.patientName ?? '',
   dateOfBirth: prescriptions.latestRequest?.dateOfBirth ?? '',
   prescriberName: prescriptions.latestRequest?.prescriberName ?? '',
   practice: prescriptions.latestRequest?.practice ?? '',
+})
+
+// Tool calls replace the authoritative request even when this route stays open.
+// Watch the object, since a later request can retain the same display ID.
+watch(() => prescriptions.latestRequest, (request) => {
+  optionalFields.patientName = request?.patientName ?? ''
+  optionalFields.dateOfBirth = request?.dateOfBirth ?? ''
+  optionalFields.prescriberName = request?.prescriberName ?? ''
+  optionalFields.practice = request?.practice ?? ''
+  copyStatus.value = ''
 })
 
 const selectedSku = computed(() => selection.skuId ? catalog.skuById(selection.skuId) : undefined)
@@ -35,14 +46,15 @@ const selectedOption = computed(() => {
   ) ?? comparisons.find((option) => option.isLowestTotal)
 })
 
-const generate = (): void => {
+const generate = async (): Promise<void> => {
+  actionError.value = ''
   const option = selectedOption.value
-  if (!option) return
-  actions.createPrescriptionRequestCard({
-    offerId: option.offerId,
-    deliveryOptionId: option.deliveryOptionId,
-    ...optionalFields,
-  })
+  if (!option) { actionError.value = 'Choose an available fulfillment option before preparing a request.'; return }
+  try {
+    await actions.createPrescriptionRequestCard({ offerId: option.offerId, deliveryOptionId: option.deliveryOptionId, ...optionalFields })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'The demo request could not be prepared. Choose a current fulfillment option and try again.'
+  }
 }
 
 const cardText = computed(() => {
@@ -85,9 +97,14 @@ const copyRequest = async (): Promise<void> => {
 }
 
 const addToCart = (): void => {
+  actionError.value = ''
   const request = prescriptions.latestRequest
-  if (!request) return
-  actions.addToCart({ offerId: request.offerId, deliveryOptionId: request.deliveryOptionId })
+  if (!request) { actionError.value = 'Prepare a request before adding its medication to the cart.'; return }
+  try {
+    actions.addToCart({ offerId: request.offerId, deliveryOptionId: request.deliveryOptionId })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'This request could not be added to the cart. Choose a current fulfillment option and update the request.'
+  }
 }
 
 const printRequest = (): void => window.print()
@@ -132,6 +149,7 @@ const printRequest = (): void => window.print()
         <button class="button" type="button" data-testid="generate-request" @click="generate">Generate request card</button>
       </section>
 
+      <p v-if="actionError" class="error-banner no-print" role="alert">{{ actionError }}</p>
       <div v-if="prescriptions.latestRequest" class="page-actions no-print">
         <button class="button button--secondary" type="button" @click="copyRequest">Copy request</button>
         <button class="button button--secondary" type="button" @click="printRequest">Print / Save PDF</button>
