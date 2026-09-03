@@ -203,6 +203,14 @@ test('native-schema-style Metformin and Jardiance fact chain keeps public benchm
   expect(facts).toMatchObject({ status: 'updated', selectedDrugIds: drugs.map(drug => drug.id), cardCount: 2,
     data: { availability: 'available', requested: 4, available: 4, providerFailed: 0 } })
   await expect(page.getByTestId('drug-info-card')).toHaveCount(2)
+  const report = page.getByRole('table', { name: 'Medication comparison report', exact: true })
+  await expect(report).toBeVisible()
+  await expect(report.getByRole('columnheader')).toHaveCount(3)
+  for (const drug of drugs) await expect(report.getByRole('columnheader', { name: new RegExp(drug.name) })).toBeVisible()
+  for (const fact of ['side-effects', 'pricing']) {
+    await expect(card(page, fact).getByRole('cell')).toHaveCount(2)
+    expect(await card(page, fact).locator('[data-drug-id]').evaluateAll(elements => elements.map(element => element.getAttribute('data-drug-id')))).toEqual(drugs.map(drug => drug.id))
+  }
   for (const drug of drugs) await expect(drugSection(card(page, 'side-effects'), drug.id)).toContainText(`Fixture side effects for ${drug.name}.`)
   await expectPublicBenchmarks(page)
   for (const drug of drugs) expect(providers.labelRequests.some(query => /set_id/.test(query) && query.includes(drug.spl))).toBe(true)
@@ -218,6 +226,8 @@ test('native-schema-style Metformin and Jardiance fact chain keeps public benchm
   await expect(page.getByTestId('drug-info-card')).toHaveCount(1)
   await expect(card(page, 'side-effects')).toHaveCount(0)
   await expect(card(page, 'pricing')).toHaveCount(0)
+  await expect(card(page, 'interactions').getByRole('rowheader')).toHaveCount(1)
+  await expect(card(page, 'interactions').getByRole('cell')).toHaveCount(2)
   for (const drug of drugs) await expect(drugSection(card(page, 'interactions'), drug.id)).toContainText(`Fixture interaction label for ${drug.name}.`)
   await expect(card(page, 'interactions')).toContainText('not a complete pairwise interaction check')
   const rows = await factRows(page)
@@ -241,6 +251,7 @@ test('failed FDA labels recover through visible Retry without replacing cards or
   await expect(page.getByTestId('explorer-cards')).toHaveAttribute('aria-busy', 'false')
   const beforeIds = await page.getByTestId('drug-info-card').evaluateAll(elements => elements.map(element => element.id))
   const sideEffects = card(page, 'side-effects')
+  await expect(sideEffects).toHaveAttribute('data-comparison', 'incomplete')
   for (const drug of drugs) {
     const section = drugSection(sideEffects, drug.id)
     await expect(section.getByRole('status')).toHaveText('FDA label failed to load')
@@ -272,6 +283,7 @@ test('failed FDA labels recover through visible Retry without replacing cards or
     await expect(section).not.toContainText('FDA label could not load')
   }
   expect(providers.labelRequests.length).toBeGreaterThan(requestCount)
+  await expect(sideEffects).toHaveAttribute('data-comparison', 'different')
   expect(await page.getByTestId('drug-info-card').evaluateAll(elements => elements.map(element => element.id))).toEqual(beforeIds)
   await expectPublicBenchmarks(page)
   const recovered = (await factRows(page)).filter(row => row.kind === 'fact-data')

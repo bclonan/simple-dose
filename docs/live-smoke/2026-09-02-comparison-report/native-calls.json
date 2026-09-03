@@ -1,0 +1,771 @@
+[
+  {
+    "label": "local-report-state",
+    "name": "cleardose_get_explorer_state",
+    "input": {
+      "section": "selected"
+    },
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": null,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 2,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        }
+      ],
+      "section": "selected",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 2,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-9595fcd7-1-hybrid-0"
+    },
+    "url": "http://127.0.0.1:4191/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=side-effects,pricing",
+    "timestamp": "2026-09-03T01:37:58.057Z"
+  },
+  {
+    "label": "local-report-interactions-only",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-9595fcd7-1-hybrid-0",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-9595fcd7-2-hybrid-0"
+    },
+    "url": "http://127.0.0.1:4191/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=interactions",
+    "timestamp": "2026-09-03T01:38:01.317Z"
+  },
+  {
+    "label": "local-five-topic-report",
+    "name": "cleardose_get_explorer_state",
+    "input": {},
+    "output": {
+      "cardCount": 5,
+      "data": {
+        "availability": "available",
+        "available": 10,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 10,
+        "unavailable": 0,
+        "warningCount": 7
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 5,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 5,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "uses",
+          "id": "fact-3",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "warnings",
+          "id": "fact-4",
+          "kind": "fact-card"
+        }
+      ],
+      "section": "workspace",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 17,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-b64e60ca-2-hybrid-0"
+    },
+    "url": "http://127.0.0.1:4191/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=uses,side-effects,warnings,interactions,pricing",
+    "timestamp": "2026-09-03T02:33:22.682Z"
+  },
+  {
+    "label": "local-interactions-after-report-builder",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-b64e60ca-2-hybrid-0",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "interactions",
+          "id": "fact-5",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-5",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-b64e60ca-3-hybrid-0"
+    },
+    "url": "http://127.0.0.1:4191/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=interactions",
+    "timestamp": "2026-09-03T02:33:25.860Z"
+  },
+  {
+    "label": "preview-state",
+    "name": "cleardose_get_explorer_state",
+    "input": {},
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 5,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 5,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        }
+      ],
+      "section": "workspace",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 8,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-afacb285-1-hybrid-0"
+    },
+    "url": "https://6a98dcfacb3dc41e5b941ed8--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=side-effects,pricing",
+    "timestamp": "2026-09-03T02:36:18.196Z"
+  },
+  {
+    "label": "preview-interactions-only",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-afacb285-1-hybrid-0",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-afacb285-2-hybrid-0"
+    },
+    "url": "https://6a98dcfacb3dc41e5b941ed8--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=interactions",
+    "timestamp": "2026-09-03T02:36:29.357Z"
+  },
+  {
+    "label": "final-preview-incomplete-source",
+    "name": "cleardose_get_explorer_state",
+    "input": {},
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "partial",
+        "available": 3,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 1,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 5,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 5,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "provider-failed",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "network",
+              "source": "openfda-label"
+            }
+          ]
+        }
+      ],
+      "section": "workspace",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 8,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-eba2ffa9-1-hybrid-0"
+    },
+    "url": "https://6a98ddde48c3f319b33c54e9--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=side-effects,pricing",
+    "timestamp": "2026-09-03T02:40:52.886Z"
+  },
+  {
+    "label": "final-preview-after-retry",
+    "name": "cleardose_get_explorer_state",
+    "input": {},
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 5,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 5,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        }
+      ],
+      "section": "workspace",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-2",
+      "total": 8,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-eba2ffa9-1-hybrid-0"
+    },
+    "url": "https://6a98ddde48c3f319b33c54e9--cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=side-effects,pricing",
+    "timestamp": "2026-09-03T02:41:19.077Z"
+  },
+  {
+    "label": "production-side-effects-pricing",
+    "name": "cleardose_get_explorer_state",
+    "input": {},
+    "output": {
+      "cardCount": 2,
+      "data": {
+        "availability": "available",
+        "available": 4,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 4,
+        "unavailable": 0,
+        "warningCount": 4
+      },
+      "format": "Drug Explorer state rows. Follow nextOffset with both revision values to read the rest.",
+      "nextOffset": 5,
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "offset": 0,
+      "returned": 5,
+      "route": "/drugs/explore",
+      "rows": [
+        {
+          "id": "med-public-metformin-hydrochloride",
+          "kind": "selected-drug",
+          "label": "Metformin Hydrochloride"
+        },
+        {
+          "id": "med-public-empagliflozin",
+          "kind": "selected-drug",
+          "label": "Empagliflozin"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-card"
+        },
+        {
+          "drugIds": [
+            "med-public-metformin-hydrochloride",
+            "med-public-empagliflozin"
+          ],
+          "factType": "pricing",
+          "id": "fact-2",
+          "kind": "fact-card"
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-1",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        }
+      ],
+      "section": "workspace",
+      "selectedDrugCount": 2,
+      "stateRevision": "explorer-state-1",
+      "total": 8,
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-287d00c1-1-live-0"
+    },
+    "url": "https://cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=side-effects,pricing",
+    "timestamp": "2026-09-03T02:43:05.716Z"
+  },
+  {
+    "label": "production-interactions-only",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-287d00c1-1-live-0",
+      "facts": [
+        "interactions"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 1,
+      "data": {
+        "availability": "available",
+        "available": 2,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 2,
+        "unavailable": 0,
+        "warningCount": 1
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "interactions",
+          "id": "fact-3",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        }
+      ],
+      "factResultsTotal": 2,
+      "factResultsTruncated": false,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-287d00c1-2-live-0"
+    },
+    "url": "https://cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=interactions",
+    "timestamp": "2026-09-03T02:43:28.948Z"
+  },
+  {
+    "label": "production-five-topic-report",
+    "name": "cleardose_show_drug_fact",
+    "input": {
+      "workspaceRevision": "explorer-287d00c1-2-live-0",
+      "facts": [
+        "uses",
+        "side-effects",
+        "warnings",
+        "interactions",
+        "pricing"
+      ],
+      "mode": "replace"
+    },
+    "output": {
+      "cardCount": 5,
+      "data": {
+        "availability": "available",
+        "available": 10,
+        "loading": 0,
+        "partial": 0,
+        "providerFailed": 0,
+        "requested": 10,
+        "unavailable": 0,
+        "warningCount": 7
+      },
+      "factResults": [
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "uses",
+          "id": "fact-4",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-empagliflozin",
+          "factType": "uses",
+          "id": "fact-4",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 0,
+          "warnings": []
+        },
+        {
+          "availability": "available",
+          "drugId": "med-public-metformin-hydrochloride",
+          "factType": "side-effects",
+          "id": "fact-5",
+          "kind": "fact-data",
+          "source": "openfda-label",
+          "warningCount": 1,
+          "warnings": [
+            {
+              "code": "partial",
+              "source": "openfda-label"
+            }
+          ]
+        }
+      ],
+      "factResultsTotal": 10,
+      "factResultsTruncated": true,
+      "nextAction": "Use this workspaceRevision for edits. Read cleardose_get_explorer_state section cards for all fact-data rows.",
+      "notice": "Public reference facts are not personal medical advice. Label interactions are not a pairwise interaction check. NADAC is not a pharmacy cash price.",
+      "route": "/drugs/explore",
+      "selectedDrugIds": [
+        "med-public-metformin-hydrochloride",
+        "med-public-empagliflozin"
+      ],
+      "status": "updated",
+      "workspacePath": "/drugs/explore",
+      "workspaceRevision": "explorer-287d00c1-3-live-0"
+    },
+    "url": "https://cleardose-webmcp-demo.netlify.app/drugs/explore?drugs=public-metformin-hydrochloride,public-empagliflozin&facts=uses,side-effects,warnings,interactions,pricing",
+    "timestamp": "2026-09-03T02:43:58.614Z"
+  }
+]

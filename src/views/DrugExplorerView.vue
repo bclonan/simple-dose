@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import DrugInfoCard from '../components/medications/DrugInfoCard.vue'
+import DrugComparisonReport from '../components/medications/DrugComparisonReport.vue'
 import { drugFactRegistry, drugFactTypes, quickDrugFacts, type DrugFactType } from '../domain/drug-facts'
 import { useCatalogStore } from '../stores/catalog.store'
 import { MAX_EXPLORER_DRUGS, useDrugExplorerStore } from '../stores/drugExplorer.store'
@@ -84,6 +84,19 @@ const addFact = async (fact: DrugFactType): Promise<void> => {
   }
 }
 
+const buildReport = async (): Promise<void> => {
+  actionError.value = ''
+  try {
+    await workspace.configureWorkspace({ facts: ['uses', 'side-effects', 'warnings', 'interactions', 'pricing'], factMode: 'replace', focus: false })
+    await nextTick()
+    const heading = document.getElementById('comparison-report-title')
+    heading?.focus({ preventScroll: true })
+    heading?.scrollIntoView({ block: 'start', behavior: 'instant' })
+  } catch (error) {
+    actionError.value = error instanceof Error ? error.message : 'The report could not load. Available facts remain visible.'
+  }
+}
+
 const changeFact = (cardId: string, fact: DrugFactType): void => {
   actionError.value = ''
   try { workspace.changeFactCard(cardId, fact) }
@@ -121,9 +134,9 @@ const copyLink = async (): Promise<void> => {
   <main id="main-content" class="page-shell drug-explorer" data-testid="drug-explorer">
     <header class="explorer-heading">
       <div>
-        <p class="eyebrow">Medication reference workspace</p>
+        <p class="eyebrow">Compare. Understand. Ask informed questions.</p>
         <h1>Drug Explorer</h1>
-        <p>Choose up to {{ MAX_EXPLORER_DRUGS }} medications, then compare only the facts you want to see.</p>
+        <p>A side-by-side medication report, with the facts and sources you need for a conversation with your care team.</p>
       </div>
       <div class="explorer-workspace-actions">
         <button class="button button--secondary button--small" type="button" :disabled="busy || !workspace.selectedDrugIds.length" @click="copyLink">Copy workspace link</button>
@@ -132,9 +145,10 @@ const copyLink = async (): Promise<void> => {
     </header>
     <p v-if="copyMessage" class="explorer-message" role="status">{{ copyMessage }}</p>
 
+    <div class="explorer-builder">
     <section class="explorer-panel explorer-search" aria-labelledby="explorer-search-title">
       <div class="explorer-section-heading">
-        <div><h2 id="explorer-search-title">Choose medications</h2><p>Search a generic or brand name. Selecting a result adds it to every card.</p></div>
+        <div><p class="explorer-step">Step 1</p><h2 id="explorer-search-title">Choose medications</h2><p>Add up to {{ MAX_EXPLORER_DRUGS }} generic or brand names. Each gets its own report column.</p></div>
         <label class="explorer-mode"><span>Data mode</span><select :value="catalog.dataMode" :disabled="busy" data-testid="explorer-data-mode" @change="changeMode"><option value="hybrid">Hybrid public + demo</option><option value="live">Public data only</option><option value="demo">Deterministic demo</option></select></label>
       </div>
       <form class="explorer-search-form" role="search" aria-label="Find medications for Drug Explorer" @submit.prevent="search">
@@ -167,9 +181,13 @@ const copyLink = async (): Promise<void> => {
     </section>
 
     <section class="explorer-panel explorer-facts" aria-labelledby="explorer-facts-title">
-      <div class="explorer-section-heading"><div><h2 id="explorer-facts-title">Choose facts</h2><p>One card compares the same fact across your selected medications. Adding an existing fact focuses its card.</p></div></div>
+      <div class="explorer-section-heading"><div><p class="explorer-step">Step 2</p><h2 id="explorer-facts-title">Choose facts</h2><p>Build a five-topic report, or add just the topics you want.</p></div></div>
+      <div class="explorer-report-builder">
+        <button class="button" type="button" :disabled="busy || !workspace.selectedDrugIds.length" @click="buildReport">Build comparison report</button>
+        <p>Replaces current topics with uses, side effects, warnings, interactions, and public pricing.</p>
+      </div>
       <div class="explorer-quick-facts" role="group" aria-label="Quick fact cards">
-        <button v-for="fact in quickDrugFacts" :key="fact" class="button button--secondary button--small" type="button" :disabled="workspace.loading || !workspace.selectedDrugIds.length" :data-testid="`explorer-add-${fact}`" @click="addFact(fact)">{{ drugFactRegistry[fact].label }}</button>
+        <button v-for="fact in quickDrugFacts" :key="fact" class="button button--secondary button--small" :class="{ 'explorer-fact-selected': workspace.cards.some(card => card.factType === fact) }" type="button" :disabled="workspace.loading || !workspace.selectedDrugIds.length" :data-testid="`explorer-add-${fact}`" @click="addFact(fact)"><span v-if="workspace.cards.some(card => card.factType === fact)" aria-hidden="true">✓ </span>{{ drugFactRegistry[fact].label }}</button>
       </div>
       <form class="explorer-fact-picker" @submit.prevent="addFact(selectedFact)">
         <label for="explorer-fact-type">All available facts</label>
@@ -177,6 +195,7 @@ const copyLink = async (): Promise<void> => {
         <button class="button button--secondary button--small" type="submit" :disabled="workspace.loading || !workspace.selectedDrugIds.length">Add fact card</button>
       </form>
     </section>
+    </div>
 
     <p v-if="factsLoading" class="explorer-loading" role="status">Loading the selected medication facts...</p>
     <p v-if="workspace.message" class="explorer-message" role="status" data-testid="explorer-message">{{ workspace.message }}</p>
@@ -187,12 +206,12 @@ const copyLink = async (): Promise<void> => {
       <p>Missing facts do not establish safety. Label interactions are not a pairwise interaction check. Do not change medication or dosage based on this workspace.</p>
     </section>
 
-    <section v-if="workspace.cards.length" class="explorer-card-grid" aria-label="Selected medication fact cards" :aria-busy="factsLoading" data-testid="explorer-cards">
-      <DrugInfoCard v-for="card in workspace.cards" :key="card.id" :card="card" editable @change="changeFact(card.id, $event)" @remove="workspace.removeFactCard(card.id)" />
+    <section v-if="workspace.cards.length" aria-label="Selected medication fact cards" :aria-busy="factsLoading" data-testid="explorer-cards">
+      <DrugComparisonReport :cards="workspace.cards" :drug-ids="workspace.selectedDrugIds" :loading="factsLoading" @change="changeFact" @remove="workspace.removeFactCard($event)" />
     </section>
     <section v-else class="explorer-empty" data-testid="explorer-empty">
-      <h2>{{ workspace.selectedDrugIds.length ? 'Choose the facts that matter to you' : 'A focused place to compare medication facts' }}</h2>
-      <p>{{ workspace.selectedDrugIds.length ? 'Add a quick fact or choose another section above. Each card will show the same information for every selected medication.' : 'Search for a medication, select it, and add Uses, Warnings, Pricing, or another fact. Add a second medication to compare the same cards.' }}</p>
+      <h2>{{ workspace.selectedDrugIds.length ? 'Your medications are ready to compare' : 'Start with the medicines you want to understand' }}</h2>
+      <p>{{ workspace.selectedDrugIds.length ? 'Build a comparison report or choose individual topics above. Read across each row to see the same fact for every medication.' : 'Choose medications above, then build a report. Public facts appear side by side, with source dates and a copy you can download or print.' }}</p>
     </section>
     <p class="explorer-footer-note">Your selected medications and facts stay in the page link. WebMCP tools use this same workspace, so agent changes appear here.</p>
   </main>
@@ -205,12 +224,19 @@ const copyLink = async (): Promise<void> => {
 .explorer-heading > div:first-child { flex: 1 1 28rem; }
 .explorer-heading h1 { margin: 0 0 .7rem; font-size: clamp(2.15rem, 4vw, 3.25rem); }
 .explorer-heading p:last-child { margin: 0; color: var(--cd-muted-dark); max-width: 42rem; }
+.explorer-builder { display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.2rem; align-items: start; }
+.explorer-builder .explorer-panel { margin: 0; height: 100%; }
+.explorer-section-heading .explorer-step { color: var(--cd-teal-dark); text-transform: uppercase; font-size: .65rem; letter-spacing: .08em; font-weight: 800; margin-bottom: .4rem; }
+.explorer-report-builder { margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cd-border); }
+.explorer-report-builder p { margin: .6rem 0 0; font-size: .76rem; line-height: 1.5; color: var(--cd-muted-dark); }
+.explorer-quick-facts .button { min-height: 2.25rem; font-size: .75rem; padding: .4rem .6rem; }
+.explorer-quick-facts .explorer-fact-selected { background: var(--cd-mint); border-color: var(--cd-mint-strong); color: var(--cd-teal-deep); }
 .explorer-workspace-actions { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
 .explorer-panel { min-width: 0; padding: clamp(1rem, 3vw, 1.5rem); margin-bottom: 1.2rem; border: 1px solid var(--cd-border); border-radius: var(--cd-radius-md); background: var(--cd-surface); box-shadow: var(--cd-shadow-xs); }
 .explorer-section-heading { margin-bottom: 1rem; }
 .explorer-section-heading h2 { font-size: 1.15rem; margin: 0 0 .35rem; }
 .explorer-section-heading p { margin: 0; max-width: 43rem; color: var(--cd-muted-dark); font-size: .85rem; }
-.explorer-mode { display: grid; gap: .3rem; font-size: .75rem; flex: 0 1 15rem; min-width: 0; }
+.explorer-mode { display: grid; gap: .3rem; font-size: .75rem; flex: 1 1 11rem; min-width: 0; }
 .drug-explorer select, .explorer-search-form input { min-height: 2.75rem; border: 1px solid var(--cd-border-strong); border-radius: .6rem; background: white; padding: .6rem .7rem; min-width: 0; max-width: 100%; }
 .explorer-mode select { width: 100%; }
 .explorer-search-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .65rem; }
@@ -237,13 +263,21 @@ const copyLink = async (): Promise<void> => {
 .explorer-fact-picker select { flex: 0 1 17rem; font-size: .84rem; }
 .explorer-source-summary { display: flex; flex-wrap: wrap; gap: .55rem 1.2rem; margin: 1.5rem 0 1rem; font-size: .77rem; color: var(--cd-muted-dark); }
 .explorer-source-summary p { flex-basis: 100%; margin: .1rem 0; }
-.explorer-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 1rem; }
-.explorer-card-grid > * { min-width: 0; }
 .explorer-empty { text-align: center; padding: clamp(2rem, 5vw, 4rem) 1.25rem; border: 1px dashed var(--cd-border-strong); border-radius: var(--cd-radius-md); }
 .explorer-empty h2 { font-size: 1.25rem; margin-bottom: .6rem; }
 .explorer-empty p { max-width: 40rem; margin: 0 auto; font-size: .9rem; color: var(--cd-muted-dark); }
 .explorer-footer-note { margin-top: 1.25rem; color: var(--cd-muted); font-size: .77rem; }
-@media (min-width: 1200px) { .explorer-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .explorer-card-grid { grid-template-columns: minmax(0, 1fr); } .explorer-mode { flex-basis: 100%; } }
+@media (max-width: 900px) { .explorer-builder { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) { .explorer-mode { flex-basis: 100%; } }
 @media (max-width: 480px) { .explorer-search-form { grid-template-columns: minmax(0, 1fr); } .explorer-fact-picker { display: grid; grid-template-columns: minmax(0, 1fr); } .explorer-fact-picker select { width: 100%; } }
+</style>
+
+<style>
+@media print {
+  @page { size: landscape; margin: 12mm; }
+  body:has(.drug-explorer) { background: white !important; }
+  body:has(.drug-explorer) .skip-link,
+  .drug-explorer > :not([data-testid='explorer-cards']) { display: none !important; }
+  .drug-explorer { padding: 0 !important; max-width: none !important; width: 100% !important; }
+}
 </style>

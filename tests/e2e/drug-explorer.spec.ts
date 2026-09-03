@@ -73,9 +73,13 @@ test('human selections evolve the same cards and keep the workspace URL in sync'
   await expect(page.getByTestId('drug-info-card')).toHaveCount(2)
   const ids = await page.getByTestId('drug-info-card').evaluateAll(elements => elements.map(element => element.id))
   await addMedication(page, 'Rosuvastatin')
+  const report = page.getByRole('table', { name: 'Medication comparison report', exact: true })
+  await expect(report.getByRole('columnheader', { name: /Atorvastatin/ })).toBeVisible()
+  await expect(report.getByRole('columnheader', { name: /Rosuvastatin/ })).toBeVisible()
   for (const fact of ['uses', 'warnings']) {
-    await expect(factCard(page, fact).getByRole('heading', { name: 'Atorvastatin', exact: true })).toBeVisible()
-    await expect(factCard(page, fact).getByRole('heading', { name: 'Rosuvastatin', exact: true })).toBeVisible()
+    await expect(factCard(page, fact).locator('[data-drug-id="med-atorvastatin"]')).toBeVisible()
+    await expect(factCard(page, fact).locator('[data-drug-id="med-rosuvastatin"]')).toBeVisible()
+    await expect(factCard(page, fact).getByRole('cell')).toHaveCount(2)
   }
   expect(await page.getByTestId('drug-info-card').evaluateAll(elements => elements.map(element => element.id))).toEqual(ids)
   await expect.poll(() => routeState(page)).toEqual({ drugs: 'atorvastatin,rosuvastatin', facts: 'uses,warnings' })
@@ -92,7 +96,8 @@ test('human selections evolve the same cards and keep the workspace URL in sync'
   await expect(factCard(page, 'uses')).toBeFocused()
   await factCard(page, 'uses').getByRole('button', { name: 'Remove Uses card' }).click()
   await page.getByRole('button', { name: 'Remove Atorvastatin', exact: true }).click()
-  await expect(factCard(page, 'side-effects').getByRole('heading', { name: 'Atorvastatin', exact: true })).toHaveCount(0)
+  await expect(factCard(page, 'side-effects').locator('[data-drug-id="med-atorvastatin"]')).toHaveCount(0)
+  await expect(report.getByRole('columnheader', { name: /Atorvastatin/ })).toHaveCount(0)
   await expect.poll(() => routeState(page)).toEqual({ drugs: 'rosuvastatin', facts: 'side-effects' })
   await page.reload()
   await expect(page.getByTestId('explorer-selected')).toContainText('Rosuvastatin')
@@ -162,8 +167,11 @@ test('mobile selection works by keyboard and the four-drug limit stays visible',
   for (const width of [320, 390, 900, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1)
+    await expect(page.getByRole('table', { name: 'Medication comparison report', exact: true }).getByRole('columnheader')).toHaveCount(5)
     if (width <= 390) {
-      expect(await page.getByTestId('explorer-cards').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(1)
+      const scroll = page.getByRole('region', { name: 'Scrollable medication comparison', exact: true })
+      await expect(scroll).toHaveAttribute('tabindex', '0')
+      expect(await scroll.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
     }
   }
   await search.fill('Sertraline')

@@ -12,6 +12,7 @@ export default defineConfig({
     timeout: 5_000,
   },
   reporter: [['list']],
+  globalSetup: './tests/e2e/server.ts',
   use: {
     baseURL: `http://127.0.0.1:${port}`,
     permissions: ['clipboard-read', 'clipboard-write'],
@@ -25,11 +26,4 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    env: { VITE_CLEARDose_DATA_MODE: 'demo' },
-    command: `pnpm dev --host 127.0.0.1 --port ${port}`,
-    url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: false,
-    timeout: 120_000,
-  },
 })
